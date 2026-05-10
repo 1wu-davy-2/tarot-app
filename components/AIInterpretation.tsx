@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
+import { getRemainingUses, consumeUse, getLimitMessage, isAdmin } from "@/lib/auth-utils";
+import { LoginModal } from "@/components/LoginModal";
 
 interface AIInterpretationProps {
   cards: import("@/lib/tarot-data").TarotCard[];
@@ -15,7 +17,30 @@ export function AIInterpretation({ cards, isReversed, spreadType, question, onCo
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [blocked, setBlocked] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [remaining, setRemaining] = useState(() => getRemainingUses());
   const abortRef = useRef<AbortController | null>(null);
+  const startedRef = useRef(false);
+
+  const startAiFlow = () => {
+    const rem = getRemainingUses();
+    setRemaining(rem);
+    if (rem <= 0) {
+      setBlocked(true);
+      setLoading(false);
+      return;
+    }
+    if (!consumeUse()) {
+      setBlocked(true);
+      setError(getLimitMessage());
+      setLoading(false);
+      return;
+    }
+    setRemaining(getRemainingUses());
+    setBlocked(false);
+    fetchInterpretation();
+  };
 
   const fetchInterpretation = useCallback(async () => {
     setLoading(true);
@@ -81,11 +106,41 @@ export function AIInterpretation({ cards, isReversed, spreadType, question, onCo
   }, [cards, isReversed, spreadType, question, onComplete]);
 
   useEffect(() => {
-    fetchInterpretation();
+    if (startedRef.current) return;
+    startedRef.current = true;
+    startAiFlow();
     return () => {
       abortRef.current?.abort();
     };
-  }, [fetchInterpretation]);
+  }, []);
+
+  // Blocked — not enough credits
+  if (blocked && !text) {
+    return (
+      <div className="glass-card p-6 text-center">
+        <h3 className="text-lg font-cinzel text-mystic-gold mb-4">🔮 AI 塔罗解读</h3>
+        <p className="text-foreground/60 text-sm mb-2">{error || getLimitMessage()}</p>
+        <button
+          onClick={() => setShowLogin(true)}
+          className="flex items-center gap-2 mx-auto px-6 py-3 rounded-full border border-mystic-gold/50 text-mystic-gold hover:bg-mystic-gold/10 transition-all mt-4"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>登录解锁更多次数</span>
+        </button>
+        <LoginModal
+          open={showLogin}
+          onClose={() => setShowLogin(false)}
+          onSuccess={() => {
+            setShowLogin(false);
+            setRemaining(getRemainingUses());
+            setBlocked(false);
+            setError("");
+            startAiFlow();
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="glass-card p-6">

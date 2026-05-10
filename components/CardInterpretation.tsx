@@ -4,6 +4,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, BookOpen, ChevronDown } from "lucide-react";
 import type { TarotCard } from "@/lib/tarot-data";
+import { getRemainingUses, consumeUse, getLimitMessage, isAdmin } from "@/lib/auth-utils";
+import { LoginModal } from "@/components/LoginModal";
 
 interface CardInterpretationProps {
   card: TarotCard;
@@ -101,12 +103,31 @@ function AIInterpretationTab({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [started, setStarted] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [remaining, setRemaining] = useState(() => getRemainingUses());
+
+  const startAiFlow = () => {
+    const rem = getRemainingUses();
+    setRemaining(rem);
+    if (rem <= 0) {
+      setShowLogin(true);
+      return;
+    }
+    if (!consumeUse()) {
+      setError(getLimitMessage());
+      return;
+    }
+    setRemaining(getRemainingUses());
+    fetchInterpretation();
+  };
 
   const fetchInterpretation = async () => {
     setStarted(true);
     setLoading(true);
     setText("");
     setError("");
+
+    let accumulated = "";
 
     try {
       const response = await fetch("/api/interpret", {
@@ -146,11 +167,9 @@ function AIInterpretationTab({
           try {
             const parsed = JSON.parse(data);
             if (parsed.content) {
-                setText((prev) => {
-                  const next = prev + parsed.content;
-                  onText?.(next);
-                  return next;
-                });
+                accumulated += parsed.content;
+                setText(accumulated);
+                onText?.(accumulated);
               }
             if (parsed.error) setError(parsed.error);
           } catch {}
@@ -169,11 +188,14 @@ function AIInterpretationTab({
     <div>
       {!started && (
         <div className="text-center py-6">
-          <p className="text-foreground/60 text-sm mb-4">
+          <p className="text-foreground/60 text-sm mb-2">
             获取 DeepSeek AI 为你深度解读牌面，融合东西方智慧
           </p>
+          <p className="text-mystic-rose/40 text-xs mb-4">
+            {isAdmin() ? "管理员 · 无限制" : getLimitMessage()}
+          </p>
           <button
-            onClick={fetchInterpretation}
+            onClick={startAiFlow}
             className="flex items-center gap-2 mx-auto px-6 py-3 rounded-full border border-mystic-gold/50 text-mystic-gold hover:bg-mystic-gold/10 transition-all"
           >
             <Sparkles className="w-4 h-4" />
@@ -181,6 +203,17 @@ function AIInterpretationTab({
           </button>
         </div>
       )}
+
+      {/* Login Modal */}
+      <LoginModal
+        open={showLogin}
+        onClose={() => setShowLogin(false)}
+        onSuccess={() => {
+          setShowLogin(false);
+          setRemaining(getRemainingUses());
+          setError("");
+        }}
+      />
 
       {started && loading && !text && !error && (
         <div className="flex flex-col items-center gap-3 py-8">

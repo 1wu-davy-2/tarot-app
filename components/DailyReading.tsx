@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TarotCard } from "./TarotCard";
 import { AIInterpretation } from "./AIInterpretation";
 import type { TarotCard as TarotCardType } from "@/lib/tarot-data";
 import { Sparkles } from "lucide-react";
+import { getLimitMessage, isAdmin } from "@/lib/auth-utils";
 
 interface DailyReadingProps {
   card: TarotCardType;
@@ -77,6 +78,9 @@ export function DailyReading({ card, isReversed, date }: DailyReadingProps) {
               </div>
               <p className="text-foreground/70 text-sm text-center max-w-sm italic leading-relaxed">
                 {isReversed ? card.reversedMeaning : card.uprightMeaning}
+              </p>
+              <p className="text-mystic-rose/30 text-xs">
+                {isAdmin() ? "管理员 · 无限制" : getLimitMessage()}
               </p>
               <button
                 onClick={() => setShowInterpretation(true)}

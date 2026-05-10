@@ -180,8 +180,7 @@ export function ShareButton({
                     {interpretation ? "🔮 AI 深度解读" : "📖 标准解读"}
                   </p>
                   <p style={{ fontSize: "11px", color: C.fgDim, lineHeight: 1.7, whiteSpace: "pre-wrap", textAlign: "justify" }}>
-                    {displayInterpretation.slice(0, 400)}
-                    {displayInterpretation.length > 400 ? "..." : ""}
+                    {displayInterpretation}
                   </p>
                 </div>
               )}
