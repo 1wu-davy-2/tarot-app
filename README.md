@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 命运之镜 · Mirror of Fate
 
-## Getting Started
+塔罗牌占卜网站，支持每日卦算和多种牌阵，融合东西方智慧诠释。
 
-First, run the development server:
+## 技术栈
+
+- **前端**: Next.js 16 (App Router) + Tailwind CSS v4 + Framer Motion
+- **AI**: DeepSeek Chat API（流式 SSE 解读）
+- **牌图**: Rider-Waite 塔罗牌（公共领域，1966 年版权到期）
+- **部署**: Vercel / Docker
+
+## 快速开始
 
 ```bash
+# 安装依赖
+npm install
+
+# 配置 DeepSeek API Key
+cp .env.local.example .env.local
+# 编辑 .env.local，填入 DEEPSEEK_API_KEY
+
+# 启动开发服务器
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+访问 http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 功能
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 功能 | 说明 |
+|------|------|
+| 每日卦算 | 日期哈希固定每日一牌，离线可用 |
+| 三牌阵 | 过去·现在·未来，适合日常决策 |
+| 凯尔特十字 | 10 张牌全维度深度分析 |
+| 标准解读 | 78 张牌自带 5 维度离线解读 |
+| AI 深度解读 | DeepSeek 流式打字机效果 |
+| 扇形抽牌 | 三阶段动画：洗牌→扇出→飞入 |
+| 3D 翻牌 | 呼吸光晕→翻转→金色脉冲 |
 
-## Learn More
+## 项目结构
 
-To learn more about Next.js, take a look at the following resources:
+```
+tarot-app/
+├── app/
+│   ├── page.tsx              # 首页
+│   ├── daily/page.tsx        # 每日卦算
+│   ├── spread/page.tsx       # 牌阵占卜
+│   └── api/
+│       ├── daily-reading/    # 每日牌 API
+│       └── interpret/        # AI 解读 API（SSE 流式）
+├── components/
+│   ├── TarotCard.tsx         # 3D 翻牌组件
+│   ├── CardDrawAnimation.tsx # 扇形抽牌动画
+│   ├── CardInterpretation.tsx# 标准/AI 双面板解读
+│   ├── MysticBackground.tsx  # 星空粒子背景
+│   └── ...
+├── lib/
+│   ├── tarot-data.ts         # 78 张牌完整数据 + 解读
+│   ├── daily-seed.ts         # 每日种子算法
+│   └── deepseek.ts           # DeepSeek API 封装
+└── public/cards/             # 78 张 Rider-Waite 牌图
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 环境变量
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| 变量 | 说明 |
+|------|------|
+| `DEEPSEEK_API_KEY` | DeepSeek API 密钥（https://platform.deepseek.com） |
 
-## Deploy on Vercel
+## 部署
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Fork / 推送此仓库到 GitHub
+2. Vercel 导入项目
+3. 设置环境变量 `DEEPSEEK_API_KEY`
+4. 部署
+
+### Docker
+
+```bash
+docker build -t tarot-app .
+docker run -p 3000:3000 -e DEEPSEEK_API_KEY=sk-xxx tarot-app
+```

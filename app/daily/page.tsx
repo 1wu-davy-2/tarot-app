@@ -1,0 +1,156 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { Loader2, ArrowLeft, Sparkles } from "lucide-react";
+import { TarotCard } from "@/components/TarotCard";
+import { CardInterpretation } from "@/components/CardInterpretation";
+import type { TarotCard as TarotCardType } from "@/lib/tarot-data";
+
+interface DailyData {
+  card: TarotCardType;
+  isReversed: boolean;
+  date: string;
+}
+
+export default function DailyPage() {
+  const [data, setData] = useState<DailyData | null>(null);
+  const [error, setError] = useState("");
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [showInterpretation, setShowInterpretation] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/daily-reading")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch");
+        return res.json();
+      })
+      .then(setData)
+      .catch((err) => setError(err.message || "获取今日牌失败"));
+  }, []);
+
+  const formattedDate = data
+    ? new Date(data.date).toLocaleDateString("zh-CN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "long",
+      })
+    : "";
+
+  return (
+    <div className="min-h-screen py-8 px-4">
+      <div className="max-w-2xl mx-auto">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-mystic-rose/50 hover:text-mystic-rose transition-colors text-sm mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          返回首页
+        </Link>
+
+        {error && (
+          <div className="text-center py-20">
+            <p className="text-red-400 mb-4">{error}</p>
+            <button onClick={() => window.location.reload()} className="text-mystic-gold underline text-sm">
+              重试
+            </button>
+          </div>
+        )}
+
+        {!data && !error && (
+          <div className="flex flex-col items-center gap-4 py-40">
+            <Loader2 className="w-10 h-10 text-mystic-gold animate-spin" />
+            <p className="text-mystic-rose/50 text-sm">正在排列今日的宇宙能量...</p>
+          </div>
+        )}
+
+        {data && (
+          <div className="flex flex-col items-center gap-8">
+            {/* Date header */}
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <p className="text-mystic-gold/60 text-sm tracking-widest uppercase font-cinzel">Daily Tarot</p>
+              <h1 className="text-3xl md:text-4xl font-cinzel text-mystic-gold mt-2 text-glow">今日塔罗</h1>
+              <p className="text-mystic-rose/50 text-sm mt-2">{formattedDate}</p>
+            </motion.div>
+
+            {/* Card */}
+            <div className="flex flex-col items-center gap-6">
+              <TarotCard
+                card={data.card}
+                isReversed={data.isReversed}
+                isFlipped={isFlipped}
+                onClick={() => !isFlipped && setIsFlipped(true)}
+                size="lg"
+              />
+
+              <AnimatePresence mode="wait">
+                {!isFlipped && (
+                  <motion.p
+                    key="hint"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-mystic-rose/40 text-sm animate-pulse"
+                  >
+                    轻触牌面揭示今日指引
+                  </motion.p>
+                )}
+
+                {isFlipped && !showInterpretation && (
+                  <motion.div
+                    key="revealed"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="flex flex-col items-center gap-4"
+                  >
+                    <div className="text-center">
+                      <h2 className="text-xl font-cinzel text-mystic-gold">{data.card.nameCN}</h2>
+                      <p className="text-mystic-rose/60 text-sm mt-1">
+                        {data.isReversed ? "逆位 · Reversed" : "正位 · Upright"}
+                      </p>
+                    </div>
+                    <p className="text-foreground/70 text-sm text-center max-w-sm italic leading-relaxed">
+                      {data.isReversed ? data.card.reversedMeaning : data.card.uprightMeaning}
+                    </p>
+                    <button
+                      onClick={() => setShowInterpretation(true)}
+                      className="flex items-center gap-2 px-6 py-3 rounded-full border border-mystic-gold/50 text-mystic-gold hover:bg-mystic-gold/10 transition-all duration-300"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span className="text-sm">获取深度解读</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Interpretation tabs */}
+            {showInterpretation && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="w-full max-w-lg"
+              >
+                <CardInterpretation
+                  card={data.card}
+                  isReversed={data.isReversed}
+                  question="今日的指引与能量"
+                  spreadType="每日单牌"
+                />
+              </motion.div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

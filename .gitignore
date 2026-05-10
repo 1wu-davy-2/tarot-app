@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# download scripts (not needed after initial setup)
+download-tarot-images.sh
+scripts/download-images.mjs
+
+# IDE
+.idea/
