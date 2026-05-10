@@ -35,116 +35,6 @@ const suitNames: Record<string, string> = {
   pentacles: "星币",
 };
 
-function CardBack() {
-  return (
-    <div className="absolute inset-0 rounded-xl overflow-hidden" style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}>
-      <div className="w-full h-full bg-gradient-to-br from-mystic-dark via-mystic-purple to-mystic-dark flex items-center justify-center border-2 border-mystic-gold/40 rounded-xl">
-        <div className="absolute inset-2 rounded-lg border border-mystic-gold/20" />
-        <div className="absolute inset-4 rounded-lg border border-mystic-gold/15 flex items-center justify-center">
-          <svg viewBox="0 0 100 100" className="w-3/4 h-3/4 opacity-60">
-            <polygon
-              points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35"
-              fill="none"
-              stroke="rgba(212,168,83,0.5)"
-              strokeWidth="1"
-            />
-            <circle cx="50" cy="48" r="15" fill="none" stroke="rgba(212,168,83,0.25)" strokeWidth="0.5" />
-            <circle cx="50" cy="48" r="25" fill="none" stroke="rgba(212,168,83,0.15)" strokeWidth="0.5" />
-            <circle cx="50" cy="48" r="35" fill="none" stroke="rgba(212,168,83,0.08)" strokeWidth="0.5" />
-          </svg>
-        </div>
-        <span className="absolute top-3 left-3 text-mystic-gold/30 text-xs">⊕</span>
-        <span className="absolute top-3 right-3 text-mystic-gold/30 text-xs">⊕</span>
-        <span className="absolute bottom-3 left-3 text-mystic-gold/30 text-xs">⊕</span>
-        <span className="absolute bottom-3 right-3 text-mystic-gold/30 text-xs">⊕</span>
-      </div>
-    </div>
-  );
-}
-
-function CardFaceContent({ card, isReversed, size }: { card: TarotCardType; isReversed: boolean; size: "sm" | "md" | "lg" }) {
-  const cfg = sizeConfig[size];
-  const [imgError, setImgError] = useState(false);
-  const symbol = card.arcana === "major" ? arcanaSymbols.major : arcanaSymbols[card.suit!];
-  const suitCN = card.suit ? suitNames[card.suit] : "";
-
-  return (
-    <div
-      className={`absolute inset-0 rounded-xl overflow-hidden`}
-      style={{
-        backfaceVisibility: "hidden",
-        WebkitBackfaceVisibility: "hidden",
-        background: "linear-gradient(135deg, #1a0f2e 0%, #2d1b69 50%, #1a1040 100%)",
-        border: "2px solid rgba(212, 168, 83, 0.35)",
-        boxShadow: "inset 0 0 30px rgba(192, 132, 252, 0.15), 0 0 20px rgba(212, 168, 83, 0.1)",
-      }}
-    >
-      {/* Rider-Waite card image */}
-      {!imgError && (
-        <img
-          src={card.imageUrl}
-          alt={card.nameCN}
-          className="absolute inset-0 w-full h-full object-cover rounded-xl"
-          onError={() => setImgError(true)}
-        />
-      )}
-
-      {/* Overlay gradient on top of image for text readability */}
-      {!imgError && (
-        <div className="absolute inset-0 bg-gradient-to-t from-mystic-dark/80 via-transparent to-transparent rounded-xl" />
-      )}
-
-      {/* SVG fallback symbol (visible only when image fails) */}
-      {imgError && (
-        <div className={`absolute inset-0 flex flex-col items-center justify-center ${cfg.padding}`}>
-          <span className={`${cfg.icon} mb-2 text-mystic-gold/80`}>{symbol}</span>
-
-          {card.arcana === "minor" && card.number && (
-            <span className="text-mystic-gold/50 text-xs mb-1">
-              {card.number <= 10 ? (card.number === 1 ? "A" : String(card.number)) : ["P", "Kn", "Q", "K"][card.number - 11]}
-            </span>
-          )}
-
-          <span className={`${cfg.text} font-cinzel text-mystic-gold text-center leading-tight`}>
-            {card.nameCN}
-          </span>
-
-          {suitCN && <span className="text-mystic-rose/50 text-xs mt-1">{suitCN}</span>}
-
-          <div className="flex flex-wrap justify-center gap-1 mt-2">
-            {card.keywords.slice(0, 2).map((kw) => (
-              <span key={kw} className="text-[10px] text-mystic-rose/60 px-1.5 py-0.5 rounded-full border border-mystic-rose/20">
-                {kw}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Card name overlay on image */}
-      {!imgError && (
-        <div className="absolute bottom-2 left-2 right-2 text-center">
-          <span className={`${cfg.text} font-cinzel text-mystic-gold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight`}>
-            {card.nameCN}
-          </span>
-          {suitCN && (
-            <span className="text-mystic-rose/70 text-xs block mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-              {suitCN}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Reversed badge */}
-      {isReversed && (
-        <span className="absolute top-2 right-2 text-[10px] text-mystic-rose/80 border border-mystic-rose/30 rounded px-1 bg-mystic-dark/60">
-          逆位
-        </span>
-      )}
-    </div>
-  );
-}
-
 export function TarotCard({
   card,
   isReversed,
@@ -155,6 +45,22 @@ export function TarotCard({
   showGlow = true,
 }: TarotCardProps) {
   const cfg = sizeConfig[size];
+  const [imgError, setImgError] = useState(false);
+  const symbol = card.arcana === "major" ? arcanaSymbols.major : arcanaSymbols[card.suit!];
+  const suitCN = card.suit ? suitNames[card.suit] : "";
+
+  // Build card face style once
+  const faceStyle: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    backfaceVisibility: "hidden",
+    WebkitBackfaceVisibility: "hidden",
+    borderRadius: "0.75rem",
+    overflow: "hidden",
+    background: "linear-gradient(135deg, #1a0f2e 0%, #2d1b69 50%, #1a1040 100%)",
+    border: "2px solid rgba(212, 168, 83, 0.35)",
+    boxShadow: "inset 0 0 30px rgba(192, 132, 252, 0.15), 0 0 20px rgba(212, 168, 83, 0.1)",
+  };
 
   return (
     <motion.div
@@ -196,7 +102,7 @@ export function TarotCard({
 
       {/* ── 3D flip container ── */}
       <motion.div
-        className="relative w-full h-full"
+        className="w-full h-full"
         style={{ transformStyle: "preserve-3d" }}
         animate={{
           rotateY: isFlipped ? 180 : 0,
@@ -207,13 +113,88 @@ export function TarotCard({
           rotateZ: { duration: 0.4, ease: "easeOut", delay: 0.7 },
         }}
       >
-        {/* Card face — rotated 180deg so it shows AFTER parent flip */}
-        <div style={{ transform: "rotateY(180deg)" }}>
-          <CardFaceContent card={card} isReversed={isReversed} size={size} />
+        {/* ── Card BACK (visible when unflipped, at rotateY=0) ── */}
+        <div
+          style={{
+            ...faceStyle,
+            background: "linear-gradient(135deg, #0a0612, #2d1b69, #1a1040)",
+            border: "2px solid rgba(212,168,83,0.4)",
+            boxShadow: "none",
+          }}
+        >
+          <div className="absolute inset-2 rounded-lg border border-mystic-gold/20" />
+          <div className="absolute inset-4 rounded-lg border border-mystic-gold/15 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" className="w-3/4 h-3/4 opacity-60">
+              <polygon
+                points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35"
+                fill="none"
+                stroke="rgba(212,168,83,0.5)"
+                strokeWidth="1"
+              />
+              <circle cx="50" cy="48" r="15" fill="none" stroke="rgba(212,168,83,0.25)" strokeWidth="0.5" />
+              <circle cx="50" cy="48" r="25" fill="none" stroke="rgba(212,168,83,0.15)" strokeWidth="0.5" />
+              <circle cx="50" cy="48" r="35" fill="none" stroke="rgba(212,168,83,0.08)" strokeWidth="0.5" />
+            </svg>
+          </div>
+          <span className="absolute top-3 left-3 text-mystic-gold/30 text-xs">⊕</span>
+          <span className="absolute top-3 right-3 text-mystic-gold/30 text-xs">⊕</span>
+          <span className="absolute bottom-3 left-3 text-mystic-gold/30 text-xs">⊕</span>
+          <span className="absolute bottom-3 right-3 text-mystic-gold/30 text-xs">⊕</span>
         </div>
 
-        {/* Card back — at 0deg, visible when parent is un-flipped */}
-        <CardBack />
+        {/* ── Card FACE (rotated 180deg, visible after parent flip) ── */}
+        <div style={{ ...faceStyle, transform: "rotateY(180deg)" }}>
+          {/* Card image */}
+          {!imgError && (
+            <img
+              src={card.imageUrl}
+              alt={card.nameCN}
+              className="absolute inset-0 w-full h-full object-cover rounded-xl"
+              onError={() => setImgError(true)}
+            />
+          )}
+
+          {/* Gradient overlay for text readability */}
+          {!imgError && (
+            <div className="absolute inset-0 bg-gradient-to-t from-mystic-dark/80 via-transparent to-transparent rounded-xl" />
+          )}
+
+          {/* SVG fallback when image missing */}
+          {imgError && (
+            <div className={`absolute inset-0 flex flex-col items-center justify-center ${cfg.padding}`}>
+              <span className={`${cfg.icon} mb-2 text-mystic-gold/80`}>{symbol}</span>
+              {card.arcana === "minor" && card.number && (
+                <span className="text-mystic-gold/50 text-xs mb-1">
+                  {card.number <= 10 ? (card.number === 1 ? "A" : String(card.number)) : ["P", "Kn", "Q", "K"][card.number - 11]}
+                </span>
+              )}
+              <span className={`${cfg.text} font-cinzel text-mystic-gold text-center leading-tight`}>{card.nameCN}</span>
+              {suitCN && <span className="text-mystic-rose/50 text-xs mt-1">{suitCN}</span>}
+              <div className="flex flex-wrap justify-center gap-1 mt-2">
+                {card.keywords.slice(0, 2).map((kw) => (
+                  <span key={kw} className="text-[10px] text-mystic-rose/60 px-1.5 py-0.5 rounded-full border border-mystic-rose/20">{kw}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Card name overlay */}
+          {!imgError && (
+            <div className="absolute bottom-2 left-2 right-2 text-center">
+              <span className={`${cfg.text} font-cinzel text-mystic-gold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight`}>
+                {card.nameCN}
+              </span>
+              {suitCN && (
+                <span className="text-mystic-rose/70 text-xs block mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{suitCN}</span>
+              )}
+            </div>
+          )}
+
+          {/* Reversed indicator */}
+          {isReversed && (
+            <span className="absolute top-2 right-2 text-[10px] text-mystic-rose/80 border border-mystic-rose/30 rounded px-1 bg-mystic-dark/60">逆位</span>
+          )}
+        </div>
       </motion.div>
     </motion.div>
   );

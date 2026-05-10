@@ -1,14 +1,46 @@
 import { type NextRequest } from "next/server";
 import type { TarotCard } from "@/lib/tarot-data";
 
-const SYSTEM_PROMPT = `你是融合东西方智慧的资深塔罗师。你的解读：
-- 结合牌面象征与问询者处境
-- 融合西方神秘学与东方哲学智慧
-- 温暖、深刻、给人启发
-- 不过于玄学化，侧重实用指引
-- 使用结构化 Markdown 格式回复
-- 总字数控制在 300-500 字
-- 语气神秘而温暖，像一位睿智的引路人`;
+const SYSTEM_PROMPT = `你是融合东西方智慧的资深塔罗解读师。你的解读风格神秘而温暖，深刻而实用。
+
+## 回复要求
+
+你必须严格按照以下五个维度进行解读，每个维度用 Markdown 二级标题（##）分隔：
+
+## 🌟 综合解读
+- 结合牌阵整体能量与问询者处境，给出全面的能量分析
+- 点出牌面之间关键的呼应或矛盾
+- 80-120字
+
+## 💕 感情运势
+- 结合牌面象征分析感情/人际关系的现状与趋势
+- 不论问询者是否明确问感情，都需分析情感维度
+- 60-100字
+
+## 💼 事业学业
+- 分析工作、学业、事业发展方向
+- 结合牌面给出务实建议
+- 60-100字
+
+## 💰 财运分析
+- 分析财务趋势和金钱相关的能量
+- 给出理财方向的指引
+- 50-80字
+
+## 💡 行动建议
+- 提供3条具体可行的建议
+- 每条建议以编号列出
+- 每条20-40字
+
+## ✨ 箴言
+- 用一句话总结本次解读的核心智慧
+- 简洁有力，富有诗意
+
+## 风格要求
+- 融合西方塔罗象征与东方哲学智慧
+- 温暖而有力量，像一位睿智的引路人
+- 不过于玄学化，每个判断都有牌面依据
+- 总字数400-600字`;
 
 export async function POST(request: NextRequest) {
   const body = await request.json() as {
@@ -24,22 +56,35 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Missing cards data" }, { status: 400 });
   }
 
+  // Build rich card descriptions with keywords and symbolism
   const cardDescriptions = cards
-    .map((c, i) => `${c.nameCN}（${isReversed[i] ? "逆位" : "正位"}）：${isReversed[i] ? c.reversedMeaning : c.uprightMeaning}`)
+    .map((c, i) => {
+      const orient = isReversed[i] ? "逆位" : "正位";
+      const meaning = isReversed[i] ? c.reversedMeaning : c.uprightMeaning;
+      const keywords = c.keywords.join("、");
+      const pos = spreadType === "每日单牌" ? "" : ` 【牌位${i + 1}】`;
+      let desc = `### ${c.nameCN}${pos}（${orient}）\n`;
+      desc += `- 关键词：${keywords}\n`;
+      desc += `- 牌意：${meaning}\n`;
+      if (c.element) desc += `- 元素：${c.element}\n`;
+      if (c.planet) desc += `- 行星：${c.planet}\n`;
+      if (c.symbolism) desc += `- 象征：${c.symbolism}\n`;
+      return desc;
+    })
     .join("\n");
 
-  const questionText = question?.trim() || "未说明具体问题，求问者心中默想";
+  const questionText = question?.trim() || "求问者心中默想，未明确说出具体问题";
 
-  const userPrompt = `问题：${questionText}
-牌阵：${spreadType}
-抽到的牌：
+  const userPrompt = `## 问询者的问题
+${questionText}
+
+## 牌阵类型
+${spreadType}
+
+## 抽到的牌
 ${cardDescriptions}
 
-请从以下角度解读：
-1. 🌟 整体能量
-2. 🔮 各牌详解
-3. 💡 行动建议
-4. ✨ 一句箴言`;
+请按系统提示中要求的五个维度（综合解读、感情运势、事业学业、财运分析、行动建议）+ 一句箴言，对以上牌面进行完整解读。`;
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey || apiKey.startsWith("sk-your-")) {
@@ -51,7 +96,7 @@ ${cardDescriptions}
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 45000);
+    const timeout = setTimeout(() => controller.abort(), 60000);
 
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
@@ -60,14 +105,14 @@ ${cardDescriptions}
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "deepseek-v4-pro",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
         ],
         stream: true,
-        temperature: 0.8,
-        max_tokens: 2000,
+        temperature: 0.7,
+        max_tokens: 3000,
       }),
       signal: controller.signal,
     });
@@ -87,10 +132,10 @@ ${cardDescriptions}
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
-      async start(controller) {
+      async start(streamController) {
         const reader = response.body?.getReader();
         if (!reader) {
-          controller.close();
+          streamController.close();
           return;
         }
 
@@ -111,14 +156,14 @@ ${cardDescriptions}
               if (!trimmed || !trimmed.startsWith("data: ")) continue;
               const data = trimmed.slice(6);
               if (data === "[DONE]") {
-                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                streamController.enqueue(encoder.encode("data: [DONE]\n\n"));
                 continue;
               }
               try {
                 const parsed = JSON.parse(data);
                 const content = parsed.choices?.[0]?.delta?.content;
                 if (content) {
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
+                  streamController.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
                 }
               } catch {
                 // skip unparseable chunks
@@ -127,9 +172,9 @@ ${cardDescriptions}
           }
         } catch (err) {
           console.error("Stream error:", err);
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: "Stream interrupted" })}\n\n`));
+          streamController.enqueue(encoder.encode(`data: ${JSON.stringify({ error: "Stream interrupted" })}\n\n`));
         } finally {
-          controller.close();
+          streamController.close();
         }
       },
     });

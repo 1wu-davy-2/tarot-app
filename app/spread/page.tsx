@@ -3,7 +3,8 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Shuffle, Sparkles, Clock, Layers } from "lucide-react";
+import { ArrowLeft, Shuffle, Sparkles, Clock, Layers, ChevronDown, ChevronUp } from "lucide-react";
+import { ShareButton } from "@/components/ShareButton";
 import { TarotCard } from "@/components/TarotCard";
 import { CardDrawAnimation } from "@/components/CardDrawAnimation";
 import { CardInterpretation } from "@/components/CardInterpretation";
@@ -65,6 +66,8 @@ export default function SpreadPage() {
   const [phase, setPhase] = useState<"select-type" | "draw" | "revealing" | "interpreting">("select-type");
   const [flippedCount, setFlippedCount] = useState(0);
   const [showInterpretation, setShowInterpretation] = useState(false);
+  const [cardsCollapsed, setCardsCollapsed] = useState(false);
+  const [aiText, setAiText] = useState("");
 
   const spread = spreadType ? SPREADS[spreadType] : null;
 
@@ -257,32 +260,77 @@ export default function SpreadPage() {
                 </p>
               </div>
 
-              {/* Card grid */}
-              <div className="flex flex-wrap gap-6 justify-center">
-                {cards.map((c, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2">
-                    <TarotCard
-                      card={c.card}
-                      isReversed={c.isReversed}
-                      isFlipped={c.flipped}
-                      onClick={() => handleFlipCard(i)}
-                      size="md"
-                    />
-                    <span className="text-xs text-mystic-rose/50 font-cinzel tracking-wider">{c.position}</span>
-                    {c.flipped && (
-                      <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-sm font-cinzel text-mystic-gold"
+              {/* Card grid — collapsible */}
+              <div className="w-full">
+                {/* Toggle bar */}
+                <button
+                  onClick={() => setCardsCollapsed(!cardsCollapsed)}
+                  className="flex items-center justify-center gap-2 w-full py-2 text-xs text-mystic-rose/40 hover:text-mystic-rose/70 transition-colors"
+                >
+                  {cardsCollapsed ? (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      展开牌阵 · {cards.filter(c => c.flipped).length}/{cards.length} 张
+                    </>
+                  ) : (
+                    <>
+                      <ChevronUp className="w-4 h-4" />
+                      收起牌阵
+                    </>
+                  )}
+                </button>
+
+                {/* Collapsed: compact horizontal strip */}
+                {cardsCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="flex flex-wrap gap-3 justify-center py-3"
+                  >
+                    {cards.map((c, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-mystic-purple/20 bg-mystic-dark/30 text-sm"
                       >
-                        {c.card.nameCN}
-                        <span className="text-mystic-rose/60 text-xs ml-1">
+                        <span className="text-mystic-gold/60 font-cinzel text-xs min-w-[1rem]">{i + 1}.</span>
+                        <span className="text-foreground/80">{c.card.nameCN}</span>
+                        <span className={`text-xs ${c.isReversed ? "text-mystic-rose/60" : "text-mystic-gold/60"}`}>
                           {c.isReversed ? "逆" : "正"}
                         </span>
-                      </motion.span>
-                    )}
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+
+                {/* Expanded: full card grid */}
+                {!cardsCollapsed && (
+                  <div className="flex flex-wrap gap-6 justify-center py-4">
+                    {cards.map((c, i) => (
+                      <div key={i} className="flex flex-col items-center gap-2">
+                        <TarotCard
+                          card={c.card}
+                          isReversed={c.isReversed}
+                          isFlipped={c.flipped}
+                          onClick={() => handleFlipCard(i)}
+                          size="md"
+                        />
+                        <span className="text-xs text-mystic-rose/50 font-cinzel tracking-wider">{c.position}</span>
+                        {c.flipped && (
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-sm font-cinzel text-mystic-gold"
+                          >
+                            {c.card.nameCN}
+                            <span className="text-mystic-rose/60 text-xs ml-1">
+                              {c.isReversed ? "逆" : "正"}
+                            </span>
+                          </motion.span>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
 
               {phase === "revealing" && flippedCount > 0 && flippedCount < cards.length && (
@@ -309,7 +357,7 @@ export default function SpreadPage() {
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="w-full max-w-xl"
+                  className="w-full max-w-xl flex flex-col items-center gap-4"
                 >
                   {cards.filter(c => c.flipped).length > 0 && (
                     <CardInterpretation
@@ -319,8 +367,28 @@ export default function SpreadPage() {
                       spreadType={spread!.name}
                       allCards={cards.map(c => c.card)}
                       allReversed={cards.map(c => c.isReversed)}
+                      onAiText={setAiText}
                     />
                   )}
+                  <ShareButton
+                    cards={cards.map(c => c.card)}
+                    isReversed={cards.map(c => c.isReversed)}
+                    spreadType={spread!.name}
+                    question={question || undefined}
+                    interpretation={aiText}
+                    standardInterpretation={(() => {
+                      const primary = cards[0];
+                      if (!primary) return "";
+                      const i = primary.isReversed ? primary.card.interpretation.reversed : primary.card.interpretation.upright;
+                      return [
+                        "🌟 综合解读：" + i.general,
+                        "💕 感情运势：" + i.love,
+                        "💼 事业学业：" + i.career,
+                        "💰 财运分析：" + i.finance,
+                        "💡 行动建议：" + i.advice,
+                      ].join("\n\n");
+                    })()}
+                  />
                 </motion.div>
               )}
             </motion.div>

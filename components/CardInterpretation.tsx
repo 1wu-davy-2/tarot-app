@@ -12,6 +12,7 @@ interface CardInterpretationProps {
   spreadType?: string;
   allCards?: TarotCard[];
   allReversed?: boolean[];
+  onAiText?: (text: string) => void;
 }
 
 const dimensionLabels: Record<string, { label: string; icon: string }> = {
@@ -88,11 +89,13 @@ function AIInterpretationTab({
   isReversed,
   question,
   spreadType,
+  onText,
 }: {
   cards: TarotCard[];
   isReversed: boolean[];
   question?: string;
   spreadType?: string;
+  onText?: (text: string) => void;
 }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -142,7 +145,13 @@ function AIInterpretationTab({
           if (data === "[DONE]") continue;
           try {
             const parsed = JSON.parse(data);
-            if (parsed.content) setText((prev) => prev + parsed.content);
+            if (parsed.content) {
+                setText((prev) => {
+                  const next = prev + parsed.content;
+                  onText?.(next);
+                  return next;
+                });
+              }
             if (parsed.error) setError(parsed.error);
           } catch {}
         }
@@ -239,6 +248,7 @@ export function CardInterpretation({
   spreadType,
   allCards,
   allReversed,
+  onAiText,
 }: CardInterpretationProps) {
   const [tab, setTab] = useState<"standard" | "ai">("standard");
   const interpCards = allCards || [card];
@@ -289,6 +299,7 @@ export function CardInterpretation({
               isReversed={interpReversed}
               question={question}
               spreadType={spreadType}
+              onText={onAiText}
             />
           )}
         </motion.div>

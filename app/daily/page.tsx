@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Loader2, ArrowLeft, Sparkles } from "lucide-react";
 import { TarotCard } from "@/components/TarotCard";
 import { CardInterpretation } from "@/components/CardInterpretation";
+import { ShareButton } from "@/components/ShareButton";
 import type { TarotCard as TarotCardType } from "@/lib/tarot-data";
 
 interface DailyData {
@@ -19,6 +20,7 @@ export default function DailyPage() {
   const [error, setError] = useState("");
   const [isFlipped, setIsFlipped] = useState(false);
   const [showInterpretation, setShowInterpretation] = useState(false);
+  const [aiText, setAiText] = useState("");
 
   useEffect(() => {
     fetch("/api/daily-reading")
@@ -138,13 +140,31 @@ export default function DailyPage() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="w-full max-w-lg"
+                className="w-full max-w-lg flex flex-col items-center gap-4"
               >
                 <CardInterpretation
                   card={data.card}
                   isReversed={data.isReversed}
                   question="今日的指引与能量"
                   spreadType="每日单牌"
+                  onAiText={setAiText}
+                />
+                <ShareButton
+                  cards={[data.card]}
+                  isReversed={[data.isReversed]}
+                  spreadType="每日单牌"
+                  question="今日的指引与能量"
+                  interpretation={aiText}
+                  standardInterpretation={(() => {
+                    const i = data.isReversed ? data.card.interpretation.reversed : data.card.interpretation.upright;
+                    return [
+                      "🌟 综合解读：" + i.general,
+                      "💕 感情运势：" + i.love,
+                      "💼 事业学业：" + i.career,
+                      "💰 财运分析：" + i.finance,
+                      "💡 行动建议：" + i.advice,
+                    ].join("\n\n");
+                  })()}
                 />
               </motion.div>
             )}

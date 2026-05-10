@@ -1,5 +1,5 @@
 const DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1";
-const DEEPSEEK_MODEL = "deepseek-chat";
+const DEEPSEEK_MODEL = "deepseek-v4-pro";
 
 function getApiKey(): string {
   const key = process.env.DEEPSEEK_API_KEY;
@@ -28,7 +28,7 @@ export async function createChatCompletion(messages: ChatMessage[], stream = fal
       messages,
       stream,
       temperature: 0.8,
-      max_tokens: 2000,
+      max_tokens: 3000,
     }),
   });
 
