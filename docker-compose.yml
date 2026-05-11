@@ -6,3 +6,12 @@ services:
     network_mode: host
     env_file:
       - ./backend/.env
+
+  web:
+    build: .
+    container_name: tarot-web
+    restart: always
+    network_mode: host
+    environment:
+      - PORT=5200
+      - NODE_ENV=production
