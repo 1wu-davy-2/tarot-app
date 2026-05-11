@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, BookOpen, ChevronDown, Send, Wand2, Heart, Briefcase, Target } from "lucide-react";
 import type { TarotCard } from "@/lib/tarot-data";
-import { getRemainingUses, consumeUse, getLimitMessage, isAdmin } from "@/lib/auth-utils";
 import { LoginModal } from "@/components/LoginModal";
+import { isLoggedIn, isAdmin, apiGetQuota, apiConsumeQuota } from "@/lib/api-client";
 
 interface CardInterpretationProps {
   card: TarotCard;
@@ -355,24 +355,45 @@ function AIInterpretationTab({
   const [error, setError] = useState("");
   const [started, setStarted] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [remaining, setRemaining] = useState(() => getRemainingUses());
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [quotaLoaded, setQuotaLoaded] = useState(false);
   const [persona, setPersona] = useState<PersonaKey>("default");
   const [followUp, setFollowUp] = useState("");
   const [followUpLoading, setFollowUpLoading] = useState(false);
   const [conversation, setConversation] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
 
-  const startAiFlow = () => {
-    const rem = getRemainingUses();
-    setRemaining(rem);
-    if (rem <= 0) {
-      setShowLogin(true);
-      return;
+  // Load quota from API or localStorage for guests
+  useEffect(() => {
+    if (isLoggedIn()) {
+      apiGetQuota()
+        .then((q) => { setRemaining(q.remaining); setQuotaLoaded(true); })
+        .catch(() => setQuotaLoaded(true));
+    } else {
+      const used = localStorage.getItem("tarot_guest_used");
+      setRemaining(used === "1" ? 0 : 1);
+      setQuotaLoaded(true);
     }
-    if (!consumeUse()) {
-      setError(getLimitMessage());
-      return;
+  }, []);
+
+  const startAiFlow = async () => {
+    if (!isLoggedIn()) {
+      const used = localStorage.getItem("tarot_guest_used");
+      if (used === "1") { setShowLogin(true); return; }
+      localStorage.setItem("tarot_guest_used", "1");
+      setRemaining(0);
+    } else {
+      try {
+        const result = await apiConsumeQuota();
+        setRemaining(result.remaining);
+      } catch (err: any) {
+        if (err.message?.includes("用完") || err.message?.includes("429")) {
+          setError("今日AI解读次数已用完，请签到获取更多");
+        } else {
+          setError(err.message || "扣减失败");
+        }
+        return;
+      }
     }
-    setRemaining(getRemainingUses());
     fetchInterpretation();
   };
 
@@ -519,7 +540,11 @@ function AIInterpretationTab({
           </div>
 
           <p className="text-mystic-rose/40 text-xs mb-4">
-            {isAdmin() ? "管理员 · 无限制" : getLimitMessage()}
+            {quotaLoaded
+              ? isAdmin() ? "管理员 · 无限制"
+              : remaining !== null ? `今日剩余 ${remaining} 次AI解读`
+              : ""
+              : ""}
           </p>
           <button
             onClick={startAiFlow}
@@ -537,8 +562,8 @@ function AIInterpretationTab({
         onClose={() => setShowLogin(false)}
         onSuccess={() => {
           setShowLogin(false);
-          setRemaining(getRemainingUses());
           setError("");
+          apiGetQuota().then((q) => setRemaining(q.remaining)).catch(() => {});
         }}
       />
 

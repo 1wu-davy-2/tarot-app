@@ -1,0 +1,68 @@
+import random
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from database import get_db
+from models import User, CheckIn, DailyQuota
+from routers.auth import get_current_user
+from config import get_settings
+
+router = APIRouter(prefix="/api", tags=["checkin"])
+settings = get_settings()
+
+
+def get_today() -> str:
+    return datetime.utcnow().strftime("%Y-%m-%d")
+
+
+def get_or_create_quota(user_id: int, db: Session) -> DailyQuota:
+    today = get_today()
+    quota = db.query(DailyQuota).filter(
+        DailyQuota.user_id == user_id,
+        DailyQuota.date == today,
+    ).first()
+    if not quota:
+        quota = DailyQuota(
+            user_id=user_id,
+            date=today,
+            base_quota=settings.daily_base_quota,
+            bonus_quota=0,
+            used_count=0,
+        )
+        db.add(quota)
+        db.commit()
+        db.refresh(quota)
+    return quota
+
+
+@router.post("/checkin")
+def checkin(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    today = get_today()
+
+    # Check if already checked in today
+    existing = db.query(CheckIn).filter(
+        CheckIn.user_id == user.id,
+        CheckIn.date == today,
+    ).first()
+
+    if existing:
+        return {"date": today, "bonus_awarded": 0, "already_checked_in": True, "message": "今日已签到"}
+
+    # Award random bonus
+    bonus = random.randint(settings.checkin_min_bonus, settings.checkin_max_bonus)
+
+    # Create checkin record
+    checkin = CheckIn(user_id=user.id, date=today, bonus_awarded=bonus)
+    db.add(checkin)
+
+    # Update today's quota
+    quota = get_or_create_quota(user.id, db)
+    quota.bonus_quota += bonus
+    db.commit()
+
+    return {
+        "date": today,
+        "bonus_awarded": bonus,
+        "already_checked_in": False,
+        "message": f"签到成功！获得 {bonus} 次AI解读机会",
+    }

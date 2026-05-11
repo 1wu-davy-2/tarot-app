@@ -2,7 +2,9 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Sparkles, LayoutGrid, BookOpen, Library } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Sparkles, LayoutGrid, BookOpen, Library, User, LogIn } from "lucide-react";
+import { isLoggedIn, getStoredUser } from "@/lib/api-client";
 
 const container = {
   hidden: { opacity: 0 },
@@ -18,6 +20,15 @@ const item = {
 } as const;
 
 export default function HomePage() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    setLoggedIn(isLoggedIn());
+    const u = getStoredUser();
+    if (u) setUserName(u.username);
+  }, []);
+
   const today = new Date().toLocaleDateString("zh-CN", {
     month: "long",
     day: "numeric",
@@ -108,6 +119,26 @@ export default function HomePage() {
               <p className="text-foreground/50 text-sm mb-3">Card Library</p>
               <p className="text-mystic-rose/40 text-xs">78张牌 · 完整释义</p>
             </div>
+          </Link>
+        </motion.div>
+
+        {/* Login / Profile link */}
+        <motion.div variants={item}>
+          <Link
+            href={loggedIn ? "/profile" : "/login"}
+            className="inline-flex items-center gap-2 text-mystic-rose/40 hover:text-mystic-rose/70 transition-colors text-xs"
+          >
+            {loggedIn ? (
+              <>
+                <User className="w-4 h-4" />
+                <span>{userName || "个人中心"}</span>
+              </>
+            ) : (
+              <>
+                <LogIn className="w-4 h-4" />
+                <span>登录 / 注册</span>
+              </>
+            )}
           </Link>
         </motion.div>
 
