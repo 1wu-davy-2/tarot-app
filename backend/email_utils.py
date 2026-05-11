@@ -136,7 +136,9 @@ def send_verification_email(email: str, code: str, code_type: str = "register", 
         body = _verification_code_html(name, code, purpose)
 
     html = _email_wrapper(title, body)
-    subject = f"{"🔮" if code_type == "register" else "🔐"} 命运之镜 - {"邮箱验证码" if code_type == "register" else "密码重置验证码"}"
+    icon = "\U0001F52E" if code_type == "register" else "\U0001F510"
+    label = "邮箱验证码" if code_type == "register" else "密码重置验证码"
+    subject = f"{icon} 命运之镜 - {label}"
 
     return _send_smtp(email, subject, html)
 
