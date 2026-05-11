@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, BookOpen, ChevronDown } from "lucide-react";
+import { Sparkles, BookOpen, ChevronDown, Send, Wand2, Heart, Briefcase, Target } from "lucide-react";
 import type { TarotCard } from "@/lib/tarot-data";
 import { getRemainingUses, consumeUse, getLimitMessage, isAdmin } from "@/lib/auth-utils";
 import { LoginModal } from "@/components/LoginModal";
@@ -326,6 +326,15 @@ function SingleCardInterpretation({
   );
 }
 
+const PERSONA_OPTIONS = [
+  { key: "default", label: "综合", icon: Sparkles, desc: "平衡神秘与务实" },
+  { key: "mystic", label: "神秘巫师", icon: Wand2, desc: "诗意隐喻 · 宇宙能量" },
+  { key: "counselor", label: "心理顾问", icon: Heart, desc: "共情温暖 · 荣格视角" },
+  { key: "coach", label: "实用教练", icon: Target, desc: "直接务实 · 行动导向" },
+] as const;
+
+type PersonaKey = typeof PERSONA_OPTIONS[number]["key"];
+
 function AIInterpretationTab({
   cards,
   isReversed,
@@ -347,6 +356,10 @@ function AIInterpretationTab({
   const [started, setStarted] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [remaining, setRemaining] = useState(() => getRemainingUses());
+  const [persona, setPersona] = useState<PersonaKey>("default");
+  const [followUp, setFollowUp] = useState("");
+  const [followUpLoading, setFollowUpLoading] = useState(false);
+  const [conversation, setConversation] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
 
   const startAiFlow = () => {
     const rem = getRemainingUses();
@@ -363,10 +376,15 @@ function AIInterpretationTab({
     fetchInterpretation();
   };
 
-  const fetchInterpretation = async () => {
-    setStarted(true);
-    setLoading(true);
-    setText("");
+  const fetchInterpretation = async (history?: { role: "user" | "assistant"; content: string }[]) => {
+    if (!history) {
+      setStarted(true);
+      setLoading(true);
+      setText("");
+      setConversation([]);
+    } else {
+      setFollowUpLoading(true);
+    }
     setError("");
 
     let accumulated = "";
@@ -381,12 +399,15 @@ function AIInterpretationTab({
           question: question || "未说明具体问题，求问者心中默想",
           spreadType: spreadType || "自定义牌阵",
           positions: positions || undefined,
+          style: persona,
+          history: history || undefined,
         }),
       });
 
       if (!response.ok) {
         const err = await response.json();
         setError(err.error || "AI 服务暂时不可用，您可查看标准解读作为参考");
+        setFollowUpLoading(false);
         return;
       }
 
@@ -411,8 +432,19 @@ function AIInterpretationTab({
             const parsed = JSON.parse(data);
             if (parsed.content) {
                 accumulated += parsed.content;
-                setText(accumulated);
-                onText?.(accumulated);
+                if (history) {
+                  // Follow-up: append to conversation display
+                  setConversation((prev) => {
+                    const last = prev[prev.length - 1];
+                    if (last && last.role === "assistant") {
+                      return [...prev.slice(0, -1), { role: "assistant", content: last.content + parsed.content! }];
+                    }
+                    return [...prev, { role: "assistant", content: parsed.content! }];
+                  });
+                } else {
+                  setText(accumulated);
+                  onText?.(accumulated);
+                }
               }
             if (parsed.error) setError(parsed.error);
           } catch {}
@@ -424,7 +456,36 @@ function AIInterpretationTab({
       }
     } finally {
       setLoading(false);
+      setFollowUpLoading(false);
     }
+  };
+
+  const handleFollowUp = () => {
+    const q = followUp.trim();
+    if (!q || followUpLoading) return;
+
+    const base = conversation.length > 0
+      ? conversation
+      : [
+          { role: "user" as const, content: question || "请解读牌面" },
+          { role: "assistant" as const, content: text },
+        ];
+    const newHistory: { role: "user" | "assistant"; content: string }[] = [
+      ...base,
+      { role: "user" as const, content: q },
+    ];
+
+    setConversation((prev) =>
+      prev.length === 0
+        ? [
+            { role: "user" as const, content: question || "请解读牌面" },
+            { role: "assistant" as const, content: text },
+            { role: "user" as const, content: q },
+          ]
+        : [...prev, { role: "user" as const, content: q }]
+    );
+    setFollowUp("");
+    fetchInterpretation(newHistory);
   };
 
   return (
@@ -434,6 +495,29 @@ function AIInterpretationTab({
           <p className="text-foreground/60 text-sm mb-2">
             获取 DeepSeek AI 为你深度解读牌面，融合东西方智慧
           </p>
+
+          {/* Persona selector */}
+          <div className="flex flex-wrap justify-center gap-2 mb-4">
+            {PERSONA_OPTIONS.map((p) => {
+              const Icon = p.icon;
+              return (
+                <button
+                  key={p.key}
+                  onClick={() => setPersona(p.key)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs transition-all duration-300 ${
+                    persona === p.key
+                      ? "bg-mystic-gold/15 border border-mystic-gold/40 text-mystic-gold"
+                      : "border border-mystic-purple/20 text-mystic-rose/50 hover:border-mystic-rose/30 hover:text-mystic-rose/70"
+                  }`}
+                  title={p.desc}
+                >
+                  <Icon className="w-3 h-3" />
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+
           <p className="text-mystic-rose/40 text-xs mb-4">
             {isAdmin() ? "管理员 · 无限制" : getLimitMessage()}
           </p>
@@ -473,7 +557,7 @@ function AIInterpretationTab({
         <div className="text-center py-6">
           <p className="text-red-400/80 text-sm mb-3">{error}</p>
           <button
-            onClick={fetchInterpretation}
+            onClick={() => fetchInterpretation()}
             className="text-mystic-gold text-sm underline hover:text-mystic-rose transition-colors"
           >
             重试
@@ -481,14 +565,66 @@ function AIInterpretationTab({
         </div>
       )}
 
+      {/* Main interpretation text */}
       {text && (
         <div className="prose prose-invert prose-sm max-w-none">
-          <div className="whitespace-pre-wrap text-cormorant leading-relaxed text-foreground/90">
-            {renderMarkdown(text)}
-          </div>
+          {/* Conversation history */}
+          {conversation.length > 0 && conversation.map((msg, i) => (
+            <div key={i} className={`mb-4 ${msg.role === "user" ? "text-right" : ""}`}>
+              {msg.role === "user" ? (
+                <div className="inline-block px-3 py-2 rounded-xl bg-mystic-purple/20 text-foreground/80 text-sm max-w-[85%] text-left">
+                  {msg.content}
+                </div>
+              ) : (
+                <div className="whitespace-pre-wrap text-cormorant leading-relaxed text-foreground/90">
+                  {renderMarkdown(msg.content)}
+                </div>
+              )}
+            </div>
+          ))}
+          {followUpLoading && (
+            <span className="inline-block w-2 h-4 bg-mystic-gold/60 animate-pulse ml-0.5" />
+          )}
+
+          {/* Initial interpretation (if no conversation yet) */}
+          {conversation.length === 0 && (
+            <div className="whitespace-pre-wrap text-cormorant leading-relaxed text-foreground/90">
+              {renderMarkdown(text)}
+            </div>
+          )}
           {loading && (
             <span className="inline-block w-2 h-4 bg-mystic-gold/60 animate-pulse ml-0.5" />
           )}
+        </div>
+      )}
+
+      {/* Follow-up input */}
+      {started && text && !loading && (
+        <div className="mt-6 pt-4 border-t border-mystic-purple/20">
+          <div className="flex gap-2">
+            <input
+              value={followUp}
+              onChange={(e) => setFollowUp(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleFollowUp()}
+              placeholder="追问更多细节..."
+              className="flex-1 bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-sm text-foreground/80 placeholder:text-mystic-rose/30 focus:outline-none focus:border-mystic-gold/50 transition-colors"
+            />
+            <button
+              onClick={handleFollowUp}
+              disabled={!followUp.trim() || followUpLoading}
+              className="px-4 py-2.5 rounded-lg bg-mystic-gold/10 border border-mystic-gold/30 text-mystic-gold hover:bg-mystic-gold/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              {followUpLoading ? (
+                <motion.div
+                  className="w-4 h-4 rounded-full border-2 border-mystic-gold border-t-transparent"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+            </button>
+          </div>
         </div>
       )}
     </div>
