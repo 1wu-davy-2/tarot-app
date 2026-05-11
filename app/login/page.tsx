@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Sparkles, Mail, Lock, User, Phone, Loader2 } from "lucide-react";
 import {
-  apiLogin, apiRegister, apiSendCode, apiVerifyEmail,
+  apiLogin, apiRegister, apiSendCode,
   apiForgotPassword, apiResetPassword,
 } from "@/lib/api-client";
 
@@ -29,7 +29,7 @@ export default function LoginPage() {
   const [regPhone, setRegPhone] = useState("");
   const [regPwd, setRegPwd] = useState("");
   const [regCode, setRegCode] = useState("");
-  const [regStep, setRegStep] = useState<"form" | "verify">("form");
+  const [sendingCode, setSendingCode] = useState(false);
 
   // Reset form
   const [resetEmail, setResetEmail] = useState("");
@@ -51,40 +51,31 @@ export default function LoginPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!regEmail || !regUser || !regPwd) { setError("请填写必填项"); return; }
+    if (!regUser || !regEmail || !regPhone || !regPwd || !regCode) {
+      setError("请填写所有必填项（用户名、邮箱、手机号、密码、验证码）"); return;
+    }
     setError(""); setMessage("");
     setLoading(true);
     try {
-      await apiRegister(regUser, regEmail, regPwd, regPhone);
-      setRegStep("verify");
-      setMessage("注册成功！验证码已发送至邮箱（终端查看）");
-    } catch (err: any) {
-      setError(err.message);
-    } finally { setLoading(false); }
-  };
-
-  const handleVerify = async () => {
-    if (!regCode) { setError("请输入验证码"); return; }
-    setError(""); setMessage("");
-    setLoading(true);
-    try {
-      await apiVerifyEmail(regEmail, regCode);
-      setMessage("验证成功！请登录");
+      await apiRegister(regUser, regEmail, regPwd, regPhone, regCode);
+      setMessage("注册成功！请登录");
       setTab("login");
+      setRegUser(""); setRegEmail(""); setRegPhone(""); setRegPwd(""); setRegCode("");
     } catch (err: any) {
       setError(err.message);
     } finally { setLoading(false); }
   };
 
-  const handleSendCode = async (email: string, type: string) => {
+  const handleSendRegCode = async () => {
+    if (!regEmail) { setError("请先输入邮箱"); return; }
     setError(""); setMessage("");
-    setLoading(true);
+    setSendingCode(true);
     try {
-      await apiSendCode(email, type);
-      setMessage("验证码已发送（开发模式请在终端查看）");
+      await apiSendCode(regEmail, "register");
+      setMessage("验证码已发送至邮箱，请查收");
     } catch (err: any) {
       setError(err.message);
-    } finally { setLoading(false); }
+    } finally { setSendingCode(false); }
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -213,7 +204,7 @@ export default function LoginPage() {
         )}
 
         {/* ── Register Form ── */}
-        {tab === "register" && regStep === "form" && (
+        {tab === "register" && (
           <motion.form
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -243,13 +234,14 @@ export default function LoginPage() {
               </div>
             </div>
             <div>
-              <label className="text-xs text-mystic-rose/50 mb-2 block">手机号（可选）</label>
+              <label className="text-xs text-mystic-rose/50 mb-2 block">手机号 *</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
                 <input
                   value={regPhone}
-                  onChange={(e) => setRegPhone(e.target.value)}
-                  placeholder="选填"
+                  onChange={(e) => setRegPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                  placeholder="11位中国大陆手机号"
+                  maxLength={11}
                   className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-3 text-foreground/80 placeholder:text-mystic-rose/30 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
                 />
               </div>
@@ -264,6 +256,29 @@ export default function LoginPage() {
                 className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-foreground/80 placeholder:text-mystic-rose/30 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
               />
             </div>
+
+            {/* Verification code */}
+            <div>
+              <label className="text-xs text-mystic-rose/50 mb-2 block">验证码 *</label>
+              <div className="flex gap-3">
+                <input
+                  value={regCode}
+                  onChange={(e) => setRegCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="6位数字验证码"
+                  maxLength={6}
+                  className="flex-1 bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-foreground/80 placeholder:text-mystic-rose/30 text-sm text-center tracking-widest focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={handleSendRegCode}
+                  disabled={sendingCode || !regEmail}
+                  className="flex-shrink-0 px-4 py-3 rounded-lg border border-mystic-gold/40 text-mystic-gold text-xs hover:bg-mystic-gold/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {sendingCode ? "发送中..." : "获取验证码"}
+                </button>
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -273,40 +288,6 @@ export default function LoginPage() {
               注册
             </button>
           </motion.form>
-        )}
-
-        {/* ── Register Verify ── */}
-        {tab === "register" && regStep === "verify" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="glass-card p-6 space-y-4"
-          >
-            <div>
-              <label className="text-xs text-mystic-rose/50 mb-2 block">输入邮箱验证码</label>
-              <input
-                value={regCode}
-                onChange={(e) => setRegCode(e.target.value)}
-                placeholder="6位数字验证码"
-                maxLength={6}
-                className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-foreground/80 placeholder:text-mystic-rose/30 text-sm text-center tracking-widest focus:outline-none focus:border-mystic-gold/50 transition-colors"
-              />
-            </div>
-            <button
-              onClick={handleVerify}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-mystic-purple to-mystic-dark border border-mystic-gold/50 text-mystic-gold hover:border-mystic-gold transition-all font-cinzel text-sm disabled:opacity-50"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              验证
-            </button>
-            <button
-              onClick={() => handleSendCode(regEmail, "register")}
-              className="w-full text-xs text-mystic-rose/40 hover:text-mystic-rose transition-colors"
-            >
-              重新发送验证码
-            </button>
-          </motion.div>
         )}
 
         {/* ── Reset Password ── */}

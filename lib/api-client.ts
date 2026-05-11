@@ -105,10 +105,10 @@ async function api<T = any>(
 
 // ── Auth ──
 
-export async function apiRegister(username: string, email: string, password: string, phone: string = "") {
+export async function apiRegister(username: string, email: string, password: string, phone: string, code: string) {
   return api("/api/auth/register", {
     method: "POST",
-    body: { username, email, password, phone },
+    body: { username, email, password, phone, code },
   });
 }
 
