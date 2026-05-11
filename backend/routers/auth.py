@@ -35,34 +35,35 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
     username = req.username.strip()
     email = req.email.strip().lower()
     phone = req.phone.strip()
+    code = req.code.strip()
 
-    total_users = db.query(User).count()
+    # Step 1: Verify the code first (user must call /send-code before /register)
+    if not verify_code(email, code, "register"):
+        raise HTTPException(status_code=400, detail="验证码无效或已过期，请先获取验证码")
+
+    # Step 2: Check duplicates
     existing_by_name = db.query(User).filter(User.username == username).first()
     existing_by_email = db.query(User).filter(User.email == email).first()
-    print(f"[register] total_users={total_users} username='{username}' found={existing_by_name is not None} email='{email}' found={existing_by_email is not None}")
+    print(f"[register] username='{username}' name_taken={existing_by_name is not None} email='{email}' email_taken={existing_by_email is not None}")
 
     if existing_by_name:
         raise HTTPException(status_code=400, detail="用户名已被注册")
     if existing_by_email:
         raise HTTPException(status_code=400, detail="邮箱已被注册")
 
+    # Step 3: Create verified user
     user = User(
         username=username,
         email=email,
         phone=phone,
         password_hash=hash_password(req.password),
-        is_verified=False,
+        is_verified=True,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    # Generate code, store in Redis/memory (5-min TTL)
-    code = generate_code()
-    save_code(email, code, "register")
-    send_verification_email(email, code, "register", username)
-
-    return {"message": "注册成功，请查收验证码完成邮箱验证", "user_id": user.id}
+    return {"message": "注册成功，请登录", "user_id": user.id}
 
 
 @router.post("/send-code")

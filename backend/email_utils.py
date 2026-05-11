@@ -146,12 +146,12 @@ def _send_smtp(to_email: str, subject: str, html_body: str) -> bool:
         import smtplib
         from email.mime.text import MIMEText
         from email.mime.multipart import MIMEMultipart
+        from email.utils import formataddr
 
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
         from_addr = settings.smtp_from if settings.smtp_from and "@" in settings.smtp_from else settings.smtp_user
-        msg["From"] = f"{settings.smtp_from_name} <{from_addr}>"
-        msg.add_header("Reply-To", settings.smtp_user)
+        msg["From"] = formataddr((settings.smtp_from_name, from_addr))
         msg["To"] = to_email
 
         # Plain text fallback
