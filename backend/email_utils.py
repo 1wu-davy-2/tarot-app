@@ -146,12 +146,14 @@ def _send_smtp(to_email: str, subject: str, html_body: str) -> bool:
         import smtplib
         from email.mime.text import MIMEText
         from email.mime.multipart import MIMEMultipart
+        from email.header import Header
         from email.utils import formataddr
 
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
+        msg["Subject"] = Header(subject, "utf-8")
         from_addr = settings.smtp_from if settings.smtp_from and "@" in settings.smtp_from else settings.smtp_user
-        msg["From"] = formataddr((settings.smtp_from_name, from_addr))
+        # QQ mail rejects RFC2047 encoded display names — use email-only From
+        msg["From"] = from_addr
         msg["To"] = to_email
 
         # Plain text fallback
