@@ -13,7 +13,7 @@ interface CardInPosition {
 
 interface CardSpreadProps {
   cards: CardInPosition[];
-  spreadType: "three-card" | "celtic-cross";
+  spreadType: "three-card" | "celtic-cross" | "relationship" | "yes-no" | "horseshoe" | "zodiac" | "custom";
   onFlipCard: (index: number) => void;
 }
 
@@ -31,7 +31,8 @@ const celticPositions = [
 ];
 
 export function CardSpread({ cards, spreadType, onFlipCard }: CardSpreadProps) {
-  if (spreadType === "three-card") {
+  // Celtic Cross gets its custom layout; all other spreads use the generic grid
+  if (spreadType !== "celtic-cross") {
     return (
       <div className="flex flex-col items-center gap-8">
         <div className="flex gap-6 md:gap-8 flex-wrap justify-center">

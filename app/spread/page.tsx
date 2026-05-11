@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Shuffle, Sparkles, Clock, Layers, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Shuffle, Sparkles, Clock, Layers, ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 import { ShareButton } from "@/components/ShareButton";
 import { TarotCard } from "@/components/TarotCard";
 import { CardDrawAnimation } from "@/components/CardDrawAnimation";
 import { CardInterpretation } from "@/components/CardInterpretation";
 import { tarotCards, type TarotCard as TarotCardType } from "@/lib/tarot-data";
 
-type SpreadType = "three-card" | "celtic-cross";
+type SpreadType = "three-card" | "celtic-cross" | "relationship" | "yes-no" | "horseshoe" | "zodiac" | "custom";
 
 interface CardState {
   card: TarotCardType;
@@ -57,7 +57,118 @@ const SPREADS = {
       { label: "结果", sublabel: "Outcome", desc: "如果照此路走下去的结局" },
     ],
   },
+  "relationship": {
+    name: "关系牌阵",
+    subtitle: "Relationship Spread",
+    description: "深入分析双方关系动态，揭示彼此的需求与未来走向",
+    icon: "\u{1F491}",
+    cardCount: 7,
+    difficulty: "进阶",
+    time: "10分钟",
+    bestFor: "感情关系、人际分析",
+    positions: [
+      { label: "你的视角", sublabel: "Your View", desc: "你如何看待这段关系以及你在其中的状态" },
+      { label: "对方视角", sublabel: "Partner View", desc: "对方如何看待这段关系以及TA的状态" },
+      { label: "关系现状", sublabel: "Current State", desc: "关系当前的核心能量与连接质量" },
+      { label: "你的需求", sublabel: "Your Needs", desc: "你内心真正的渴望与诉求" },
+      { label: "对方需求", sublabel: "Partner Needs", desc: "对方内心真正的渴望与诉求" },
+      { label: "阻碍挑战", sublabel: "Obstacles", desc: "关系中需要面对的主要障碍" },
+      { label: "关系未来", sublabel: "Future", desc: "关系的潜在发展趋势" },
+    ],
+  },
+  "yes-no": {
+    name: "是否牌阵",
+    subtitle: "Yes / No Spread",
+    description: "对具体问题给出明确的倾向性指引，帮助你做出决策",
+    icon: "\u{2696}\u{FE0F}",
+    cardCount: 5,
+    difficulty: "入门",
+    time: "5分钟",
+    bestFor: "具体问题、决策判断",
+    positions: [
+      { label: "问题本质", sublabel: "Core Issue", desc: "问题的真实面貌与核心要素" },
+      { label: "有利因素", sublabel: "Favorable", desc: "支持你的力量与可利用的机会" },
+      { label: "不利因素", sublabel: "Unfavorable", desc: "阻碍你的力量与潜在风险" },
+      { label: "发展趋势", sublabel: "Trend", desc: "事情的自然走向与倾向" },
+      { label: "最终建议", sublabel: "Advice", desc: "如何做出最有利于自己的决策" },
+    ],
+  },
+  "horseshoe": {
+    name: "马蹄铁牌阵",
+    subtitle: "Horseshoe Spread",
+    description: "经典弧形七牌阵，揭示问题从过去到未来的完整脉络",
+    icon: "\u{1F9F2}",
+    cardCount: 7,
+    difficulty: "进阶",
+    time: "10分钟",
+    bestFor: "问题分析、局势推演",
+    positions: [
+      { label: "过去影响", sublabel: "Past", desc: "导致当前局面的过往因素与根基" },
+      { label: "当前状况", sublabel: "Present", desc: "现在的核心状态与能量" },
+      { label: "隐藏因素", sublabel: "Hidden", desc: "尚未显现的潜在影响与暗流" },
+      { label: "主要障碍", sublabel: "Obstacle", desc: "需要正视和跨越的挑战" },
+      { label: "环境态度", sublabel: "Environment", desc: "周围环境、他人的态度与影响" },
+      { label: "行动建议", sublabel: "Advice", desc: "当前阶段的最佳行动方向" },
+      { label: "可能结果", sublabel: "Outcome", desc: "按当前趋势最可能的发展结果" },
+    ],
+  },
+  "zodiac": {
+    name: "黄道十二宫",
+    subtitle: "Zodiac Spread",
+    description: "对应星盘十二宫位，全方位深度解析人生各个领域",
+    icon: "\u{1F30C}",
+    cardCount: 12,
+    difficulty: "高阶",
+    time: "20分钟",
+    bestFor: "年度运势、全面人生分析",
+    positions: [
+      { label: "自我身份", sublabel: "1st House", desc: "外在形象、自我认同与个人风格" },
+      { label: "财务价值", sublabel: "2nd House", desc: "财富、物质资源与自我价值感" },
+      { label: "沟通学习", sublabel: "3rd House", desc: "思维模式、表达方式与知识获取" },
+      { label: "家庭根基", sublabel: "4th House", desc: "家庭关系、情感安全感与内心根基" },
+      { label: "创造快乐", sublabel: "5th House", desc: "创造力、浪漫情感与生活中的乐趣" },
+      { label: "健康工作", sublabel: "6th House", desc: "日常习惯、身体健康与服务意识" },
+      { label: "关系合作", sublabel: "7th House", desc: "伴侣关系、合作伙伴与一对一互动" },
+      { label: "变革深度", sublabel: "8th House", desc: "深层转变、共享资源与神秘体验" },
+      { label: "探索信念", sublabel: "9th House", desc: "远行探索、哲学信念与精神追求" },
+      { label: "事业声望", sublabel: "10th House", desc: "职业事业、社会地位与公众形象" },
+      { label: "社群愿景", sublabel: "11th House", desc: "社交圈层、理想抱负与团体归属" },
+      { label: "灵性潜意识", sublabel: "12th House", desc: "潜意识模式、灵性连接与内在隐退" },
+    ],
+  },
 } as const;
+
+type SpreadEntry = typeof SPREADS[keyof typeof SPREADS];
+
+interface CustomSpreadEntry {
+  name: string;
+  subtitle: string;
+  description: string;
+  icon: string;
+  cardCount: number;
+  difficulty: string;
+  time: string;
+  bestFor: string;
+  positions: { label: string; sublabel: string; desc: string }[];
+}
+
+const CUSTOM_SPREADS_KEY = "tarot-custom-spreads";
+
+function loadCustomSpreads(): Record<string, CustomSpreadEntry> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(CUSTOM_SPREADS_KEY);
+    return raw ? JSON.parse(raw) as Record<string, CustomSpreadEntry> : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveCustomSpreads(spreads: Record<string, CustomSpreadEntry>) {
+  try {
+    localStorage.setItem(CUSTOM_SPREADS_KEY, JSON.stringify(spreads));
+  } catch { /* quota exceeded */ }
+}
 
 export default function SpreadPage() {
   const [spreadType, setSpreadType] = useState<SpreadType | null>(null);
@@ -69,13 +180,90 @@ export default function SpreadPage() {
   const [cardsCollapsed, setCardsCollapsed] = useState(false);
   const [aiText, setAiText] = useState("");
 
-  const spread = spreadType ? SPREADS[spreadType] : null;
+  // Custom spread builder state
+  const [customSpreads, setCustomSpreads] = useState<Record<string, CustomSpreadEntry>>({});
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [builderName, setBuilderName] = useState("");
+  const [builderCardCount, setBuilderCardCount] = useState(3);
+  const [builderPositionLabels, setBuilderPositionLabels] = useState<string[]>(Array(3).fill(""));
+
+  // Load custom spreads on mount
+  useEffect(() => { setCustomSpreads(loadCustomSpreads()); }, []);
+
+  // Update position labels count when card count changes
+  const updateBuilderCardCount = (count: number) => {
+    setBuilderCardCount(count);
+    setBuilderPositionLabels((prev) => {
+      const next = [...prev];
+      while (next.length < count) next.push("");
+      return next.slice(0, count);
+    });
+  };
+
+  // Create a custom spread
+  const handleCreateCustom = () => {
+    const name = builderName.trim() || "自定义牌阵";
+    const positions = builderPositionLabels.map((label, i) => ({
+      label: label.trim() || `位置 ${i + 1}`,
+      sublabel: `Pos ${i + 1}`,
+      desc: label.trim() ? `${label}的能量状态` : `第 ${i + 1} 个牌位的能量状态`,
+    }));
+
+    const entry: CustomSpreadEntry = {
+      name,
+      subtitle: "Custom Spread",
+      description: `${builderCardCount}张牌的自定义牌阵`,
+      icon: "✨",
+      cardCount: builderCardCount,
+      difficulty: "自定义",
+      time: `${builderCardCount * 2}分钟`,
+      bestFor: "自由探索",
+      positions,
+    };
+
+    const id = `custom-${Date.now()}`;
+    const updated = { ...customSpreads, [id]: entry };
+    setCustomSpreads(updated);
+    saveCustomSpreads(updated);
+    setSpreadType("custom" as SpreadType);
+    setShowBuilder(false);
+  };
+
+  // Delete a custom spread
+  const handleDeleteCustom = (id: string) => {
+    const updated = { ...customSpreads };
+    delete updated[id];
+    setCustomSpreads(updated);
+    saveCustomSpreads(updated);
+    if (spreadType === "custom") setSpreadType(null);
+  };
+
+  // Merge built-in and custom spreads
+  const allSpreads: Record<string, SpreadEntry | CustomSpreadEntry> = { ...SPREADS, ...customSpreads };
+  const builtInKeys = Object.keys(SPREADS) as (keyof typeof SPREADS)[];
+  const customKeys = Object.keys(customSpreads);
+
+  // Split spreads: basic (always visible) vs advanced (collapsible)
+  const basicKeys = builtInKeys.filter(k => k === "three-card" || k === "celtic-cross");
+  const advancedKeys = builtInKeys.filter(k => k !== "three-card" && k !== "celtic-cross");
+  const [showAdvanced, setShowAdvanced] = useState(true);
+
+  // Auto-scroll to question input when a spread is selected
+  const questionRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (spreadType && questionRef.current) {
+      setTimeout(() => {
+        questionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    }
+  }, [spreadType]);
+
+  const spread = spreadType ? allSpreads[spreadType] : null;
 
   const handleDrawComplete = useCallback(
     (selected: { card: TarotCardType; isReversed: boolean }[]) => {
-      const positions = spreadType === "three-card"
-        ? ["过去 (Past)", "现在 (Present)", "未来 (Future)"]
-        : SPREADS["celtic-cross"].positions.map(p => `${p.label} (${p.sublabel})`);
+      const config = allSpreads[spreadType!];
+      const positions = (config as SpreadEntry).positions.map((p: { label: string; sublabel: string }) => `${p.label} (${p.sublabel})`);
 
       setCards(
         selected.map((s, i) => ({
@@ -133,41 +321,241 @@ export default function SpreadPage() {
                 <p className="text-mystic-rose/50 text-sm mt-2">选择牌阵，聆听命运的指引</p>
               </div>
 
-              {/* Spread selection cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
-                {(Object.keys(SPREADS) as SpreadType[]).map((key) => {
-                  const s = SPREADS[key];
-                  return (
-                    <motion.button
-                      key={key}
-                      onClick={() => setSpreadType(key)}
-                      className={`glass-card p-6 text-left hover:border-mystic-gold/40 transition-all duration-300 group relative ${
-                        spreadType === key ? "border-mystic-gold/60" : ""
-                      }`}
-                      whileHover={{ y: -2 }}
+              {/* Spread selection */}
+              {!showBuilder && (
+                <div className="w-full max-w-2xl flex flex-col gap-8">
+                  {/* ── Basic spreads (always visible) ── */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {basicKeys.map((key) => {
+                      const s = SPREADS[key];
+                      return (
+                        <motion.button
+                          key={key}
+                          onClick={() => setSpreadType(key)}
+                          className={`glass-card p-6 text-left hover:border-mystic-gold/40 transition-all duration-300 group relative ${
+                            spreadType === key ? "border-mystic-gold/60" : ""
+                          }`}
+                          whileHover={{ y: -2 }}
+                        >
+                          <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{s.icon}</div>
+                          <h3 className="text-xl font-cinzel text-mystic-gold mb-1">{s.name}</h3>
+                          <p className="text-foreground/40 text-xs mb-3">{s.subtitle}</p>
+                          <p className="text-foreground/60 text-sm mb-3">{s.description}</p>
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-mystic-rose/80">
+                              <Clock className="w-3 h-3 inline mr-1" />{s.time}
+                            </span>
+                            <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-mystic-rose/80">
+                              <Layers className="w-3 h-3 inline mr-1" />{s.cardCount}张牌
+                            </span>
+                            <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-mystic-rose/80">
+                              {s.difficulty}
+                            </span>
+                          </div>
+                          {spreadType === key && (
+                            <div className="absolute top-3 right-3 w-3 h-3 rounded-full bg-mystic-gold animate-pulse" />
+                          )}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+
+                  {/* ── Advanced spreads ── */}
+                  <div className="border-t border-mystic-purple/20 pt-4">
+                    <button
+                      onClick={() => setShowAdvanced(!showAdvanced)}
+                      className="w-full flex items-center justify-between px-2 py-2 hover:bg-mystic-purple/10 rounded-lg transition-colors"
                     >
-                      <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{s.icon}</div>
-                      <h3 className="text-xl font-cinzel text-mystic-gold mb-1">{s.name}</h3>
-                      <p className="text-foreground/40 text-xs mb-3">{s.subtitle}</p>
-                      <p className="text-foreground/60 text-sm mb-3">{s.description}</p>
-                      <div className="flex flex-wrap gap-2 text-xs">
-                        <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-mystic-rose/80">
-                          <Clock className="w-3 h-3 inline mr-1" />{s.time}
-                        </span>
-                        <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-mystic-rose/80">
-                          <Layers className="w-3 h-3 inline mr-1" />{s.cardCount}张牌
-                        </span>
-                        <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-mystic-rose/80">
-                          {s.difficulty}
-                        </span>
-                      </div>
-                      {spreadType === key && (
-                        <div className="absolute top-3 right-3 w-3 h-3 rounded-full bg-mystic-gold animate-pulse" />
+                      <span className="text-xs font-cinzel text-mystic-gold/60 tracking-wider">高级牌阵</span>
+                      <ChevronDown
+                        className={`w-4 h-4 text-mystic-rose/40 transition-transform duration-300 ${
+                          showAdvanced ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    <AnimatePresence>
+                      {showAdvanced && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-3 pb-1">
+                            {/* Advanced built-in spreads — compact cards */}
+                            {advancedKeys.map((key) => {
+                              const s = SPREADS[key];
+                              return (
+                                <motion.button
+                                  key={key}
+                                  onClick={() => setSpreadType(key)}
+                                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300 group ${
+                                    spreadType === key
+                                      ? "border-mystic-gold/60 bg-mystic-gold/5"
+                                      : "border-mystic-purple/20 bg-mystic-dark/30 hover:border-mystic-gold/30"
+                                  }`}
+                                  whileHover={{ y: -1 }}
+                                >
+                                  <span className="text-2xl group-hover:scale-110 transition-transform shrink-0">{s.icon}</span>
+                                  <div className="text-left min-w-0">
+                                    <p className="text-sm font-cinzel text-mystic-gold/90 truncate">{s.name}</p>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <span className="text-[10px] text-mystic-rose/40">{s.cardCount}张</span>
+                                      <span className="text-[10px] text-mystic-rose/30">{s.difficulty}</span>
+                                    </div>
+                                  </div>
+                                  {spreadType === key && (
+                                    <div className="w-2 h-2 rounded-full bg-mystic-gold animate-pulse shrink-0 ml-auto" />
+                                  )}
+                                </motion.button>
+                              );
+                            })}
+
+                            {/* Custom spreads — compact cards */}
+                            {customKeys.map((key) => {
+                              const s = customSpreads[key];
+                              const isSelected = spreadType === key;
+                              return (
+                                <motion.button
+                                  key={key}
+                                  onClick={() => setSpreadType(key as SpreadType)}
+                                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300 group ${
+                                    isSelected
+                                      ? "border-mystic-gold/60 bg-mystic-gold/5"
+                                      : "border-mystic-purple/20 bg-mystic-dark/30 hover:border-mystic-gold/30"
+                                  }`}
+                                  whileHover={{ y: -1 }}
+                                >
+                                  <span className="text-2xl group-hover:scale-110 transition-transform shrink-0">{s.icon}</span>
+                                  <div className="text-left min-w-0 flex-1">
+                                    <p className="text-sm font-cinzel text-mystic-gold/90 truncate">{s.name}</p>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <span className="text-[10px] text-mystic-rose/40">{s.cardCount}张</span>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteCustom(key); }}
+                                    className="text-mystic-rose/20 hover:text-mystic-rose/60 transition-colors shrink-0"
+                                    title="删除"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                  {isSelected && (
+                                    <div className="w-2 h-2 rounded-full bg-mystic-gold animate-pulse shrink-0" />
+                                  )}
+                                </motion.button>
+                              );
+                            })}
+
+                            {/* Create custom spread — compact */}
+                            <motion.button
+                              onClick={() => {
+                                setShowBuilder(true);
+                                setSpreadType(null);
+                              }}
+                              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-mystic-rose/20 hover:border-mystic-rose/50 transition-all duration-300 group bg-mystic-dark/20"
+                              whileHover={{ y: -1 }}
+                            >
+                              <Plus className="w-5 h-5 text-mystic-rose/30 group-hover:text-mystic-rose/60 transition-colors" />
+                              <span className="text-xs text-mystic-rose/40 group-hover:text-mystic-rose/70 transition-colors">
+                                自定义
+                              </span>
+                            </motion.button>
+                          </div>
+                        </motion.div>
                       )}
-                    </motion.button>
-                  );
-                })}
-              </div>
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
+
+              {/* Custom spread builder */}
+              {showBuilder && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-card p-6 w-full max-w-md flex flex-col gap-5"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-cinzel text-mystic-gold">创建自定义牌阵</h3>
+                    <button
+                      onClick={() => setShowBuilder(false)}
+                      className="text-mystic-rose/40 hover:text-mystic-rose transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Spread name */}
+                  <div>
+                    <label className="text-xs text-mystic-rose/50 mb-2 block">牌阵名称</label>
+                    <input
+                      value={builderName}
+                      onChange={(e) => setBuilderName(e.target.value)}
+                      placeholder="给你的牌阵取个名字"
+                      className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-foreground/80 placeholder:text-mystic-rose/30 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                    />
+                  </div>
+
+                  {/* Card count */}
+                  <div>
+                    <label className="text-xs text-mystic-rose/50 mb-2 block">
+                      牌数：<span className="text-mystic-gold">{builderCardCount}</span> 张
+                    </label>
+                    <input
+                      type="range"
+                      min={1}
+                      max={12}
+                      value={builderCardCount}
+                      onChange={(e) => updateBuilderCardCount(Number(e.target.value))}
+                      className="w-full accent-mystic-gold"
+                    />
+                    <div className="flex justify-between text-[10px] text-mystic-rose/30 mt-1">
+                      <span>1</span><span>3</span><span>6</span><span>9</span><span>12</span>
+                    </div>
+                  </div>
+
+                  {/* Position labels */}
+                  <div>
+                    <label className="text-xs text-mystic-rose/50 mb-2 block">各牌位名称（可选，留空使用默认名）</label>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {builderPositionLabels.map((label, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="text-[10px] text-mystic-rose/40 min-w-[2rem]">#{i + 1}</span>
+                          <input
+                            value={label}
+                            onChange={(e) => {
+                              const next = [...builderPositionLabels];
+                              next[i] = e.target.value;
+                              setBuilderPositionLabels(next);
+                            }}
+                            placeholder={`牌位 ${i + 1}`}
+                            className="flex-1 bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-3 py-2 text-foreground/80 placeholder:text-mystic-rose/25 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Create & Cancel buttons */}
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={handleCreateCustom}
+                      className="flex-1 py-3 rounded-full bg-gradient-to-r from-mystic-purple to-mystic-dark border border-mystic-gold/50 text-mystic-gold hover:border-mystic-gold transition-all font-cinzel text-sm"
+                    >
+                      创建牌阵
+                    </button>
+                    <button
+                      onClick={() => setShowBuilder(false)}
+                      className="px-6 py-3 rounded-full border border-mystic-rose/30 text-mystic-rose/50 hover:text-mystic-rose hover:border-mystic-rose/50 transition-all text-sm"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </motion.div>
+              )}
 
               {/* After selecting spread, show question input and start */}
               {spreadType && (
@@ -191,7 +579,7 @@ export default function SpreadPage() {
                     </div>
                   </div>
 
-                  <div>
+                  <div ref={questionRef}>
                     <label className="text-xs text-mystic-rose/50 mb-2 block">你的问题（可选）</label>
                     <textarea
                       value={question}
