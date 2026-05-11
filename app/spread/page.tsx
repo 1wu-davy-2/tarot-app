@@ -367,6 +367,7 @@ export default function SpreadPage() {
                       spreadType={spread!.name}
                       allCards={cards.map(c => c.card)}
                       allReversed={cards.map(c => c.isReversed)}
+                      positions={cards.map(c => c.position)}
                       onAiText={setAiText}
                     />
                   )}
@@ -377,16 +378,28 @@ export default function SpreadPage() {
                     question={question || undefined}
                     interpretation={aiText}
                     standardInterpretation={(() => {
-                      const primary = cards[0];
-                      if (!primary) return "";
-                      const i = primary.isReversed ? primary.card.interpretation.reversed : primary.card.interpretation.upright;
-                      return [
-                        "🌟 综合解读：" + i.general,
-                        "💕 感情运势：" + i.love,
-                        "💼 事业学业：" + i.career,
-                        "💰 财运分析：" + i.finance,
-                        "💡 行动建议：" + i.advice,
-                      ].join("\n\n");
+                      const dims = [
+                        { key: "general", label: "🌟 综合解读" },
+                        { key: "love", label: "💕 感情运势" },
+                        { key: "career", label: "💼 事业学业" },
+                        { key: "finance", label: "💰 财运分析" },
+                        { key: "advice", label: "💡 行动建议" },
+                      ] as const;
+                      const dimEntries: Record<string, string[]> = {};
+                      for (const d of dims) dimEntries[d.key] = [];
+                      for (const c of cards) {
+                        const interp = c.isReversed
+                          ? c.card.interpretation.reversed
+                          : c.card.interpretation.upright;
+                        for (const d of dims) {
+                          dimEntries[d.key].push(
+                            `【${c.position}】${c.card.nameCN}（${c.isReversed ? "逆" : "正"}）：${interp[d.key]}`
+                          );
+                        }
+                      }
+                      return dims
+                        .map((d) => d.label + "\n" + dimEntries[d.key].join("\n"))
+                        .join("\n\n");
                     })()}
                   />
                 </motion.div>

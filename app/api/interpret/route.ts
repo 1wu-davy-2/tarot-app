@@ -48,22 +48,24 @@ export async function POST(request: NextRequest) {
     isReversed: boolean[];
     question?: string;
     spreadType: string;
+    positions?: string[];
   };
 
-  const { cards, isReversed, question, spreadType } = body;
+  const { cards, isReversed, question, spreadType, positions } = body;
 
   if (!cards || !isReversed || cards.length === 0) {
     return Response.json({ error: "Missing cards data" }, { status: 400 });
   }
 
-  // Build rich card descriptions with keywords and symbolism
+  // Build rich card descriptions with position meanings and symbolism
   const cardDescriptions = cards
     .map((c, i) => {
       const orient = isReversed[i] ? "逆位" : "正位";
       const meaning = isReversed[i] ? c.reversedMeaning : c.uprightMeaning;
       const keywords = c.keywords.join("、");
-      const pos = spreadType === "每日单牌" ? "" : ` 【牌位${i + 1}】`;
-      let desc = `### ${c.nameCN}${pos}（${orient}）\n`;
+      const posLabel = positions?.[i] || (spreadType === "每日单牌" ? "" : `牌位${i + 1}`);
+      const posStr = posLabel ? ` 【${posLabel}】` : "";
+      let desc = `### ${c.nameCN}${posStr}（${orient}）\n`;
       desc += `- 关键词：${keywords}\n`;
       desc += `- 牌意：${meaning}\n`;
       if (c.element) desc += `- 元素：${c.element}\n`;
@@ -75,16 +77,24 @@ export async function POST(request: NextRequest) {
 
   const questionText = question?.trim() || "求问者心中默想，未明确说出具体问题";
 
+  // Build position context when positions are provided
+  let positionContext = "";
+  if (positions && positions.length > 0) {
+    positionContext = "\n## 各牌位含义\n" + positions
+      .map((p, i) => `${i + 1}. **${p}**：此牌位代表求问者此方面的能量状态`)
+      .join("\n") + "\n";
+  }
+
   const userPrompt = `## 问询者的问题
 ${questionText}
 
 ## 牌阵类型
 ${spreadType}
-
+${positionContext}
 ## 抽到的牌
 ${cardDescriptions}
 
-请按系统提示中要求的五个维度（综合解读、感情运势、事业学业、财运分析、行动建议）+ 一句箴言，对以上牌面进行完整解读。`;
+请结合每个牌位的含义（每张牌所处的牌位代表该牌在此领域的影响），按系统提示中要求的五个维度（综合解读、感情运势、事业学业、财运分析、行动建议）+ 一句箴言，对以上牌面进行完整解读。注意分析牌与牌之间的关联和呼应。`;
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey || apiKey.startsWith("sk-your-")) {
