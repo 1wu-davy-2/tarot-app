@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8188";
 
 const TOKEN_KEY = "tarot_token";
 const USER_KEY = "tarot_user";

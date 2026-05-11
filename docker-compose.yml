@@ -6,7 +6,7 @@ services:
     container_name: tarot-api
     restart: always
     ports:
-      - "8000:8000"
+      - "8188:8188"
     env_file:
       - ./backend/.env
     depends_on:
