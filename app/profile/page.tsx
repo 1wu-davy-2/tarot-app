@@ -5,12 +5,11 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, LogOut, Gift, Sparkles, Loader2,
-  Clock, Layers, ChevronDown, X,
+  ArrowLeft, LogOut, Gift, Sparkles, Loader2, ChevronDown,
 } from "lucide-react";
 import {
   isLoggedIn, logout, apiGetMe, apiGetQuota, apiCheckIn,
-  apiGetReadings, getStoredUser, apiConsumeQuota,
+  apiGetReadings,
 } from "@/lib/api-client";
 
 export default function ProfilePage() {
@@ -116,18 +115,27 @@ export default function ProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             className="glass-card p-6 mb-6"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-cinzel text-mystic-gold">今日额度</h2>
-              <div className="flex items-center gap-3 text-xs">
-                <span className="text-mystic-rose/40">基础 {quota.base_quota}</span>
-                {quota.bonus_quota > 0 && (
-                  <span className="text-mystic-gold/60">签到 +{quota.bonus_quota}</span>
-                )}
-                <span className="text-mystic-rose/40">已用 {quota.used_count}</span>
-                <span className={`font-cinzel text-lg ${quota.remaining > 0 ? "text-mystic-gold" : "text-mystic-rose/60"}`}>
+            <h2 className="text-sm font-cinzel text-mystic-gold mb-4">今日额度</h2>
+
+            {/* Quota grid — 4 cards */}
+            <div className="grid grid-cols-4 gap-3 mb-5">
+              <div className="text-center p-3 rounded-xl bg-mystic-purple/10 border border-mystic-purple/15">
+                <p className="text-[10px] text-mystic-rose/50 mb-1">基础</p>
+                <p className="text-xl font-bold text-foreground/70">{quota.base_quota}</p>
+              </div>
+              <div className="text-center p-3 rounded-xl bg-mystic-gold/5 border border-mystic-gold/15">
+                <p className="text-[10px] text-mystic-rose/50 mb-1">签到</p>
+                <p className="text-xl font-bold text-mystic-gold">+{quota.bonus_quota}</p>
+              </div>
+              <div className="text-center p-3 rounded-xl bg-mystic-purple/10 border border-mystic-purple/15">
+                <p className="text-[10px] text-mystic-rose/50 mb-1">已用</p>
+                <p className="text-xl font-bold text-foreground/70">{quota.used_count}</p>
+              </div>
+              <div className="text-center p-3 rounded-xl bg-mystic-gold/10 border border-mystic-gold/20">
+                <p className="text-[10px] text-mystic-rose/50 mb-1">剩余</p>
+                <p className={`text-2xl font-cinzel font-bold ${quota.remaining > 0 ? "text-mystic-gold" : "text-mystic-rose/60"}`}>
                   {quota.remaining}
-                </span>
-                <span className="text-mystic-rose/50">次剩余</span>
+                </p>
               </div>
             </div>
 
@@ -151,6 +159,23 @@ export default function ProfilePage() {
             </div>
           </motion.div>
         )}
+
+        {/* CTA — 开启塔罗世界 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <Link
+            href="/"
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-full bg-gradient-to-r from-mystic-purple via-mystic-gold to-mystic-rose text-white font-cinzel text-lg tracking-wider hover:opacity-90 transition-opacity shadow-lg shadow-mystic-gold/20"
+          >
+            <Sparkles className="w-5 h-5" />
+            开启塔罗世界
+            <Sparkles className="w-5 h-5" />
+          </Link>
+        </motion.div>
 
         {/* Reading history from server */}
         <motion.div
