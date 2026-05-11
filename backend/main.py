@@ -95,12 +95,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Tarot App API", version="1.0.0", lifespan=lifespan)
 
-# CORS
-origins = settings.cors_origins.split(",")
+# CORS — allow all origins for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
