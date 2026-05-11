@@ -111,12 +111,12 @@ app.include_router(quota.router)
 app.include_router(readings.router)
 
 
-# Dev helper: get latest verification code (only in console mode)
+# Dev helper: get latest verification code
 @app.get("/api/dev/latest-code")
 def latest_code(email: str = ""):
-    if settings.email_mode != "console":
-        return {"error": "仅开发模式可用"}
     code = get_dev_code(email) if email else ""
+    if not code:
+        return {"error": "验证码不存在或已过期"}
     return {"email": email, "code": code}
 
 
