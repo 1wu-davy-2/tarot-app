@@ -9,6 +9,7 @@ import { TarotCard } from "@/components/TarotCard";
 import { CardDrawAnimation } from "@/components/CardDrawAnimation";
 import { CardInterpretation } from "@/components/CardInterpretation";
 import { tarotCards, type TarotCard as TarotCardType } from "@/lib/tarot-data";
+import { saveReading, updateReading } from "@/lib/reading-history";
 
 type SpreadType = "three-card" | "celtic-cross" | "relationship" | "yes-no" | "horseshoe" | "zodiac" | "custom";
 
@@ -257,6 +258,49 @@ export default function SpreadPage() {
       }, 200);
     }
   }, [spreadType]);
+
+  // Save reading to history
+  const spreadSaved = useRef(false);
+  const spreadId = useRef("");
+  useEffect(() => {
+    if (showInterpretation && cards.length > 0 && !spreadSaved.current) {
+      spreadSaved.current = true;
+      spreadId.current = String(Date.now());
+      const cfg = spreadType ? allSpreads[spreadType] : null;
+      const stdText = cards
+        .map((c) => {
+          const interp = c.isReversed ? c.card.interpretation.reversed : c.card.interpretation.upright;
+          return [
+            `【${c.position}】${c.card.nameCN}（${c.isReversed ? "逆位" : "正位"}）`,
+            `🌟 综合解读：${interp.general}`,
+            `💕 感情运势：${interp.love}`,
+            `💼 事业学业：${interp.career}`,
+            `💰 财运分析：${interp.finance}`,
+            `💡 行动建议：${interp.advice}`,
+          ].join("\n");
+        })
+        .join("\n\n");
+      saveReading({
+        id: spreadId.current,
+        date: new Date().toISOString(),
+        spreadType: cfg?.name || "自定义牌阵",
+        question: question || undefined,
+        cards: cards.map((c) => ({
+          nameCN: c.card.nameCN,
+          imageUrl: c.card.imageUrl,
+          isReversed: c.isReversed,
+          position: c.position,
+        })),
+        standardInterpretation: stdText,
+      });
+    }
+  }, [showInterpretation, cards, question, spreadType, allSpreads]);
+
+  useEffect(() => {
+    if (aiText && spreadSaved.current && spreadId.current) {
+      updateReading(spreadId.current, { aiInterpretation: aiText });
+    }
+  }, [aiText]);
 
   const spread = spreadType ? allSpreads[spreadType] : null;
 

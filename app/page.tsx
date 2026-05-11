@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Sparkles, LayoutGrid } from "lucide-react";
+import { Sparkles, LayoutGrid, BookOpen, Library } from "lucide-react";
 
 const container = {
   hidden: { opacity: 0 },
@@ -72,29 +72,41 @@ export default function HomePage() {
           </p>
         </motion.div>
 
-        {/* Entry cards */}
-        <motion.div variants={item} className="flex flex-col sm:flex-row gap-6 w-full">
-          <Link href="/daily" className="flex-1 group">
-            <div className="glass-card p-8 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
+        {/* Entry cards — 2×2 grid */}
+        <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-lg">
+          <Link href="/daily" className="group">
+            <div className="glass-card p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
               <Sparkles className="w-10 h-10 text-mystic-gold mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" />
               <h2 className="text-xl font-cinzel text-mystic-gold mb-2">每日卦算</h2>
               <p className="text-foreground/50 text-sm mb-3">Daily Tarot</p>
               <p className="text-mystic-rose/40 text-xs">{today}</p>
-              <div className="mt-4 text-mystic-gold/0 group-hover:text-mystic-gold/60 text-xs transition-all duration-500">
-                揭示今日指引 →
-              </div>
             </div>
           </Link>
 
-          <Link href="/spread" className="flex-1 group">
-            <div className="glass-card p-8 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
+          <Link href="/spread" className="group">
+            <div className="glass-card p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
               <LayoutGrid className="w-10 h-10 text-mystic-gold mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" />
               <h2 className="text-xl font-cinzel text-mystic-gold mb-2">牌阵占卜</h2>
               <p className="text-foreground/50 text-sm mb-3">Card Spread</p>
-              <p className="text-mystic-rose/40 text-xs">三牌阵 · 凯尔特十字</p>
-              <div className="mt-4 text-mystic-gold/0 group-hover:text-mystic-gold/60 text-xs transition-all duration-500">
-                开启深度占卜 →
-              </div>
+              <p className="text-mystic-rose/40 text-xs">多种牌阵 · 深度解读</p>
+            </div>
+          </Link>
+
+          <Link href="/history" className="group">
+            <div className="glass-card p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
+              <BookOpen className="w-10 h-10 text-mystic-gold mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" />
+              <h2 className="text-xl font-cinzel text-mystic-gold mb-2">解读历史</h2>
+              <p className="text-foreground/50 text-sm mb-3">Reading History</p>
+              <p className="text-mystic-rose/40 text-xs">回溯过往占卜记录</p>
+            </div>
+          </Link>
+
+          <Link href="/library" className="group">
+            <div className="glass-card p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
+              <Library className="w-10 h-10 text-mystic-gold mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" />
+              <h2 className="text-xl font-cinzel text-mystic-gold mb-2">塔罗图鉴</h2>
+              <p className="text-foreground/50 text-sm mb-3">Card Library</p>
+              <p className="text-mystic-rose/40 text-xs">78张牌 · 完整释义</p>
             </div>
           </Link>
         </motion.div>

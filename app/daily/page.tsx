@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Loader2, ArrowLeft, Sparkles } from "lucide-react";
@@ -8,6 +8,7 @@ import { TarotCard } from "@/components/TarotCard";
 import { CardInterpretation } from "@/components/CardInterpretation";
 import { ShareButton } from "@/components/ShareButton";
 import type { TarotCard as TarotCardType } from "@/lib/tarot-data";
+import { saveReading, updateReading } from "@/lib/reading-history";
 
 interface DailyData {
   card: TarotCardType;
@@ -31,6 +32,43 @@ export default function DailyPage() {
       .then(setData)
       .catch((err) => setError(err.message || "获取今日牌失败"));
   }, []);
+
+  // Save reading to history once interpretation is shown
+  const dailySaved = useRef(false);
+  const dailyId = useRef("");
+  useEffect(() => {
+    if (showInterpretation && data && !dailySaved.current) {
+      dailySaved.current = true;
+      dailyId.current = String(Date.now());
+      const i = data.isReversed ? data.card.interpretation.reversed : data.card.interpretation.upright;
+      saveReading({
+        id: dailyId.current,
+        date: new Date().toISOString(),
+        spreadType: "每日单牌",
+        question: "今日的指引与能量",
+        cards: [{
+          nameCN: data.card.nameCN,
+          imageUrl: data.card.imageUrl,
+          isReversed: data.isReversed,
+          position: "今日指引",
+        }],
+        standardInterpretation: [
+          "🌟 综合解读：" + i.general,
+          "💕 感情运势：" + i.love,
+          "💼 事业学业：" + i.career,
+          "💰 财运分析：" + i.finance,
+          "💡 行动建议：" + i.advice,
+        ].join("\n\n"),
+      });
+    }
+  }, [showInterpretation, data]);
+
+  // Update AI interpretation when it arrives
+  useEffect(() => {
+    if (aiText && dailySaved.current && dailyId.current) {
+      updateReading(dailyId.current, { aiInterpretation: aiText });
+    }
+  }, [aiText]);
 
   const formattedDate = data
     ? new Date(data.date).toLocaleDateString("zh-CN", {
