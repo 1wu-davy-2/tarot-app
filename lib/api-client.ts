@@ -1,5 +1,5 @@
-// 空字符串 = 相对路径（Vercel 代理模式）；有值 = 直连后端（Docker 模式）
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8188";
+// 设置了就用直连（Docker/本地）；不设就走相对路径（Vercel 代理模式）
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 const TOKEN_KEY = "tarot_token";
 const USER_KEY = "tarot_user";
