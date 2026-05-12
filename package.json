@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@capacitor/android": "^5.7.8",
+    "@capacitor/cli": "^5.7.8",
+    "@capacitor/core": "^5.7.8",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",

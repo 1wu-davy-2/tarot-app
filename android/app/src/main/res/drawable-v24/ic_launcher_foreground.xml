@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportHeight="108"
+    android:viewportWidth="108">
+
+    <!-- Outer star shape -->
+    <path
+        android:fillColor="#c084fc"
+        android:fillAlpha="0.3"
+        android:pathData="M54,18 L62,42 L88,42 L68,56 L76,80 L54,66 L32,80 L40,56 L20,42 L46,42 Z" />
+
+    <!-- Inner diamond (mirror) -->
+    <path
+        android:fillColor="#d4a853"
+        android:pathData="M54,28 L66,54 L54,80 L42,54 Z" />
+
+    <!-- Eye shape in center -->
+    <path
+        android:fillColor="#1a0a2e"
+        android:pathData="M54,44 C58,44 60,46 60,50 C60,50 59,56 54,56 C49,56 48,50 48,50 C48,46 50,44 54,44 Z" />
+
+    <!-- Eye pupil (gold spark) -->
+    <path
+        android:fillColor="#d4a853"
+        android:pathData="M54,49m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-5 0" />
+
+    <!-- Small stars/sparkles -->
+    <path
+        android:fillColor="#d4a853"
+        android:fillAlpha="0.7"
+        android:pathData="M28,28 L30,30 L28,32 L26,30 Z" />
+    <path
+        android:fillColor="#d4a853"
+        android:fillAlpha="0.5"
+        android:pathData="M78,74 L80,76 L78,78 L76,76 Z" />
+    <path
+        android:fillColor="#d4a853"
+        android:fillAlpha="0.4"
+        android:pathData="M75,28 L76,29 L75,30 L74,29 Z" />
+</vector>

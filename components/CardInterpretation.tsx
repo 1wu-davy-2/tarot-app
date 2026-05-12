@@ -7,6 +7,9 @@ import type { TarotCard } from "@/lib/tarot-data";
 import { LoginModal } from "@/components/LoginModal";
 import { isLoggedIn, isAdmin, getStoredUser, apiGetQuota, apiConsumeQuota } from "@/lib/api-client";
 
+const IS_APK = process.env.NEXT_PUBLIC_BUILD_TARGET === "apk";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+
 function buildQuestion(base: string | undefined, spreadType: string | undefined): string {
   let q = base?.trim() || "未说明具体问题，求问者心中默想";
   const user = getStoredUser();
@@ -420,7 +423,8 @@ function AIInterpretationTab({
     let accumulated = "";
 
     try {
-      const response = await fetch("/api/interpret", {
+      const url = IS_APK ? `${API_BASE}/api/interpret` : "/api/interpret";
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

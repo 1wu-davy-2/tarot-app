@@ -9,8 +9,11 @@ import { CardInterpretation } from "@/components/CardInterpretation";
 import { ShareButton } from "@/components/ShareButton";
 import type { TarotCard as TarotCardType } from "@/lib/tarot-data";
 import { tarotCards } from "@/lib/tarot-data";
+import { getDailyCard } from "@/lib/daily-seed";
 import { saveReading, updateReading } from "@/lib/reading-history";
 import { isLoggedIn, apiSaveReading } from "@/lib/api-client";
+
+const IS_APK = process.env.NEXT_PUBLIC_BUILD_TARGET === "apk";
 
 interface DailyData {
   card: TarotCardType;
@@ -33,6 +36,11 @@ export default function DailyPage() {
   const [aiText, setAiText] = useState("");
 
   useEffect(() => {
+    if (IS_APK) {
+      const card = getDailyCard();
+      setData(card);
+      return;
+    }
     fetch("/api/daily-reading")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch");
