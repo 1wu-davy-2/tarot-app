@@ -8,10 +8,17 @@ services:
       - ./backend/.env
 
   web:
-    build: .
+    build:
+      context: .
+      args:
+        # 客户端直连后端地址 — docker build 时传入
+        # 例: docker compose build --build-arg NEXT_PUBLIC_API_URL=http://你的IP:8188
+        - NEXT_PUBLIC_API_URL
     container_name: tarot-web
     restart: always
     network_mode: host
     environment:
       - PORT=5200
       - NODE_ENV=production
+      # 与后端 backend/.env 中相同的加密密钥
+      - ENCRYPTION_KEY

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Loader2, Sparkles } from "lucide-react";
 import { getRemainingUses, consumeUse, getLimitMessage, isAdmin } from "@/lib/auth-utils";
 import { LoginModal } from "@/components/LoginModal";
+import { isLoggedIn, apiSaveReading } from "@/lib/api-client";
 
 interface AIInterpretationProps {
   cards: import("@/lib/tarot-data").TarotCard[];
@@ -113,6 +114,25 @@ export function AIInterpretation({ cards, isReversed, spreadType, question, onCo
       abortRef.current?.abort();
     };
   }, []);
+
+  // Save to backend when streaming completes (text exists and no longer loading)
+  const savedRef = useRef(false);
+  useEffect(() => {
+    if (text && !loading && !savedRef.current && isLoggedIn()) {
+      savedRef.current = true;
+      apiSaveReading({
+        question: question || "",
+        ai_response: text,
+        spread_type: spreadType,
+        cards: cards.map((c, i) => ({
+          nameCN: c.nameCN,
+          imageUrl: c.imageUrl,
+          isReversed: isReversed[i] ?? false,
+          position: `牌位${i + 1}`,
+        })),
+      }).catch(() => {});
+    }
+  }, [text, loading, cards, isReversed, spreadType, question]);
 
   // Blocked — not enough credits
   if (blocked && !text) {

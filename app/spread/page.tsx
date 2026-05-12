@@ -10,6 +10,7 @@ import { CardDrawAnimation } from "@/components/CardDrawAnimation";
 import { CardInterpretation } from "@/components/CardInterpretation";
 import { tarotCards, type TarotCard as TarotCardType } from "@/lib/tarot-data";
 import { saveReading, updateReading } from "@/lib/reading-history";
+import { isLoggedIn, apiSaveReading } from "@/lib/api-client";
 
 type SpreadType = "three-card" | "celtic-cross" | "relationship" | "yes-no" | "horseshoe" | "zodiac" | "custom";
 
@@ -293,12 +294,40 @@ export default function SpreadPage() {
         })),
         standardInterpretation: stdText,
       });
+      // Also save to backend
+      if (isLoggedIn()) {
+        apiSaveReading({
+          question: question || "",
+          ai_response: "",
+          spread_type: cfg?.name || "自定义牌阵",
+          cards: cards.map((c) => ({
+            nameCN: c.card.nameCN,
+            imageUrl: c.card.imageUrl,
+            isReversed: c.isReversed,
+            position: c.position,
+          })),
+        }).catch(() => {});
+      }
     }
   }, [showInterpretation, cards, question, spreadType, allSpreads]);
 
   useEffect(() => {
     if (aiText && spreadSaved.current && spreadId.current) {
       updateReading(spreadId.current, { aiInterpretation: aiText });
+      // Update backend with AI response
+      if (isLoggedIn()) {
+        apiSaveReading({
+          question: question || "",
+          ai_response: aiText,
+          spread_type: (spreadType && allSpreads[spreadType]?.name) || "自定义牌阵",
+          cards: cards.map((c) => ({
+            nameCN: c.card.nameCN,
+            imageUrl: c.card.imageUrl,
+            isReversed: c.isReversed,
+            position: c.position,
+          })),
+        }).catch(() => {});
+      }
     }
   }, [aiText]);
 

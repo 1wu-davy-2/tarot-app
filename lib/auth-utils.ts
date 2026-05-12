@@ -5,9 +5,6 @@ const STORAGE_KEY_USAGE = "tarot_usage";
 const STORAGE_KEY_VCODE = "tarot_vcode";
 const STORAGE_KEY_GUEST = "tarot_guest_used";
 
-const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "admin@123";
-
 const GUEST_FREE_LIMIT = 1;
 const LOGGED_IN_DAILY_LIMIT = 3;
 
@@ -82,12 +79,6 @@ export function login(phone: string, code: string): { success: boolean; error?: 
     return { success: false, error: "请输入有效的手机号码" };
   }
 
-  // Admin bypass
-  if (phone === ADMIN_USERNAME && code === ADMIN_PASSWORD) {
-    saveAuth({ phone: ADMIN_USERNAME, loggedIn: true, isAdmin: true, loginTime: Date.now() });
-    return { success: true };
-  }
-
   if (!verifyCode(code)) {
     return { success: false, error: "验证码错误，请点击验证码输入框获取" };
   }
@@ -128,9 +119,6 @@ function saveUsage(data: UsageData) {
 }
 
 export function getRemainingUses(): number {
-  // Admin: unlimited
-  if (isAdmin()) return 999;
-
   const auth = getAuth();
   if (auth && auth.loggedIn) {
     const usage = getUsage();
@@ -145,9 +133,6 @@ export function getRemainingUses(): number {
 }
 
 export function consumeUse(): boolean {
-  // Admin: never consume
-  if (isAdmin()) return true;
-
   const auth = getAuth();
   if (auth && auth.loggedIn) {
     const usage = getUsage();
@@ -166,8 +151,6 @@ export function consumeUse(): boolean {
 }
 
 export function getLimitMessage(): string {
-  if (isAdmin()) return "";
-
   const auth = getAuth();
   if (auth && auth.loggedIn) {
     const remaining = getRemainingUses();

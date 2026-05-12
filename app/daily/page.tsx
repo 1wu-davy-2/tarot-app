@@ -8,10 +8,19 @@ import { TarotCard } from "@/components/TarotCard";
 import { CardInterpretation } from "@/components/CardInterpretation";
 import { ShareButton } from "@/components/ShareButton";
 import type { TarotCard as TarotCardType } from "@/lib/tarot-data";
+import { tarotCards } from "@/lib/tarot-data";
 import { saveReading, updateReading } from "@/lib/reading-history";
+import { isLoggedIn, apiSaveReading } from "@/lib/api-client";
 
 interface DailyData {
   card: TarotCardType;
+  isReversed: boolean;
+  date: string;
+}
+
+interface DailyApiResponse {
+  card?: TarotCardType;
+  card_index?: number;
   isReversed: boolean;
   date: string;
 }
@@ -27,9 +36,19 @@ export default function DailyPage() {
     fetch("/api/daily-reading")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch");
-        return res.json();
+        return res.json() as Promise<DailyApiResponse>;
       })
-      .then(setData)
+      .then((json) => {
+        if (json.card) {
+          setData({ card: json.card, isReversed: json.isReversed, date: json.date });
+        } else if (json.card_index !== undefined) {
+          setData({
+            card: tarotCards[json.card_index] ?? tarotCards[0],
+            isReversed: json.isReversed,
+            date: json.date,
+          });
+        }
+      })
       .catch((err) => setError(err.message || "获取今日牌失败"));
   }, []);
 
@@ -60,6 +79,20 @@ export default function DailyPage() {
           "💡 行动建议：" + i.advice,
         ].join("\n\n"),
       });
+      // Also save to backend if logged in
+      if (isLoggedIn()) {
+        apiSaveReading({
+          question: "今日的指引与能量",
+          ai_response: "",
+          spread_type: "每日单牌",
+          cards: [{
+            nameCN: data.card.nameCN,
+            imageUrl: data.card.imageUrl,
+            isReversed: data.isReversed,
+            position: "今日指引",
+          }],
+        }).catch(() => {});
+      }
     }
   }, [showInterpretation, data]);
 
@@ -67,6 +100,20 @@ export default function DailyPage() {
   useEffect(() => {
     if (aiText && dailySaved.current && dailyId.current) {
       updateReading(dailyId.current, { aiInterpretation: aiText });
+      // Update backend with AI response
+      if (isLoggedIn() && data) {
+        apiSaveReading({
+          question: "今日的指引与能量",
+          ai_response: aiText,
+          spread_type: "每日单牌",
+          cards: [{
+            nameCN: data.card.nameCN,
+            imageUrl: data.card.imageUrl,
+            isReversed: data.isReversed,
+            position: "今日指引",
+          }],
+        }).catch(() => {});
+      }
     }
   }, [aiText]);
 

@@ -57,11 +57,14 @@ class Settings(BaseSettings):
     # Quota
     daily_base_quota: int = 2
     checkin_min_bonus: int = 2
-    checkin_max_bonus: int = 8
+    checkin_max_bonus: int = 10
     admin_quota: int = 999
 
     # DeepSeek
     deepseek_api_key: str = ""
+
+    # Encryption key for AI config delivery
+    encryption_key: str = ""
 
     # CORS
     cors_origins: str = "http://localhost:3000"

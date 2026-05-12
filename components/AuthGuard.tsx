@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { isLoggedIn, checkSession, updateActivity, logout } from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
 
+const PROTECTED_ROUTES = ["/profile", "/history"];
+
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -29,36 +31,40 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     activityTimer.current = setInterval(() => {
       if (isLoggedIn() && !checkSession()) {
         logout();
-        router.push("/login");
       }
     }, 60000);
     return () => {
       if (activityTimer.current) clearInterval(activityTimer.current);
     };
-  }, [router]);
+  }, []);
 
   // Auth check on pathname change
   useEffect(() => {
-    // Allow login page and static assets through
-    if (pathname === "/login" || pathname.startsWith("/_next") || pathname.startsWith("/api")) {
+    // Allow static assets and API routes through
+    if (pathname.startsWith("/_next") || pathname.startsWith("/api")) {
       setChecking(false);
       return;
     }
 
-    const loggedIn = isLoggedIn();
-    const sessionValid = checkSession();
+    const needsAuth = PROTECTED_ROUTES.some(
+      (r) => pathname === r || pathname.startsWith(r + "/")
+    );
 
-    if (!loggedIn || !sessionValid) {
-      if (loggedIn) logout(); // Session expired, clean up
-      router.replace("/login");
-      // Keep checking=true so we show nothing during redirect
-    } else {
-      updateActivity();
-      setChecking(false);
+    if (needsAuth) {
+      const loggedIn = isLoggedIn();
+      const sessionValid = checkSession();
+
+      if (!loggedIn || !sessionValid) {
+        if (loggedIn) logout();
+        router.replace("/login");
+        return;
+      }
     }
+
+    updateActivity();
+    setChecking(false);
   }, [pathname, router]);
 
-  // Don't flash content before auth check
   if (checking && pathname !== "/login") {
     return (
       <div className="min-h-screen flex items-center justify-center">

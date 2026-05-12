@@ -542,8 +542,12 @@ function AIInterpretationTab({
           <p className="text-mystic-rose/40 text-xs mb-4">
             {quotaLoaded
               ? isAdmin() ? "管理员 · 无限制"
-              : remaining !== null ? `今日剩余 ${remaining} 次AI解读`
-              : ""
+              : isLoggedIn()
+                ? remaining !== null ? `今日剩余 ${remaining} 次AI解读`
+                : ""
+              : remaining !== null && remaining > 0
+                ? "未登录 · 仅可体验 1 次 AI 解读"
+                : "免费体验次数已用完"
               : ""}
           </p>
           <button

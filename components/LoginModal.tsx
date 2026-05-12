@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles, ShieldCheck, Smartphone } from "lucide-react";
-import { login, generateVCode, getVCode, validatePhone } from "@/lib/auth-utils";
+import { X, Sparkles, Mail, Lock, User, Phone, ShieldCheck } from "lucide-react";
+import { apiLogin, apiRegister, apiSendCode } from "@/lib/api-client";
 
 interface LoginModalProps {
   open: boolean;
@@ -11,48 +11,92 @@ interface LoginModalProps {
   onSuccess: () => void;
 }
 
+type Tab = "login" | "register";
+
 export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
-  const [error, setError] = useState("");
+  const [tab, setTab] = useState<Tab>("login");
+
+  // Login fields
+  const [account, setAccount] = useState("");
+  const [password, setPassword] = useState("");
+
+  // Register fields
+  const [regUsername, setRegUsername] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regCode, setRegCode] = useState("");
+  const [sendingCode, setSendingCode] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+
   const [loading, setLoading] = useState(false);
-  const [vcodeGenerated, setVcodeGenerated] = useState(false);
-  const codeInputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     if (open) {
-      setPhone("");
-      setCode("");
-      setError("");
+      setTab("login");
+      setAccount("");
+      setPassword("");
+      setRegUsername("");
+      setRegEmail("");
+      setRegPhone("");
+      setRegPassword("");
+      setRegCode("");
+      setSendingCode(false);
+      setCodeSent(false);
       setLoading(false);
-      setVcodeGenerated(false);
+      setError("");
+      setMessage("");
     }
   }, [open]);
 
-  const handleCodeFocus = () => {
-    if (!validatePhone(phone)) {
-      setError("请先输入有效的手机号码");
-      return;
-    }
-    const vcode = generateVCode();
-    setCode(vcode);
-    setVcodeGenerated(true);
+  const handleLogin = async () => {
     setError("");
-  };
-
-  const handleSubmit = async () => {
-    setError("");
+    if (!account.trim()) { setError("请输入邮箱或用户名"); return; }
+    if (!password) { setError("请输入密码"); return; }
     setLoading(true);
-
-    // Small delay to simulate network
-    await new Promise((r) => setTimeout(r, 600));
-
-    const result = login(phone, code);
-    if (result.success) {
+    try {
+      await apiLogin(account.trim(), password);
       onSuccess();
       onClose();
-    } else {
-      setError(result.error || "登录失败");
+    } catch (e: any) {
+      setError(e.message || "登录失败");
+    }
+    setLoading(false);
+  };
+
+  const handleSendCode = async () => {
+    setError("");
+    if (!regEmail.trim()) { setError("请输入邮箱"); return; }
+    setSendingCode(true);
+    try {
+      await apiSendCode(regEmail.trim(), "register");
+      setCodeSent(true);
+      setMessage("验证码已发送至邮箱");
+    } catch (e: any) {
+      setError(e.message || "发送失败");
+    }
+    setSendingCode(false);
+  };
+
+  const handleRegister = async () => {
+    setError("");
+    setMessage("");
+    if (!regUsername.trim()) { setError("请输入用户名"); return; }
+    if (!regEmail.trim()) { setError("请输入邮箱"); return; }
+    if (!regPhone.trim()) { setError("请输入手机号"); return; }
+    if (regPassword.length < 6) { setError("密码至少6位"); return; }
+    if (regCode.length !== 6) { setError("请输入6位验证码"); return; }
+    setLoading(true);
+    try {
+      await apiRegister(regUsername.trim(), regEmail.trim(), regPassword, regPhone.trim(), regCode.trim());
+      // Auto-login after register
+      await apiLogin(regEmail.trim(), regPassword);
+      onSuccess();
+      onClose();
+    } catch (e: any) {
+      setError(e.message || "注册失败");
     }
     setLoading(false);
   };
@@ -61,7 +105,6 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -70,7 +113,6 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
             onClick={onClose}
           />
 
-          {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -78,7 +120,6 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
             transition={{ duration: 0.25 }}
             className="relative w-full max-w-sm bg-[#0f0a1a] border border-mystic-purple/30 rounded-2xl shadow-2xl overflow-hidden"
           >
-            {/* Close */}
             <button
               onClick={onClose}
               className="absolute top-4 right-4 z-10 p-1 rounded-full bg-mystic-dark/80 text-mystic-rose/50 hover:text-mystic-rose transition-colors"
@@ -87,71 +128,166 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
             </button>
 
             {/* Header */}
-            <div className="text-center pt-8 pb-4">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-mystic-gold/10 border border-mystic-gold/30 mb-4">
-                <ShieldCheck className="w-7 h-7 text-mystic-gold" />
+            <div className="text-center pt-8 pb-2">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-mystic-gold/10 border border-mystic-gold/30 mb-3">
+                <ShieldCheck className="w-6 h-6 text-mystic-gold" />
               </div>
-              <h3 className="text-xl font-cinzel text-mystic-gold tracking-wider">
-                登录解锁 AI 解读
+              <h3 className="text-lg font-cinzel text-mystic-gold tracking-wider">
+                {tab === "login" ? "登录" : "注册"}
               </h3>
-              <p className="text-mystic-rose/50 text-sm mt-2">
-                登录后每天可使用 3 次 AI 深度解读
+              <p className="text-mystic-rose/50 text-xs mt-1">
+                {tab === "login"
+                  ? "登录后可使用 AI 深度解读 + 每日签到"
+                  : "创建账号解锁完整功能"}
               </p>
             </div>
 
+            {/* Tab switcher */}
+            <div className="flex justify-center gap-1 pb-3">
+              <button
+                onClick={() => { setTab("login"); setError(""); setMessage(""); }}
+                className={`text-xs px-4 py-1 rounded-full transition-colors ${
+                  tab === "login"
+                    ? "bg-mystic-gold/20 text-mystic-gold border border-mystic-gold/30"
+                    : "text-mystic-rose/40 hover:text-mystic-rose/70"
+                }`}
+              >
+                登录
+              </button>
+              <button
+                onClick={() => { setTab("register"); setError(""); setMessage(""); }}
+                className={`text-xs px-4 py-1 rounded-full transition-colors ${
+                  tab === "register"
+                    ? "bg-mystic-gold/20 text-mystic-gold border border-mystic-gold/30"
+                    : "text-mystic-rose/40 hover:text-mystic-rose/70"
+                }`}
+              >
+                注册
+              </button>
+            </div>
+
             {/* Form */}
-            <div className="px-8 pb-8 space-y-4">
-              {/* Phone */}
-              <div>
-                <label className="text-xs text-mystic-rose/60 mb-1.5 block">手机号码</label>
-                <div className="relative">
-                  <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
-                  <input
-                    type="text"
-                    maxLength={20}
-                    placeholder="输入手机号，管理员输入 admin"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.trim())}
-                    className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-foreground/20 outline-none focus:border-mystic-gold/50 transition-colors"
-                  />
-                </div>
-              </div>
-
-              {/* Verification Code */}
-              <div>
-                <label className="text-xs text-mystic-rose/60 mb-1.5 block">验证码</label>
-                <div className="relative">
-                  <input
-                    ref={codeInputRef}
-                    type="text"
-                    maxLength={20}
-                    placeholder="点击自动获取验证码，管理员输入 admin@123"
-                    value={code}
-                    onFocus={handleCodeFocus}
-                    onChange={(e) => setCode(e.target.value.trim())}
-                    className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-foreground/20 outline-none focus:border-mystic-gold/50 transition-colors tracking-[4px] text-center"
-                  />
-                  {vcodeGenerated && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-mystic-gold/60">
-                      已填充
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-mystic-rose/30 mt-1">
-                  验证码已存入浏览器，点击输入框自动获取
-                </p>
-              </div>
-
-              {/* Error */}
-              {error && (
-                <p className="text-red-400/80 text-sm text-center">{error}</p>
+            <div className="px-8 pb-8 space-y-3">
+              {tab === "login" ? (
+                <>
+                  <div>
+                    <label className="text-xs text-mystic-rose/60 mb-1 block">邮箱 / 用户名</label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <input
+                        type="text"
+                        placeholder="输入邮箱或用户名"
+                        value={account}
+                        onChange={(e) => setAccount(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                        className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-mystic-gold/50 transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-mystic-rose/60 mb-1 block">密码</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <input
+                        type="password"
+                        placeholder="输入密码"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                        className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-mystic-gold/50 transition-colors"
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-xs text-mystic-rose/60 mb-1 block">用户名</label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <input
+                        type="text"
+                        placeholder="2-50 个字符"
+                        value={regUsername}
+                        onChange={(e) => setRegUsername(e.target.value)}
+                        className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-mystic-gold/50 transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-mystic-rose/60 mb-1 block">邮箱</label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <input
+                        type="email"
+                        placeholder="用于接收验证码"
+                        value={regEmail}
+                        onChange={(e) => setRegEmail(e.target.value)}
+                        className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-mystic-gold/50 transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-mystic-rose/60 mb-1 block">手机号</label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <input
+                        type="text"
+                        maxLength={11}
+                        placeholder="11 位手机号"
+                        value={regPhone}
+                        onChange={(e) => setRegPhone(e.target.value.replace(/\D/g, ""))}
+                        className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-mystic-gold/50 transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-mystic-rose/60 mb-1 block">密码</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <input
+                        type="password"
+                        placeholder="至少 6 位"
+                        value={regPassword}
+                        onChange={(e) => setRegPassword(e.target.value)}
+                        className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-mystic-gold/50 transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        placeholder="验证码"
+                        value={regCode}
+                        onChange={(e) => setRegCode(e.target.value.replace(/\D/g, ""))}
+                        className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-3 py-2.5 text-sm text-center tracking-[8px] outline-none focus:border-mystic-gold/50 transition-colors"
+                      />
+                    </div>
+                    <button
+                      onClick={handleSendCode}
+                      disabled={sendingCode || !regEmail.trim()}
+                      className="shrink-0 text-xs px-3 py-2.5 rounded-lg bg-mystic-gold/10 border border-mystic-gold/20 text-mystic-gold hover:bg-mystic-gold/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                      {sendingCode ? "发送中..." : codeSent ? "重新发送" : "获取验证码"}
+                    </button>
+                  </div>
+                </>
               )}
+
+              {/* Messages */}
+              {error && <p className="text-red-400/80 text-sm text-center">{error}</p>}
+              {message && <p className="text-green-400/80 text-sm text-center">{message}</p>}
 
               {/* Submit */}
               <button
-                onClick={handleSubmit}
-                disabled={loading || !phone.trim() || !code.trim()}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-gradient-to-r from-mystic-gold/80 to-mystic-rose/60 text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                onClick={tab === "login" ? handleLogin : handleRegister}
+                disabled={
+                  loading ||
+                  (tab === "login" ? !account.trim() || !password : !regUsername.trim() || !regEmail.trim() || !regPhone.trim() || regPassword.length < 6 || regCode.length !== 6)
+                }
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-gradient-to-r from-mystic-gold/80 to-mystic-rose/60 text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed mt-2"
               >
                 {loading ? (
                   <motion.div
@@ -162,14 +298,14 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    登录
+                    {tab === "login" ? "登录" : "注册"}
                   </>
                 )}
               </button>
 
-              {/* Admin hint */}
-              <p className="text-center text-mystic-rose/25 text-xs pt-2 select-none">
-                管理员：手机号输入 admin，验证码输入 admin@123
+              {/* Benefits */}
+              <p className="text-center text-mystic-rose/25 text-xs pt-1">
+                登录后每日签到可获得额外 AI 解读次数
               </p>
             </div>
           </motion.div>
