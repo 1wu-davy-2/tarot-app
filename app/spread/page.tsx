@@ -294,41 +294,36 @@ export default function SpreadPage() {
         })),
         standardInterpretation: stdText,
       });
-      // Also save to backend
-      if (isLoggedIn()) {
-        apiSaveReading({
-          question: question || "",
-          ai_response: "",
-          spread_type: cfg?.name || "自定义牌阵",
-          cards: cards.map((c) => ({
-            nameCN: c.card.nameCN,
-            imageUrl: c.card.imageUrl,
-            isReversed: c.isReversed,
-            position: c.position,
-          })),
-        }).catch(() => {});
-      }
     }
   }, [showInterpretation, cards, question, spreadType, allSpreads]);
 
+  const backendSaved = useRef(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
   useEffect(() => {
     if (aiText && spreadSaved.current && spreadId.current) {
       updateReading(spreadId.current, { aiInterpretation: aiText });
-      // Update backend with AI response
-      if (isLoggedIn()) {
-        apiSaveReading({
-          question: question || "",
-          ai_response: aiText,
-          spread_type: (spreadType && allSpreads[spreadType]?.name) || "自定义牌阵",
-          cards: cards.map((c) => ({
-            nameCN: c.card.nameCN,
-            imageUrl: c.card.imageUrl,
-            isReversed: c.isReversed,
-            position: c.position,
-          })),
-        }).catch(() => {});
+      // Debounce backend save — only save after 3s of no text changes
+      if (isLoggedIn() && !backendSaved.current) {
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(() => {
+          apiSaveReading({
+            question: question || "",
+            ai_response: aiText,
+            spread_type: (spreadType && allSpreads[spreadType]?.name) || "自定义牌阵",
+            cards: cards.map((c) => ({
+              nameCN: c.card.nameCN,
+              imageUrl: c.card.imageUrl,
+              isReversed: c.isReversed,
+              position: c.position,
+            })),
+          }).catch(() => {});
+          backendSaved.current = true;
+        }, 3000);
       }
     }
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
   }, [aiText]);
 
   const spread = spreadType ? allSpreads[spreadType] : null;

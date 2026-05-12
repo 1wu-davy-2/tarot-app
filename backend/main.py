@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from config import get_settings
-from routers import auth, checkin, quota, readings, interpret, ai_config
+from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin
 from redis_utils import get_dev_code
 
 settings = get_settings()
@@ -111,6 +111,8 @@ app.include_router(quota.router)
 app.include_router(readings.router)
 app.include_router(interpret.router)
 app.include_router(ai_config.router)
+app.include_router(feedback.router)
+app.include_router(admin.router)
 
 
 # Dev helper: get latest verification code

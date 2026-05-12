@@ -79,43 +79,38 @@ export default function DailyPage() {
           "💡 行动建议：" + i.advice,
         ].join("\n\n"),
       });
-      // Also save to backend if logged in
-      if (isLoggedIn()) {
-        apiSaveReading({
-          question: "今日的指引与能量",
-          ai_response: "",
-          spread_type: "每日单牌",
-          cards: [{
-            nameCN: data.card.nameCN,
-            imageUrl: data.card.imageUrl,
-            isReversed: data.isReversed,
-            position: "今日指引",
-          }],
-        }).catch(() => {});
-      }
     }
   }, [showInterpretation, data]);
 
-  // Update AI interpretation when it arrives
+  // Update localStorage in real-time; debounce backend save
+  const backendSaved = useRef(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
   useEffect(() => {
     if (aiText && dailySaved.current && dailyId.current) {
       updateReading(dailyId.current, { aiInterpretation: aiText });
-      // Update backend with AI response
-      if (isLoggedIn() && data) {
-        apiSaveReading({
-          question: "今日的指引与能量",
-          ai_response: aiText,
-          spread_type: "每日单牌",
-          cards: [{
-            nameCN: data.card.nameCN,
-            imageUrl: data.card.imageUrl,
-            isReversed: data.isReversed,
-            position: "今日指引",
-          }],
-        }).catch(() => {});
+      // Debounce backend save — only save after 3s of no text changes (stream complete)
+      if (isLoggedIn() && data && !backendSaved.current) {
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(() => {
+          apiSaveReading({
+            question: "今日的指引与能量",
+            ai_response: aiText,
+            spread_type: "每日单牌",
+            cards: [{
+              nameCN: data.card.nameCN,
+              imageUrl: data.card.imageUrl,
+              isReversed: data.isReversed,
+              position: "今日指引",
+            }],
+          }).catch(() => {});
+          backendSaved.current = true;
+        }, 3000);
       }
     }
-  }, [aiText]);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [aiText, data]);
 
   const formattedDate = data
     ? new Date(data.date).toLocaleDateString("zh-CN", {

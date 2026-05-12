@@ -55,9 +55,12 @@ export function Header() {
           {loggedIn ? (
             <div className="flex items-center gap-2">
               {admin && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-mystic-gold/20 text-mystic-gold border border-mystic-gold/30">
-                  管理员
-                </span>
+                <button
+                  onClick={() => router.push("/admin")}
+                  className="text-[10px] px-1.5 py-0.5 rounded bg-mystic-gold/20 text-mystic-gold border border-mystic-gold/30 hover:bg-mystic-gold/30 transition-colors"
+                >
+                  管理
+                </button>
               )}
               <button
                 onClick={() => router.push("/profile")}

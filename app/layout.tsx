@@ -3,6 +3,7 @@ import "./globals.css";
 import { MysticBackground } from "@/components/MysticBackground";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Header } from "@/components/Header";
+import { FeedbackWidget } from "@/components/FeedbackWidget";
 
 export const metadata: Metadata = {
   title: "命运之镜 · Mirror of Fate",
@@ -30,6 +31,7 @@ export default function RootLayout({
         <main className="relative z-10 flex-1 flex flex-col">
           <AuthGuard>{children}</AuthGuard>
         </main>
+        <FeedbackWidget />
       </body>
     </html>
   );
