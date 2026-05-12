@@ -10,6 +10,7 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False, index=True)
     email = Column(String(120), unique=True, nullable=False, index=True)
     phone = Column(String(20), default="")
+    zodiac = Column(String(20), nullable=True, default=None)
     password_hash = Column(String(255), nullable=False)
     is_verified = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)

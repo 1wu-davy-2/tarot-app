@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from config import get_settings
-from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin
+from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement
 from redis_utils import get_dev_code
 
 settings = get_settings()
@@ -50,9 +50,26 @@ def _create_tables_fallback():
     print("[alembic] Tables created via create_all")
 
 
+def ensure_columns():
+    """Add missing columns for schema updates (zero-downtime for existing DBs)."""
+    from database import engine, SessionLocal
+    from sqlalchemy import text, inspect
+    insp = inspect(engine)
+    if insp.has_table("users"):
+        existing = {c["name"] for c in insp.get_columns("users")}
+        if "zodiac" not in existing:
+            try:
+                with engine.connect() as conn:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN zodiac VARCHAR(20) NULL"))
+                    conn.commit()
+                print("[startup] Added column users.zodiac")
+            except Exception as e:
+                print(f"[startup] Failed to add column zodiac: {e}")
+
+
 def ensure_admin():
     """Ensure an admin user exists on startup."""
-    from database import SessionLocal
+    from database import SessionLocal, engine
     from models import User
     from auth import hash_password
     db = SessionLocal()
@@ -89,6 +106,7 @@ async def lifespan(app: FastAPI):
     else:
         print("[startup] Email: console mode (no real emails)")
     run_migrations()
+    ensure_columns()
     ensure_admin()
     yield
 
@@ -113,6 +131,8 @@ app.include_router(interpret.router)
 app.include_router(ai_config.router)
 app.include_router(feedback.router)
 app.include_router(admin.router)
+app.include_router(zodiac.router)
+app.include_router(announcement.router)
 
 
 # Dev helper: get latest verification code

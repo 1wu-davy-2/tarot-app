@@ -5,7 +5,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, BookOpen, ChevronDown, Send, Wand2, Heart, Briefcase, Target } from "lucide-react";
 import type { TarotCard } from "@/lib/tarot-data";
 import { LoginModal } from "@/components/LoginModal";
-import { isLoggedIn, isAdmin, apiGetQuota, apiConsumeQuota } from "@/lib/api-client";
+import { isLoggedIn, isAdmin, getStoredUser, apiGetQuota, apiConsumeQuota } from "@/lib/api-client";
+
+function buildQuestion(base: string | undefined, spreadType: string | undefined): string {
+  let q = base?.trim() || "未说明具体问题，求问者心中默想";
+  const user = getStoredUser();
+  if (user?.zodiac) {
+    q = `[问询者星座：${user.zodiac}] ${q}`;
+  }
+  return q;
+}
 
 interface CardInterpretationProps {
   card: TarotCard;
@@ -417,7 +426,7 @@ function AIInterpretationTab({
         body: JSON.stringify({
           cards,
           isReversed,
-          question: question || "未说明具体问题，求问者心中默想",
+          question: buildQuestion(question, spreadType),
           spreadType: spreadType || "自定义牌阵",
           positions: positions || undefined,
           style: persona,

@@ -25,6 +25,7 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
   const [regEmail, setRegEmail] = useState("");
   const [regPhone, setRegPhone] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [regZodiac, setRegZodiac] = useState("");
   const [regCode, setRegCode] = useState("");
   const [sendingCode, setSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
@@ -42,6 +43,7 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
       setRegEmail("");
       setRegPhone("");
       setRegPassword("");
+      setRegZodiac("");
       setRegCode("");
       setSendingCode(false);
       setCodeSent(false);
@@ -90,7 +92,7 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
     if (regCode.length !== 6) { setError("请输入6位验证码"); return; }
     setLoading(true);
     try {
-      await apiRegister(regUsername.trim(), regEmail.trim(), regPassword, regPhone.trim(), regCode.trim());
+      await apiRegister(regUsername.trim(), regEmail.trim(), regPassword, regPhone.trim(), regCode.trim(), regZodiac || undefined);
       // Auto-login after register
       await apiLogin(regEmail.trim(), regPassword);
       onSuccess();
@@ -252,6 +254,21 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
                         onChange={(e) => setRegPassword(e.target.value)}
                         className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:border-mystic-gold/50 transition-colors"
                       />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-mystic-rose/60 mb-1 block">星座（选填）</label>
+                    <div className="relative">
+                      <select
+                        value={regZodiac}
+                        onChange={(e) => setRegZodiac(e.target.value)}
+                        className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-mystic-gold/50 transition-colors appearance-none cursor-pointer"
+                      >
+                        <option value="">不选择</option>
+                        {["白羊座","金牛座","双子座","巨蟹座","狮子座","处女座","天秤座","天蝎座","射手座","摩羯座","水瓶座","双鱼座"].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   <div className="flex gap-2">

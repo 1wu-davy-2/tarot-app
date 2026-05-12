@@ -10,6 +10,7 @@ interface StoredUser {
   id: number;
   username: string;
   email: string;
+  zodiac?: string;
   is_admin: boolean;
 }
 
@@ -106,10 +107,10 @@ async function api<T = any>(
 
 // ── Auth ──
 
-export async function apiRegister(username: string, email: string, password: string, phone: string, code: string) {
+export async function apiRegister(username: string, email: string, password: string, phone: string, code: string, zodiac?: string) {
   return api("/api/auth/register", {
     method: "POST",
-    body: { username, email, password, phone, code },
+    body: { username, email, password, phone, code, zodiac },
   });
 }
 
@@ -137,6 +138,7 @@ export async function apiLogin(account: string, password: string) {
     id: 0,
     username: data.username,
     email: data.email,
+    zodiac: data.zodiac,
     is_admin: data.is_admin,
   });
   return data;
@@ -162,6 +164,7 @@ export async function apiGetMe() {
     id: data.id,
     username: data.username,
     email: data.email,
+    zodiac: data.zodiac,
     is_admin: data.is_admin,
   });
   return data;
@@ -214,4 +217,16 @@ export async function apiSaveReading(data: {
 
 export async function apiGetReadings(limit: number = 50, offset: number = 0) {
   return api<any[]>(`/api/readings?limit=${limit}&offset=${offset}`, { auth: true });
+}
+
+// ── Zodiac & Horoscope ──
+
+export async function apiGetHoroscope(sign: string) {
+  return api<{ sign: string; date: string; text: string; cached: boolean }>(`/api/horoscope?sign=${encodeURIComponent(sign)}`);
+}
+
+// ── Announcement ──
+
+export async function apiGetAnnouncement() {
+  return api<{ text: string; expire_at: string | null }>("/api/announcement");
 }

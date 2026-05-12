@@ -58,6 +58,7 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
         phone=phone,
         password_hash=hash_password(req.password),
         is_verified=True,
+        zodiac=req.zodiac.strip() if req.zodiac and req.zodiac.strip() else None,
     )
     db.add(user)
     db.commit()
@@ -128,6 +129,7 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         access_token=token,
         username=user.username,
         email=user.email,
+        zodiac=user.zodiac,
         is_admin=user.is_admin,
     )
 

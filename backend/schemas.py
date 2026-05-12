@@ -12,6 +12,7 @@ class RegisterRequest(BaseModel):
     phone: str
     password: str
     code: str  # 验证码（必须先调用 /send-code 获取）
+    zodiac: Optional[str] = None  # 星座，选填
 
     @validator("username")
     def username_valid(cls, v):
@@ -82,6 +83,7 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     username: str
     email: str
+    zodiac: Optional[str] = None
     is_admin: bool
 
 
@@ -90,6 +92,7 @@ class UserInfo(BaseModel):
     username: str
     email: str
     phone: str
+    zodiac: Optional[str] = None
     is_verified: bool
     is_admin: bool
     created_at: datetime

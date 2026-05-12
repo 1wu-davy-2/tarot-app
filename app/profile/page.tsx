@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import {
   isLoggedIn, logout, apiGetMe, apiGetQuota, apiCheckIn,
-  apiGetReadings,
+  apiGetReadings, getStoredUser,
 } from "@/lib/api-client";
 
 export default function ProfilePage() {
@@ -21,6 +21,8 @@ export default function ProfilePage() {
   const [checkinMsg, setCheckinMsg] = useState("");
   const [checkinLoading, setCheckinLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [horoscope, setHoroscope] = useState<{ text: string; date: string } | null>(null);
+  const [horoLoading, setHoroLoading] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn()) { router.push("/login"); return; }
@@ -37,6 +39,8 @@ export default function ProfilePage() {
       setUser(userData);
       setQuota(quotaData);
       setReadings(readingsData);
+      // Load horoscope if zodiac is set
+      if (userData?.zodiac) loadHoroscope(userData.zodiac);
     } catch (err: any) {
       if (err.message?.includes("401") || err.message?.includes("令牌")) {
         logout(); router.push("/login"); return;
@@ -55,6 +59,16 @@ export default function ProfilePage() {
     } catch (err: any) {
       setCheckinMsg(err.message);
     } finally { setCheckinLoading(false); }
+  };
+
+  const loadHoroscope = async (sign: string) => {
+    setHoroLoading(true);
+    try {
+      const res = await fetch(`/api/horoscope?sign=${encodeURIComponent(sign)}`);
+      const data = await res.json();
+      if (data.text) setHoroscope(data);
+    } catch {}
+    setHoroLoading(false);
   };
 
   const handleLogout = () => {
@@ -157,6 +171,25 @@ export default function ProfilePage() {
                 <span className="text-xs text-mystic-rose/50">{checkinMsg}</span>
               )}
             </div>
+          </motion.div>
+        )}
+
+        {/* Horoscope */}
+        {user?.zodiac && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="glass-card p-5 mb-6"
+          >
+            <h2 className="text-sm font-cinzel text-mystic-gold mb-3">今日{user.zodiac}运势</h2>
+            {horoLoading ? (
+              <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 text-mystic-gold animate-spin" /></div>
+            ) : horoscope ? (
+              <p className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap">{horoscope.text}</p>
+            ) : (
+              <p className="text-xs text-mystic-rose/40">暂无法获取运势</p>
+            )}
           </motion.div>
         )}
 

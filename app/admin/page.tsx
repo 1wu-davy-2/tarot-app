@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Megaphone, ArrowLeft, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { isLoggedIn, isAdmin, getToken } from "@/lib/api-client";
 
 interface Reading {
@@ -34,6 +34,9 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"readings" | "users">("readings");
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [annText, setAnnText] = useState("");
+  const [annExpire, setAnnExpire] = useState("");
+  const [annMsg, setAnnMsg] = useState("");
 
   useEffect(() => {
     if (!isLoggedIn() || !isAdmin()) {
@@ -58,7 +61,29 @@ export default function AdminPage() {
     } catch {
       // silent
     }
+    // Also load current announcement
+    try {
+      const r = await fetch("/api/announcement");
+      const d = await r.json();
+      if (d.text) { setAnnText(d.text); setAnnExpire(d.expire_at || ""); }
+    } catch {}
     setLoading(false);
+  };
+
+  const handleAnnouncement = async () => {
+    setAnnMsg("");
+    const token = getToken();
+    try {
+      const res = await fetch("/api/admin/announcement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ text: annText, expire_at: annExpire }),
+      });
+      const d = await res.json();
+      setAnnMsg(d.message || (d.ok ? "已更新" : "失败"));
+    } catch {
+      setAnnMsg("操作失败");
+    }
   };
 
   const toggleExpand = (id: number) => {
@@ -95,6 +120,37 @@ export default function AdminPage() {
             {t === "readings" ? "占卜记录" : "用户列表"}
           </button>
         ))}
+      </div>
+
+      {/* Announcement management */}
+      <div className="glass-card p-4 mb-6">
+        <h3 className="flex items-center gap-2 text-sm font-cinzel text-mystic-gold mb-3">
+          <Megaphone className="w-4 h-4" /> 公告管理
+        </h3>
+        <div className="space-y-2">
+          <input
+            type="text"
+            value={annText}
+            onChange={(e) => setAnnText(e.target.value)}
+            placeholder="公告内容（留空清除公告）"
+            className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-3 py-2 text-sm outline-none focus:border-mystic-gold/50"
+          />
+          <div className="flex items-center gap-2">
+            <input
+              type="datetime-local"
+              value={annExpire}
+              onChange={(e) => setAnnExpire(e.target.value)}
+              className="flex-1 bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-3 py-2 text-xs outline-none focus:border-mystic-gold/50"
+            />
+            <button
+              onClick={handleAnnouncement}
+              className="px-4 py-2 rounded-lg bg-mystic-gold/20 border border-mystic-gold/30 text-mystic-gold text-xs hover:bg-mystic-gold/30 transition-colors whitespace-nowrap"
+            >
+              发布
+            </button>
+          </div>
+          {annMsg && <p className="text-xs text-mystic-rose/60">{annMsg}</p>}
+        </div>
       </div>
 
       {loading ? (

@@ -4,6 +4,8 @@ import { MysticBackground } from "@/components/MysticBackground";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Header } from "@/components/Header";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
+import { AnnouncementBar } from "@/components/AnnouncementBar";
+import { OnboardingGuide } from "@/components/OnboardingGuide";
 
 export const metadata: Metadata = {
   title: "命运之镜 · Mirror of Fate",
@@ -27,10 +29,12 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col relative">
         <MysticBackground />
+        <AnnouncementBar />
         <Header />
         <main className="relative z-10 flex-1 flex flex-col">
           <AuthGuard>{children}</AuthGuard>
         </main>
+        <OnboardingGuide />
         <FeedbackWidget />
       </body>
     </html>
