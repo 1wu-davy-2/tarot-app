@@ -23,6 +23,7 @@ FROM node:22-alpine
 WORKDIR /app
 
 ENV PORT=5200
+ENV HOSTNAME=0.0.0.0
 ENV NODE_ENV=production
 
 # ENCRYPTION_KEY 运行时注入（仅服务端使用，不入客户端 JS）
