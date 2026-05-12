@@ -2,8 +2,8 @@ import { type NextRequest } from "next/server";
 import crypto from "crypto";
 import { buildMessages } from "@/lib/ai-prompts";
 
-// Backend base URL — server-side env, not NEXT_PUBLIC_
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8188";
+// Backend base URL — Vercel 用 BACKEND_URL，Docker/本地用 NEXT_PUBLIC_API_URL
+const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8188";
 
 /**
  * Decrypt an AES-256-GCM encrypted base64 string.
