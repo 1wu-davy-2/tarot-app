@@ -20,7 +20,14 @@
 
 :root {
   --background: #0a0612;
-  --foreground: #e8e0f0;
+  --foreground: #f2eef8;
+}
+
+/* Improved contrast for dim/low-brightness screens */
+@media (max-width: 768px) {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+  }
 }
 
 body {

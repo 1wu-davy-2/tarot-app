@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { Megaphone, ArrowLeft, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { isLoggedIn, isAdmin, getToken } from "@/lib/api-client";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+
 interface Reading {
   id: number;
   user_id: number;
@@ -63,7 +65,7 @@ export default function AdminPage() {
     }
     // Also load current announcement
     try {
-      const r = await fetch("/api/announcement");
+      const r = await fetch(`${API_BASE}/api/announcement`);
       const d = await r.json();
       if (d.text) { setAnnText(d.text); setAnnExpire(d.expire_at || ""); }
     } catch {}
@@ -74,7 +76,7 @@ export default function AdminPage() {
     setAnnMsg("");
     const token = getToken();
     try {
-      const res = await fetch("/api/admin/announcement", {
+      const res = await fetch(`${API_BASE}/api/admin/announcement`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ text: annText, expire_at: annExpire }),

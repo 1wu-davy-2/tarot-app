@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Megaphone, X } from "lucide-react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+
 interface Announcement {
   text: string;
   expire_at: string | null;
@@ -14,11 +16,10 @@ export function AnnouncementBar() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    fetch("/api/announcement")
+    fetch(`${API_BASE}/api/announcement`)
       .then((r) => r.json())
       .then((data) => {
         if (data.text) {
-          // Check expiry
           if (data.expire_at && new Date(data.expire_at) < new Date()) return;
           setAnn(data);
         }

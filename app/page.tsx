@@ -84,40 +84,40 @@ export default function HomePage() {
         </motion.div>
 
         {/* Entry cards — 2×2 grid */}
-        <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-lg">
+        <motion.div variants={item} className="grid grid-cols-2 gap-4 sm:gap-6 w-full max-w-lg">
           <Link href="/daily" className="group">
-            <div className="glass-card p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
-              <Sparkles className="w-10 h-10 text-mystic-gold mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" />
-              <h2 className="text-xl font-cinzel text-mystic-gold mb-2">每日卦算</h2>
-              <p className="text-foreground/50 text-sm mb-3">Daily Tarot</p>
-              <p className="text-mystic-rose/40 text-xs">{today}</p>
+            <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
+              <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
+              <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">每日卦算</h2>
+              <p className="text-foreground/50 text-xs sm:text-sm mb-2 sm:mb-3">Daily Tarot</p>
+              <p className="text-mystic-rose/40 text-[10px] sm:text-xs">{today}</p>
             </div>
           </Link>
 
           <Link href="/spread" className="group">
-            <div className="glass-card p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
-              <LayoutGrid className="w-10 h-10 text-mystic-gold mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" />
-              <h2 className="text-xl font-cinzel text-mystic-gold mb-2">牌阵占卜</h2>
-              <p className="text-foreground/50 text-sm mb-3">Card Spread</p>
-              <p className="text-mystic-rose/40 text-xs">多种牌阵 · 深度解读</p>
+            <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
+              <LayoutGrid className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
+              <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">牌阵占卜</h2>
+              <p className="text-foreground/50 text-xs sm:text-sm mb-2 sm:mb-3">Card Spread</p>
+              <p className="text-mystic-rose/40 text-[10px] sm:text-xs">多种牌阵 · 深度解读</p>
             </div>
           </Link>
 
           <Link href="/journal" className="group">
-            <div className="glass-card p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
-              <BookHeart className="w-10 h-10 text-mystic-gold mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" />
-              <h2 className="text-xl font-cinzel text-mystic-gold mb-2">塔罗日记</h2>
-              <p className="text-foreground/50 text-sm mb-3">Tarot Diary</p>
-              <p className="text-mystic-rose/40 text-xs">每日记录 · 心情点滴</p>
+            <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
+              <BookHeart className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
+              <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">塔罗日记</h2>
+              <p className="text-foreground/50 text-xs sm:text-sm mb-2 sm:mb-3">Tarot Diary</p>
+              <p className="text-mystic-rose/40 text-[10px] sm:text-xs">每日记录 · 心情点滴</p>
             </div>
           </Link>
 
           <Link href="/library" className="group">
-            <div className="glass-card p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
-              <Library className="w-10 h-10 text-mystic-gold mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" />
-              <h2 className="text-xl font-cinzel text-mystic-gold mb-2">塔罗图鉴</h2>
-              <p className="text-foreground/50 text-sm mb-3">Card Library</p>
-              <p className="text-mystic-rose/40 text-xs">78张牌 · 完整释义</p>
+            <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
+              <Library className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
+              <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">塔罗图鉴</h2>
+              <p className="text-foreground/50 text-xs sm:text-sm mb-2 sm:mb-3">Card Library</p>
+              <p className="text-mystic-rose/40 text-[10px] sm:text-xs">78张牌 · 完整释义</p>
             </div>
           </Link>
         </motion.div>

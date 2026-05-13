@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, X, Send, Check } from "lucide-react";
+import { MessageSquare, X, Send, Check, ChevronRight, ChevronLeft } from "lucide-react";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function FeedbackWidget() {
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -16,7 +19,7 @@ export function FeedbackWidget() {
     setSending(true);
     setError("");
     try {
-      const res = await fetch("/api/feedback", {
+      const res = await fetch(`${API_BASE}/api/feedback`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text.trim() }),
@@ -39,23 +42,32 @@ export function FeedbackWidget() {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div className="fixed bottom-20 right-3 z-50">
       <AnimatePresence>
-        {open && (
+        {open && !collapsed && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="absolute bottom-16 right-0 w-72 bg-[#0f0a1a] border border-mystic-purple/30 rounded-xl shadow-2xl overflow-hidden"
+            className="absolute bottom-14 right-0 w-72 bg-[#0f0a1a] border border-mystic-purple/30 rounded-xl shadow-2xl overflow-hidden"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-mystic-purple/10">
               <span className="text-sm text-mystic-gold font-cinzel">给作者留言</span>
-              <button
-                onClick={() => { setOpen(false); setText(""); setSent(false); setError(""); }}
-                className="p-0.5 text-mystic-rose/40 hover:text-mystic-rose"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCollapsed(true)}
+                  className="p-0.5 text-mystic-rose/30 hover:text-mystic-rose/60"
+                  title="收起至边栏"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => { setOpen(false); setText(""); setSent(false); setError(""); setCollapsed(false); }}
+                  className="p-0.5 text-mystic-rose/40 hover:text-mystic-rose"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {sent ? (
@@ -75,7 +87,7 @@ export function FeedbackWidget() {
                 />
                 {error && <p className="px-4 text-xs text-red-400/80">{error}</p>}
                 <div className="flex items-center justify-between px-4 py-2 border-t border-mystic-purple/10">
-                  <span className="text-[10px] text-mystic-rose/30">{text.length}/2000</span>
+                  <span className="text-[10px] text-mystic-rose/40">{text.length}/2000</span>
                   <button
                     onClick={handleSubmit}
                     disabled={sending || !text.trim()}
@@ -99,18 +111,34 @@ export function FeedbackWidget() {
         )}
       </AnimatePresence>
 
-      {/* Toggle button */}
-      <button
-        onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg transition-all ${
-          open
-            ? "bg-mystic-purple/40 text-mystic-rose"
-            : "bg-[#0f0a1a]/90 border border-mystic-purple/20 text-mystic-rose/60 hover:text-mystic-rose hover:border-mystic-rose/30"
-        }`}
-      >
-        <MessageSquare className="w-4 h-4" />
-        <span className="text-xs">反馈</span>
-      </button>
+      {/* Collapsed edge tab */}
+      {collapsed && (
+        <motion.button
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          onClick={() => setCollapsed(false)}
+          className="absolute bottom-14 right-0 flex items-center gap-1 px-2 py-3 rounded-l-xl bg-[#0f0a1a]/95 border border-r-0 border-mystic-purple/20 text-mystic-rose/50 hover:text-mystic-rose transition-colors shadow-lg"
+          title="展开反馈"
+        >
+          <ChevronLeft className="w-3.5 h-3.5" />
+          <MessageSquare className="w-3.5 h-3.5" />
+        </motion.button>
+      )}
+
+      {/* Main toggle button */}
+      {!collapsed && (
+        <button
+          onClick={() => setOpen(!open)}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg transition-all ${
+            open
+              ? "bg-mystic-purple/40 text-mystic-rose"
+              : "bg-[#0f0a1a]/90 border border-mystic-purple/20 text-mystic-rose/60 hover:text-mystic-rose hover:border-mystic-rose/30"
+          }`}
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span className="text-xs">反馈</span>
+        </button>
+      )}
     </div>
   );
 }
