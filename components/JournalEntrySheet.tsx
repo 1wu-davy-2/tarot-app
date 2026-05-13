@@ -121,7 +121,7 @@ export default function JournalEntrySheet({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className={`fixed bottom-16 left-0 right-0 z-50 rounded-t-3xl bg-mystic-deep border-t border-mystic-purple/30 flex flex-col ${isFuture ? "max-h-[82vh]" : "max-h-[60vh]"}`}
+            className={`fixed bottom-16 left-1/2 -translate-x-1/2 w-full max-w-md z-50 rounded-t-3xl bg-mystic-deep border-t border-mystic-purple/30 flex flex-col ${isFuture ? "max-h-[82vh]" : "max-h-[60vh]"}`}
           >
             {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-1 shrink-0">
