@@ -1,5 +1,3 @@
-export const dynamic = "force-static";
-
 // AI interpretation — proxy to DeepSeek (web mode)
 // In APK static export mode: these routes are not used (APK calls backend directly)
 import { type NextRequest } from "next/server";

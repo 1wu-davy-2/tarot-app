@@ -1,26 +1,3 @@
-export const dynamic = "force-static";
-
-export function generateStaticParams() {
-  // Pre-render static pages for known API endpoints during export build.
-  // In APK mode these are never actually called — the app talks to the backend directly.
-  // This just satisfies Next.js static export requirements.
-  return [
-    { path: ["health"] },
-    { path: ["auth", "login"] },
-    { path: ["auth", "register"] },
-    { path: ["auth", "me"] },
-    { path: ["quota"] },
-    { path: ["checkin"] },
-    { path: ["readings"] },
-    { path: ["journal"] },
-    { path: ["zodiac", "list"] },
-    { path: ["horoscope"] },
-    { path: ["announcement"] },
-    { path: ["ai-config"] },
-    { path: ["feedback"] },
-  ];
-}
-
 // Proxy /api/* to Python backend (web/standalone mode)
 // In APK static export mode: returns empty JSON — the APK calls backend directly
 import { type NextRequest, NextResponse } from "next/server";

@@ -1,5 +1,3 @@
-export const dynamic = "force-static";
-
 // Daily card endpoint (web mode) → static export compatible
 import { NextResponse } from "next/server";
 import { getDailyCard } from "@/lib/daily-seed";

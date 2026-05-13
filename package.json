@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 5200",
     "lint": "eslint",
-    "apk:build": "cross-env BUILD_TARGET=apk NEXT_PUBLIC_BUILD_TARGET=apk next build"
+    "apk:build": "bash scripts/apk-build.sh"
   },
   "dependencies": {
     "@capacitor/android": "^5.7.8",
