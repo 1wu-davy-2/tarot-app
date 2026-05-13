@@ -132,13 +132,16 @@ export default function DailyPage() {
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-mystic-rose/60 hover:text-mystic-gold transition-colors text-sm mb-6 px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          返回首页
-        </Link>
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">返回首页</span>
+          </Link>
+          <div className="w-[60px]" />
+        </div>
 
         {error && (
           <div className="text-center py-20">
@@ -152,7 +155,7 @@ export default function DailyPage() {
         {!data && !error && (
           <div className="flex flex-col items-center gap-4 py-40">
             <Loader2 className="w-10 h-10 text-mystic-gold animate-spin" />
-            <p className="text-mystic-rose/50 text-sm">正在排列今日的宇宙能量...</p>
+            <p className="text-mystic-rose/65 text-sm">正在排列今日的宇宙能量...</p>
           </div>
         )}
 
@@ -167,7 +170,7 @@ export default function DailyPage() {
             >
               <p className="text-mystic-gold/60 text-sm tracking-widest uppercase font-cinzel">Daily Tarot</p>
               <h1 className="text-3xl md:text-4xl font-cinzel text-mystic-gold mt-2 text-glow">今日塔罗</h1>
-              <p className="text-mystic-rose/50 text-sm mt-2">{formattedDate}</p>
+              <p className="text-mystic-rose/65 text-sm mt-2">{formattedDate}</p>
             </motion.div>
 
             {/* Card */}
@@ -187,7 +190,7 @@ export default function DailyPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-mystic-rose/40 text-sm animate-pulse"
+                    className="text-mystic-rose/55 text-sm animate-pulse"
                   >
                     轻触牌面揭示今日指引
                   </motion.p>
@@ -203,11 +206,11 @@ export default function DailyPage() {
                   >
                     <div className="text-center">
                       <h2 className="text-xl font-cinzel text-mystic-gold">{data.card.nameCN}</h2>
-                      <p className="text-mystic-rose/60 text-sm mt-1">
+                      <p className="text-mystic-rose/75 text-sm mt-1">
                         {data.isReversed ? "逆位 · Reversed" : "正位 · Upright"}
                       </p>
                     </div>
-                    <p className="text-foreground/70 text-sm text-center max-w-sm italic leading-relaxed">
+                    <p className="text-foreground/85 text-sm text-center max-w-sm italic leading-relaxed">
                       {data.isReversed ? data.card.reversedMeaning : data.card.uprightMeaning}
                     </p>
                     <button

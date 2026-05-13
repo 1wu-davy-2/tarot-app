@@ -59,6 +59,8 @@ class Settings(BaseSettings):
     checkin_min_bonus: int = 2
     checkin_max_bonus: int = 10
     admin_quota: int = 999
+    member_basic_quota: int = 10
+    member_premium_quota: int = 999
 
     # DeepSeek
     deepseek_api_key: str = ""

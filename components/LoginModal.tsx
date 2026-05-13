@@ -124,7 +124,7 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
           >
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-10 p-1 rounded-full bg-mystic-dark/80 text-mystic-rose/50 hover:text-mystic-rose transition-colors"
+              className="absolute top-4 right-4 z-10 p-1 rounded-full bg-mystic-dark/80 text-mystic-rose/65 hover:text-mystic-rose transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -137,7 +137,7 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
               <h3 className="text-lg font-cinzel text-mystic-gold tracking-wider">
                 {tab === "login" ? "登录" : "注册"}
               </h3>
-              <p className="text-mystic-rose/50 text-xs mt-1">
+              <p className="text-mystic-rose/65 text-xs mt-1">
                 {tab === "login"
                   ? "登录后可使用 AI 深度解读 + 每日签到"
                   : "创建账号解锁完整功能"}
@@ -151,7 +151,7 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
                 className={`text-xs px-4 py-1 rounded-full transition-colors ${
                   tab === "login"
                     ? "bg-mystic-gold/20 text-mystic-gold border border-mystic-gold/30"
-                    : "text-mystic-rose/40 hover:text-mystic-rose/70"
+                    : "text-mystic-rose/55 hover:text-mystic-rose/70"
                 }`}
               >
                 登录
@@ -161,7 +161,7 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
                 className={`text-xs px-4 py-1 rounded-full transition-colors ${
                   tab === "register"
                     ? "bg-mystic-gold/20 text-mystic-gold border border-mystic-gold/30"
-                    : "text-mystic-rose/40 hover:text-mystic-rose/70"
+                    : "text-mystic-rose/55 hover:text-mystic-rose/70"
                 }`}
               >
                 注册
@@ -173,9 +173,9 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
               {tab === "login" ? (
                 <>
                   <div>
-                    <label className="text-xs text-mystic-rose/60 mb-1 block">邮箱 / 用户名</label>
+                    <label className="text-xs text-mystic-rose/75 mb-1 block">邮箱 / 用户名</label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
                       <input
                         type="text"
                         placeholder="输入邮箱或用户名"
@@ -187,9 +187,9 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-mystic-rose/60 mb-1 block">密码</label>
+                    <label className="text-xs text-mystic-rose/75 mb-1 block">密码</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
                       <input
                         type="password"
                         placeholder="输入密码"
@@ -204,9 +204,9 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
               ) : (
                 <>
                   <div>
-                    <label className="text-xs text-mystic-rose/60 mb-1 block">用户名</label>
+                    <label className="text-xs text-mystic-rose/75 mb-1 block">用户名</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
                       <input
                         type="text"
                         placeholder="2-50 个字符"
@@ -217,9 +217,9 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-mystic-rose/60 mb-1 block">邮箱</label>
+                    <label className="text-xs text-mystic-rose/75 mb-1 block">邮箱</label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
                       <input
                         type="email"
                         placeholder="用于接收验证码"
@@ -230,9 +230,9 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-mystic-rose/60 mb-1 block">手机号</label>
+                    <label className="text-xs text-mystic-rose/75 mb-1 block">手机号</label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
                       <input
                         type="text"
                         maxLength={11}
@@ -244,9 +244,9 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-mystic-rose/60 mb-1 block">密码</label>
+                    <label className="text-xs text-mystic-rose/75 mb-1 block">密码</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/30" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
                       <input
                         type="password"
                         placeholder="至少 6 位"
@@ -257,7 +257,7 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-mystic-rose/60 mb-1 block">星座（选填）</label>
+                    <label className="text-xs text-mystic-rose/75 mb-1 block">星座（选填）</label>
                     <div className="relative">
                       <select
                         value={regZodiac}

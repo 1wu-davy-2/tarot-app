@@ -64,6 +64,8 @@ def ensure_columns():
             "birth_place": "VARCHAR(100) NULL",
             "birth_lat": "FLOAT NULL",
             "birth_lng": "FLOAT NULL",
+            "membership_tier": "VARCHAR(20) DEFAULT 'free'",
+            "membership_expiry": "DATETIME NULL",
         }
         for col, typedef in desired.items():
             if col not in existing:
@@ -79,6 +81,17 @@ def ensure_columns():
         from models import DailyJournal
         DailyJournal.__table__.create(engine, checkfirst=True)
         print("[startup] Created table daily_journal")
+
+    if insp.has_table("daily_quotas"):
+        existing = {c["name"] for c in insp.get_columns("daily_quotas")}
+        if "gifted_quota" not in existing:
+            try:
+                with engine.connect() as conn:
+                    conn.execute(text("ALTER TABLE daily_quotas ADD COLUMN gifted_quota INTEGER DEFAULT 0"))
+                    conn.commit()
+                print("[startup] Added column daily_quotas.gifted_quota")
+            except Exception as e:
+                print(f"[startup] Failed to add column gifted_quota: {e}")
 
 
 def ensure_admin():

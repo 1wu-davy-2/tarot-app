@@ -36,7 +36,7 @@ export function DailyReading({ card, isReversed, date }: DailyReadingProps) {
       >
         <p className="text-mystic-gold/60 text-sm tracking-widest uppercase font-cinzel">Daily Tarot</p>
         <h1 className="text-3xl md:text-4xl font-cinzel text-mystic-gold mt-2 text-glow">今日塔罗</h1>
-        <p className="text-mystic-rose/50 text-sm mt-2">{formattedDate}</p>
+        <p className="text-mystic-rose/65 text-sm mt-2">{formattedDate}</p>
       </motion.div>
 
       {/* Card area */}
@@ -56,7 +56,7 @@ export function DailyReading({ card, isReversed, date }: DailyReadingProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-mystic-rose/40 text-sm animate-pulse"
+              className="text-mystic-rose/55 text-sm animate-pulse"
             >
               轻触牌面揭示今日指引
             </motion.p>
@@ -72,14 +72,14 @@ export function DailyReading({ card, isReversed, date }: DailyReadingProps) {
             >
               <div className="text-center">
                 <h2 className="text-xl font-cinzel text-mystic-gold">{card.nameCN}</h2>
-                <p className="text-mystic-rose/60 text-sm mt-1">
+                <p className="text-mystic-rose/75 text-sm mt-1">
                   {isReversed ? "逆位 · Reversed" : "正位 · Upright"}
                 </p>
               </div>
-              <p className="text-foreground/70 text-sm text-center max-w-sm italic leading-relaxed">
+              <p className="text-foreground/85 text-sm text-center max-w-sm italic leading-relaxed">
                 {isReversed ? card.reversedMeaning : card.uprightMeaning}
               </p>
-              <p className="text-mystic-rose/30 text-xs">
+              <p className="text-mystic-rose/45 text-xs">
                 {isAdmin() ? "管理员 · 无限制" : getLimitMessage()}
               </p>
               <button

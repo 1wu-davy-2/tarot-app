@@ -40,7 +40,7 @@ export default function MoodSelector({ value, onChange }: MoodSelectorProps) {
             </span>
             <span
               className={`text-[10px] transition-colors ${
-                selected ? "text-mystic-gold" : "text-foreground/20"
+                selected ? "text-mystic-gold" : "text-foreground/35"
               }`}
             >
               {m.label}

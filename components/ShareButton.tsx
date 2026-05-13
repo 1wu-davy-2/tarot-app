@@ -115,7 +115,7 @@ export function ShareButton({
           <div className="relative max-w-md w-full max-h-[90vh] overflow-auto rounded-2xl bg-mystic-dark border border-mystic-gold/30 shadow-2xl">
             <button
               onClick={() => setShowPreview(false)}
-              className="absolute top-3 right-3 z-10 p-1 rounded-full bg-mystic-dark/80 text-mystic-rose/60 hover:text-mystic-rose"
+              className="absolute top-3 right-3 z-10 p-1 rounded-full bg-mystic-dark/80 text-mystic-rose/75 hover:text-mystic-rose"
             >
               <X className="w-5 h-5" />
             </button>
@@ -193,7 +193,7 @@ export function ShareButton({
 
             <div className="p-4 border-t border-mystic-purple/20 flex justify-center gap-4">
               {capturing ? (
-                <div className="flex items-center gap-2 text-mystic-rose/60 text-sm">
+                <div className="flex items-center gap-2 text-mystic-rose/75 text-sm">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   生成中...
                 </div>

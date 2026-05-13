@@ -71,7 +71,7 @@ export function Header() {
               </button>
               <button
                 onClick={handleLogout}
-                className="text-[10px] text-mystic-rose/40 hover:text-mystic-rose/70 transition-colors"
+                className="text-[10px] text-mystic-rose/55 hover:text-mystic-rose/70 transition-colors"
               >
                 退出
               </button>
@@ -79,7 +79,7 @@ export function Header() {
           ) : (
             <button
               onClick={() => setLoginOpen(true)}
-              className="flex items-center gap-1 text-xs text-mystic-rose/60 hover:text-mystic-rose transition-colors"
+              className="flex items-center gap-1 text-xs text-mystic-rose/75 hover:text-mystic-rose transition-colors"
             >
               <LogIn className="w-3.5 h-3.5" />
               登录 / 注册

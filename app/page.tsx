@@ -75,10 +75,10 @@ export default function HomePage() {
           <h1 className="text-4xl md:text-5xl font-cinzel text-mystic-gold text-glow tracking-wider">
             命运之镜
           </h1>
-          <p className="text-mystic-rose/50 text-sm md:text-base mt-3 tracking-widest font-cormorant">
+          <p className="text-mystic-rose/65 text-sm md:text-base mt-3 tracking-widest font-cormorant">
             Mirror of Fate
           </p>
-          <p className="text-foreground/40 text-xs mt-4 max-w-xs mx-auto leading-relaxed">
+          <p className="text-foreground/55 text-xs mt-4 max-w-xs mx-auto leading-relaxed">
             融合东西方古老智慧的塔罗指引，照见你内心深处的光
           </p>
         </motion.div>
@@ -89,8 +89,8 @@ export default function HomePage() {
             <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
               <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
               <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">每日卦算</h2>
-              <p className="text-foreground/50 text-xs sm:text-sm mb-2 sm:mb-3">Daily Tarot</p>
-              <p className="text-mystic-rose/40 text-[10px] sm:text-xs">{today}</p>
+              <p className="text-foreground/65 text-xs sm:text-sm mb-2 sm:mb-3">Daily Tarot</p>
+              <p className="text-mystic-rose/55 text-[10px] sm:text-xs">{today}</p>
             </div>
           </Link>
 
@@ -98,8 +98,8 @@ export default function HomePage() {
             <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
               <LayoutGrid className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
               <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">牌阵占卜</h2>
-              <p className="text-foreground/50 text-xs sm:text-sm mb-2 sm:mb-3">Card Spread</p>
-              <p className="text-mystic-rose/40 text-[10px] sm:text-xs">多种牌阵 · 深度解读</p>
+              <p className="text-foreground/65 text-xs sm:text-sm mb-2 sm:mb-3">Card Spread</p>
+              <p className="text-mystic-rose/55 text-[10px] sm:text-xs">多种牌阵 · 深度解读</p>
             </div>
           </Link>
 
@@ -107,8 +107,8 @@ export default function HomePage() {
             <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
               <BookHeart className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
               <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">塔罗日记</h2>
-              <p className="text-foreground/50 text-xs sm:text-sm mb-2 sm:mb-3">Tarot Diary</p>
-              <p className="text-mystic-rose/40 text-[10px] sm:text-xs">每日记录 · 心情点滴</p>
+              <p className="text-foreground/65 text-xs sm:text-sm mb-2 sm:mb-3">Tarot Diary</p>
+              <p className="text-mystic-rose/55 text-[10px] sm:text-xs">每日记录 · 心情点滴</p>
             </div>
           </Link>
 
@@ -116,8 +116,8 @@ export default function HomePage() {
             <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
               <Library className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
               <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">塔罗图鉴</h2>
-              <p className="text-foreground/50 text-xs sm:text-sm mb-2 sm:mb-3">Card Library</p>
-              <p className="text-mystic-rose/40 text-[10px] sm:text-xs">78张牌 · 完整释义</p>
+              <p className="text-foreground/65 text-xs sm:text-sm mb-2 sm:mb-3">Card Library</p>
+              <p className="text-mystic-rose/55 text-[10px] sm:text-xs">78张牌 · 完整释义</p>
             </div>
           </Link>
         </motion.div>
@@ -126,7 +126,7 @@ export default function HomePage() {
         <motion.div variants={item}>
           <Link
             href={loggedIn ? "/profile" : "/login"}
-            className="inline-flex items-center gap-2 text-mystic-rose/40 hover:text-mystic-rose/70 transition-colors text-xs"
+            className="inline-flex items-center gap-2 text-mystic-rose/55 hover:text-mystic-rose/70 transition-colors text-xs"
           >
             {loggedIn ? (
               <>
@@ -145,7 +145,7 @@ export default function HomePage() {
         {/* Footer hint */}
         <motion.p
           variants={item}
-          className="text-foreground/20 text-xs text-center mt-4 tracking-wider"
+          className="text-foreground/35 text-xs text-center mt-4 tracking-wider"
         >
           &ldquo;答案不在牌中，而在你凝视牌面的眼中&rdquo;
         </motion.p>

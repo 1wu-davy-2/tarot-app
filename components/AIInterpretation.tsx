@@ -139,7 +139,7 @@ export function AIInterpretation({ cards, isReversed, spreadType, question, onCo
     return (
       <div className="glass-card p-6 text-center">
         <h3 className="text-lg font-cinzel text-mystic-gold mb-4">🔮 AI 塔罗解读</h3>
-        <p className="text-foreground/60 text-sm mb-2">{error || getLimitMessage()}</p>
+        <p className="text-foreground/75 text-sm mb-2">{error || getLimitMessage()}</p>
         <button
           onClick={() => setShowLogin(true)}
           className="flex items-center gap-2 mx-auto px-6 py-3 rounded-full border border-mystic-gold/50 text-mystic-gold hover:bg-mystic-gold/10 transition-all mt-4"
@@ -169,7 +169,7 @@ export function AIInterpretation({ cards, isReversed, spreadType, question, onCo
       {loading && !text && (
         <div className="flex flex-col items-center gap-3 py-8">
           <Loader2 className="w-8 h-8 text-mystic-gold animate-spin" />
-          <p className="text-mystic-rose/60 text-sm">正在连接宇宙智慧...</p>
+          <p className="text-mystic-rose/75 text-sm">正在连接宇宙智慧...</p>
         </div>
       )}
 

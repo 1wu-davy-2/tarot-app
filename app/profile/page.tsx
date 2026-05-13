@@ -122,13 +122,16 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-mystic-rose/60 hover:text-mystic-gold transition-colors text-sm mb-6 px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          返回首页
-        </Link>
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">返回首页</span>
+          </Link>
+          <div className="w-[60px]" />
+        </div>
 
         {/* User info */}
         <motion.div
@@ -139,17 +142,23 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-cinzel text-mystic-gold">{user?.username}</h1>
-              <p className="text-xs text-mystic-rose/40 mt-1">{user?.email}</p>
-              {user?.phone && <p className="text-xs text-mystic-rose/30">{user?.phone}</p>}
+              <p className="text-xs text-mystic-rose/55 mt-1">{user?.email}</p>
+              {user?.phone && <p className="text-xs text-mystic-rose/45">{user?.phone}</p>}
               {user?.is_admin && (
                 <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-mystic-gold/15 border border-mystic-gold/30 text-mystic-gold text-[10px]">
                   管理员
                 </span>
               )}
+              {user?.membership_tier && user.membership_tier !== "free" && (
+                <span className="inline-block mt-2 ml-1 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-400/30 text-blue-400 text-[10px]">
+                  {user.membership_tier === "premium" ? "高级会员" : "基础会员"}
+                  {user.membership_expiry && ` · 至${user.membership_expiry.slice(0, 10)}`}
+                </span>
+              )}
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1 text-mystic-rose/40 hover:text-mystic-rose text-xs transition-colors"
+              className="flex items-center gap-1 text-mystic-rose/55 hover:text-mystic-rose text-xs transition-colors"
             >
               <LogOut className="w-4 h-4" />
               退出
@@ -166,23 +175,29 @@ export default function ProfilePage() {
           >
             <h2 className="text-sm font-cinzel text-mystic-gold mb-4">今日额度</h2>
 
-            {/* Quota grid — 4 cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            {/* Quota grid */}
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 mb-5">
               <div className="text-center p-3 rounded-xl bg-mystic-purple/10 border border-mystic-purple/15">
-                <p className="text-[10px] text-mystic-rose/50 mb-1">基础</p>
-                <p className="text-xl font-bold text-foreground/70">{quota.base_quota}</p>
+                <p className="text-[10px] text-mystic-rose/65 mb-1">基础</p>
+                <p className="text-xl font-bold text-foreground/85">{quota.base_quota}</p>
               </div>
               <div className="text-center p-3 rounded-xl bg-mystic-gold/5 border border-mystic-gold/15">
-                <p className="text-[10px] text-mystic-rose/50 mb-1">签到</p>
+                <p className="text-[10px] text-mystic-rose/65 mb-1">签到</p>
                 <p className="text-xl font-bold text-mystic-gold">+{quota.bonus_quota}</p>
               </div>
+              {(quota.gifted_quota ?? 0) > 0 && (
+                <div className="text-center p-3 rounded-xl bg-emerald-500/5 border border-emerald-400/20">
+                  <p className="text-[10px] text-mystic-rose/65 mb-1">赠送</p>
+                  <p className="text-xl font-bold text-emerald-400/80">+{quota.gifted_quota}</p>
+                </div>
+              )}
               <div className="text-center p-3 rounded-xl bg-mystic-purple/10 border border-mystic-purple/15">
-                <p className="text-[10px] text-mystic-rose/50 mb-1">已用</p>
-                <p className="text-xl font-bold text-foreground/70">{quota.used_count}</p>
+                <p className="text-[10px] text-mystic-rose/65 mb-1">已用</p>
+                <p className="text-xl font-bold text-foreground/85">{quota.used_count}</p>
               </div>
               <div className="text-center p-3 rounded-xl bg-mystic-gold/10 border border-mystic-gold/20">
-                <p className="text-[10px] text-mystic-rose/50 mb-1">剩余</p>
-                <p className={`text-2xl font-cinzel font-bold ${quota.remaining > 0 ? "text-mystic-gold" : "text-mystic-rose/60"}`}>
+                <p className="text-[10px] text-mystic-rose/65 mb-1">剩余</p>
+                <p className={`text-2xl font-cinzel font-bold ${quota.remaining > 0 ? "text-mystic-gold" : "text-mystic-rose/75"}`}>
                   {quota.remaining}
                 </p>
               </div>
@@ -203,7 +218,7 @@ export default function ProfilePage() {
                 每日签到
               </button>
               {checkinMsg && (
-                <span className="text-xs text-mystic-rose/50">{checkinMsg}</span>
+                <span className="text-xs text-mystic-rose/65">{checkinMsg}</span>
               )}
             </div>
           </motion.div>
@@ -221,9 +236,9 @@ export default function ProfilePage() {
             {horoLoading ? (
               <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 text-mystic-gold animate-spin" /></div>
             ) : horoscope ? (
-              <p className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap">{horoscope.text}</p>
+              <p className="text-sm text-foreground/85 leading-relaxed whitespace-pre-wrap">{horoscope.text}</p>
             ) : (
-              <p className="text-xs text-mystic-rose/40">暂无法获取运势</p>
+              <p className="text-xs text-mystic-rose/55">暂无法获取运势</p>
             )}
           </motion.div>
         )}
@@ -240,7 +255,7 @@ export default function ProfilePage() {
           {/* Progress */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] text-mystic-rose/40">星盘完成度</span>
+              <span className="text-[10px] text-mystic-rose/55">星盘完成度</span>
               <span className="text-xs text-mystic-gold/70 font-cormorant">{getCompletionPercent()}%</span>
             </div>
             <div className="h-1.5 rounded-full bg-mystic-purple/15 overflow-hidden">
@@ -303,7 +318,7 @@ export default function ProfilePage() {
           {/* Form */}
           <div className="space-y-4">
             <div>
-              <label className="block text-[10px] text-mystic-rose/40 mb-1.5 ml-1">出生日期</label>
+              <label className="block text-[10px] text-mystic-rose/55 mb-1.5 ml-1">出生日期</label>
               <input
                 type="date"
                 value={birthDate}
@@ -313,8 +328,8 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-[10px] text-mystic-rose/40 mb-1.5 ml-1">
-                出生时间 <span className="text-mystic-rose/20">(可选，默认正午12:00)</span>
+              <label className="block text-[10px] text-mystic-rose/55 mb-1.5 ml-1">
+                出生时间 <span className="text-mystic-rose/35">(可选，默认正午12:00)</span>
               </label>
               <input
                 type="time"
@@ -325,8 +340,8 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="block text-[10px] text-mystic-rose/40 mb-1.5 ml-1">
-                出生地点 <span className="text-mystic-rose/20">(可选)</span>
+              <label className="block text-[10px] text-mystic-rose/55 mb-1.5 ml-1">
+                出生地点 <span className="text-mystic-rose/35">(可选)</span>
               </label>
               <input
                 type="text"
@@ -334,7 +349,7 @@ export default function ProfilePage() {
                 onChange={(e) => setBirthPlace(e.target.value)}
                 placeholder="输入城市名称，如'北京'"
                 maxLength={100}
-                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 placeholder:text-foreground/15 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 placeholder:text-foreground/40 focus:outline-none focus:border-mystic-gold/40 transition-colors"
               />
             </div>
           </div>
@@ -354,7 +369,7 @@ export default function ProfilePage() {
               保存星盘信息
             </button>
             {birthMsg && (
-              <span className={`text-xs ${birthMsg.includes("失败") ? "text-red-400/60" : "text-mystic-rose/50"}`}>
+              <span className={`text-xs ${birthMsg.includes("失败") ? "text-red-400/60" : "text-mystic-rose/65"}`}>
                 {birthMsg}
               </span>
             )}
@@ -386,7 +401,7 @@ export default function ProfilePage() {
         >
           <h2 className="text-sm font-cinzel text-mystic-gold/60 mb-4">解读记录</h2>
           {readings.length === 0 && (
-            <p className="text-xs text-mystic-rose/40 text-center py-8">暂无解读记录</p>
+            <p className="text-xs text-mystic-rose/55 text-center py-8">暂无解读记录</p>
           )}
           <div className="space-y-3">
             {readings.map((r) => (
@@ -398,15 +413,15 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-sm font-cinzel text-mystic-gold/90">{r.spread_type || "占卜"}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-mystic-rose/40">
+                      <span className="text-[10px] text-mystic-rose/55">
                         {new Date(r.created_at).toLocaleDateString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </span>
                       {r.question && (
-                        <span className="text-[10px] text-foreground/40 italic truncate max-w-[200px]">"{r.question}"</span>
+                        <span className="text-[10px] text-foreground/55 italic truncate max-w-[200px]">"{r.question}"</span>
                       )}
                     </div>
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-mystic-rose/30 transition-transform ${expandedId === r.id ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`w-4 h-4 text-mystic-rose/45 transition-transform ${expandedId === r.id ? "rotate-180" : ""}`} />
                 </button>
                 {expandedId === r.id && (
                   <motion.div
@@ -414,7 +429,7 @@ export default function ProfilePage() {
                     animate={{ height: "auto", opacity: 1 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-4 pb-4 border-t border-mystic-purple/10 text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap">
+                    <div className="px-4 pb-4 border-t border-mystic-purple/10 text-xs text-foreground/85 leading-relaxed whitespace-pre-wrap">
                       {r.ai_response || r.question}
                     </div>
                   </motion.div>

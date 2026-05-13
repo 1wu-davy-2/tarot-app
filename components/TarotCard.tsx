@@ -169,10 +169,10 @@ export function TarotCard({
                 </span>
               )}
               <span className={`${cfg.text} font-cinzel text-mystic-gold text-center leading-tight`}>{card.nameCN}</span>
-              {suitCN && <span className="text-mystic-rose/50 text-xs mt-1">{suitCN}</span>}
+              {suitCN && <span className="text-mystic-rose/65 text-xs mt-1">{suitCN}</span>}
               <div className="flex flex-wrap justify-center gap-1 mt-2">
                 {card.keywords.slice(0, 2).map((kw) => (
-                  <span key={kw} className="text-[10px] text-mystic-rose/60 px-1.5 py-0.5 rounded-full border border-mystic-rose/20">{kw}</span>
+                  <span key={kw} className="text-[10px] text-mystic-rose/75 px-1.5 py-0.5 rounded-full border border-mystic-rose/20">{kw}</span>
                 ))}
               </div>
             </div>

@@ -119,22 +119,25 @@ body {
 @media (max-width: 768px) {
   .fan-container {
     transform: scale(0.7);
-    transform-origin: top center;
+    transform-origin: center center;
     height: 260px;
+    margin-top: -20px;
   }
 }
 @media (max-width: 480px) {
   .fan-container {
     transform: scale(0.52);
-    transform-origin: top center;
+    transform-origin: center center;
     height: 210px;
+    margin-top: -30px;
   }
 }
 @media (max-width: 360px) {
   .fan-container {
     transform: scale(0.45);
-    transform-origin: top center;
+    transform-origin: center center;
     height: 180px;
+    margin-top: -30px;
   }
 }
 

@@ -79,7 +79,7 @@ export function MobileBottomNav() {
               )}
               <Icon
                 className={`w-5 h-5 transition-colors ${
-                  isActive ? "text-mystic-gold" : "text-mystic-rose/30"
+                  isActive ? "text-mystic-gold" : "text-mystic-rose/45"
                 }`}
                 strokeWidth={isActive ? 2 : 1.5}
               />

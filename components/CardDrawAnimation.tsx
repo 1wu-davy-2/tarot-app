@@ -64,7 +64,7 @@ export function CardDrawAnimation({ cards, count, onComplete }: CardDrawAnimatio
   const startAngle = -angleRange / 2;
 
   return (
-    <div className="flex flex-col items-center gap-8 py-8">
+    <div className="flex flex-col items-center gap-4 sm:gap-8 py-4 sm:py-8">
       {/* Shuffle phase */}
       <AnimatePresence>
         {phase === "shuffle" && (
@@ -101,7 +101,7 @@ export function CardDrawAnimation({ cards, count, onComplete }: CardDrawAnimatio
       {/* Fan spread */}
       <AnimatePresence>
         {(phase === "fan" || phase === "selecting" || phase === "complete") && (
-          <div className="relative flex justify-center w-full overflow-hidden" style={{ minHeight: "360px" }}>
+          <div className="relative flex justify-center w-full overflow-hidden" style={{ minHeight: "280px" }}>
             <div className="relative fan-container">
               {fanCards.map((card, idx) => {
                 const angle = startAngle + (angleRange * idx) / (fanCards.length - 1);
@@ -175,7 +175,7 @@ export function CardDrawAnimation({ cards, count, onComplete }: CardDrawAnimatio
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-mystic-rose/60 text-sm"
+          className="text-mystic-rose/75 text-sm"
         >
           请从扇形牌阵中选择 {count} 张牌（已选 {selected.size}/{count}）
         </motion.p>

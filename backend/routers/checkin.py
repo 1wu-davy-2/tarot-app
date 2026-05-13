@@ -22,11 +22,23 @@ def get_or_create_quota(user_id: int, db: Session) -> DailyQuota:
         DailyQuota.date == today,
     ).first()
     if not quota:
+        # Determine base quota based on membership
+        user = db.query(User).filter(User.id == user_id).first()
+        base_quota = settings.daily_base_quota
+        if user and user.membership_tier and user.membership_tier != "free":
+            if user.membership_expiry and user.membership_expiry < datetime.utcnow():
+                pass  # Membership expired, use default
+            elif user.membership_tier == "premium":
+                base_quota = settings.member_premium_quota
+            elif user.membership_tier == "basic":
+                base_quota = settings.member_basic_quota
+
         quota = DailyQuota(
             user_id=user_id,
             date=today,
-            base_quota=settings.daily_base_quota,
+            base_quota=base_quota,
             bonus_quota=0,
+            gifted_quota=0,
             used_count=0,
         )
         db.add(quota)

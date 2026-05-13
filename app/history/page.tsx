@@ -31,26 +31,28 @@ export default function HistoryPage() {
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-mystic-rose/60 hover:text-mystic-gold transition-colors text-sm mb-6 px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          返回首页
-        </Link>
-
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-10"
-        >
-          <h1 className="text-3xl md:text-4xl font-cinzel text-mystic-gold text-glow">解读历史</h1>
-          <p className="text-mystic-rose/50 text-sm mt-2">过往的每一次占卜，都是命运的低语</p>
-        </motion.div>
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">返回首页</span>
+          </Link>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <h1 className="text-xl sm:text-3xl font-cinzel text-mystic-gold text-glow">解读历史</h1>
+          </motion.div>
+          <div className="w-[60px]" />
+        </div>
+        <p className="text-mystic-rose/65 text-xs text-center -mt-4 mb-8">过往的每一次占卜，都是命运的低语</p>
 
         {!loaded && (
           <div className="text-center py-20">
-            <p className="text-mystic-rose/40 text-sm">加载中...</p>
+            <p className="text-mystic-rose/55 text-sm">加载中...</p>
           </div>
         )}
 
@@ -60,7 +62,7 @@ export default function HistoryPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-20"
           >
-            <p className="text-mystic-rose/40 text-sm mb-4">还没有解读记录</p>
+            <p className="text-mystic-rose/55 text-sm mb-4">还没有解读记录</p>
             <Link
               href="/spread"
               className="text-mystic-gold text-sm underline hover:text-mystic-rose transition-colors"
@@ -73,10 +75,10 @@ export default function HistoryPage() {
         {readings.length > 0 && (
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center">
-              <span className="text-xs text-mystic-rose/40">共 {readings.length} 条记录</span>
+              <span className="text-xs text-mystic-rose/55">共 {readings.length} 条记录</span>
               <button
                 onClick={handleClearAll}
-                className="text-xs text-mystic-rose/30 hover:text-mystic-rose/70 transition-colors flex items-center gap-1"
+                className="text-xs text-mystic-rose/45 hover:text-mystic-rose/70 transition-colors flex items-center gap-1"
               >
                 <Trash2 className="w-3 h-3" />
                 清空全部
@@ -108,7 +110,7 @@ export default function HistoryPage() {
                           {r.spreadType}
                         </p>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] text-mystic-rose/40">
+                          <span className="text-[10px] text-mystic-rose/55">
                             {new Date(r.date).toLocaleDateString("zh-CN", {
                               month: "short",
                               day: "numeric",
@@ -116,12 +118,12 @@ export default function HistoryPage() {
                               minute: "2-digit",
                             })}
                           </span>
-                          <span className="text-[10px] text-mystic-rose/30">
+                          <span className="text-[10px] text-mystic-rose/45">
                             <Layers className="w-3 h-3 inline mr-0.5" />{r.cards.length}张
                           </span>
                         </div>
                         {r.question && (
-                          <p className="text-[11px] text-foreground/50 italic truncate mt-1">
+                          <p className="text-[11px] text-foreground/65 italic truncate mt-1">
                             "{r.question}"
                           </p>
                         )}
@@ -131,12 +133,12 @@ export default function HistoryPage() {
                     <div className="flex items-center gap-2 shrink-0 ml-3">
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDelete(r.id); }}
-                        className="text-mystic-rose/20 hover:text-mystic-rose/60 transition-colors p-1"
+                        className="text-mystic-rose/35 hover:text-mystic-rose/75 transition-colors p-1"
                       >
                         <X className="w-4 h-4" />
                       </button>
                       <ChevronDown
-                        className={`w-4 h-4 text-mystic-rose/30 transition-transform duration-200 ${
+                        className={`w-4 h-4 text-mystic-rose/45 transition-transform duration-200 ${
                           expandedId === r.id ? "rotate-180" : ""
                         }`}
                       />
@@ -172,10 +174,10 @@ export default function HistoryPage() {
                               <span className="text-[10px] text-mystic-gold/70 font-cinzel max-w-[4rem] text-center leading-tight">
                                 {c.nameCN}
                               </span>
-                              <span className={`text-[9px] ${c.isReversed ? "text-mystic-rose/50" : "text-mystic-gold/50"}`}>
+                              <span className={`text-[9px] ${c.isReversed ? "text-mystic-rose/65" : "text-mystic-gold/50"}`}>
                                 {c.isReversed ? "逆" : "正"}
                               </span>
-                              <span className="text-[9px] text-mystic-rose/30 text-center max-w-[4rem] leading-tight">
+                              <span className="text-[9px] text-mystic-rose/45 text-center max-w-[4rem] leading-tight">
                                 {c.position}
                               </span>
                             </div>
@@ -185,10 +187,10 @@ export default function HistoryPage() {
                         {/* Interpretation text */}
                         {r.standardInterpretation && (
                           <div className="border-t border-mystic-purple/10 pt-3">
-                            <p className="text-[10px] text-mystic-rose/40 mb-2">
+                            <p className="text-[10px] text-mystic-rose/55 mb-2">
                               {r.aiInterpretation ? "📖 标准解读" : "📖 解读内容"}
                             </p>
-                            <p className="text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap">
+                            <p className="text-xs text-foreground/85 leading-relaxed whitespace-pre-wrap">
                               {r.standardInterpretation}
                             </p>
                           </div>
@@ -196,8 +198,8 @@ export default function HistoryPage() {
 
                         {r.aiInterpretation && (
                           <div className="border-t border-mystic-purple/10 pt-3 mt-3">
-                            <p className="text-[10px] text-mystic-rose/40 mb-2">🔮 AI 深度解读</p>
-                            <p className="text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap">
+                            <p className="text-[10px] text-mystic-rose/55 mb-2">🔮 AI 深度解读</p>
+                            <p className="text-xs text-foreground/85 leading-relaxed whitespace-pre-wrap">
                               {r.aiInterpretation}
                             </p>
                           </div>

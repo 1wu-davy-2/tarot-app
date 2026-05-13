@@ -227,24 +227,25 @@ export default function JournalPage() {
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="max-w-lg mx-auto">
-        {/* Back */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-mystic-rose/60 hover:text-mystic-gold transition-colors text-sm mb-6 px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          返回首页
-        </Link>
-
-        {/* Title */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-2xl font-cinzel text-mystic-gold text-glow">塔罗日记</h1>
-          <p className="text-xs text-mystic-rose/40 mt-2">Tarot Diary</p>
-        </motion.div>
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">返回首页</span>
+          </Link>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <h1 className="text-xl sm:text-2xl font-cinzel text-mystic-gold text-glow">塔罗日记</h1>
+          </motion.div>
+          <div className="w-[60px]" />
+        </div>
+        <p className="text-xs text-mystic-rose/55 text-center -mt-4 mb-6">Tarot Diary</p>
 
         {/* Weekly Report */}
         <motion.div
@@ -288,7 +289,7 @@ export default function JournalPage() {
         >
           <button
             onClick={handlePrevMonth}
-            className="p-2 rounded-full hover:bg-mystic-purple/10 text-mystic-rose/50 hover:text-mystic-rose transition-colors"
+            className="p-2 rounded-full hover:bg-mystic-purple/10 text-mystic-rose/65 hover:text-mystic-rose transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -297,7 +298,7 @@ export default function JournalPage() {
           </p>
           <button
             onClick={handleNextMonth}
-            className="p-2 rounded-full hover:bg-mystic-purple/10 text-mystic-rose/50 hover:text-mystic-rose transition-colors"
+            className="p-2 rounded-full hover:bg-mystic-purple/10 text-mystic-rose/65 hover:text-mystic-rose transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -331,7 +332,7 @@ export default function JournalPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.3 }}
           transition={{ delay: 0.4 }}
-          className="text-center text-[10px] text-foreground/30"
+          className="text-center text-[10px] text-foreground/45"
         >
           每天写下一句话，让牌面见证你的成长轨迹
         </motion.p>

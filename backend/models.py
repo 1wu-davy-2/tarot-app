@@ -19,6 +19,8 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     is_verified = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
+    membership_tier = Column(String(20), default="free")
+    membership_expiry = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -31,6 +33,7 @@ class DailyQuota(Base):
     date = Column(String(10), nullable=False)  # "YYYY-MM-DD"
     base_quota = Column(Integer, default=2)
     bonus_quota = Column(Integer, default=0)
+    gifted_quota = Column(Integer, default=0)
     used_count = Column(Integer, default=0)
 
 

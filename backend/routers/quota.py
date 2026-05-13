@@ -17,6 +17,7 @@ def get_quota(user: User = Depends(get_current_user), db: Session = Depends(get_
             "date": get_today(),
             "base_quota": settings.admin_quota,
             "bonus_quota": 0,
+            "gifted_quota": 0,
             "used_count": 0,
             "remaining": settings.admin_quota,
         }
@@ -26,8 +27,9 @@ def get_quota(user: User = Depends(get_current_user), db: Session = Depends(get_
         "date": quota.date,
         "base_quota": quota.base_quota,
         "bonus_quota": quota.bonus_quota,
+        "gifted_quota": quota.gifted_quota or 0,
         "used_count": quota.used_count,
-        "remaining": max(0, quota.base_quota + quota.bonus_quota - quota.used_count),
+        "remaining": max(0, quota.base_quota + quota.bonus_quota + (quota.gifted_quota or 0) - quota.used_count),
     }
 
 
@@ -37,7 +39,7 @@ def consume_quota(user: User = Depends(get_current_user), db: Session = Depends(
         return {"success": True, "remaining": settings.admin_quota}
 
     quota = get_or_create_quota(user.id, db)
-    remaining = quota.base_quota + quota.bonus_quota - quota.used_count
+    remaining = quota.base_quota + quota.bonus_quota + (quota.gifted_quota or 0) - quota.used_count
 
     if remaining <= 0:
         raise HTTPException(status_code=429, detail="今日AI解读次数已用完，请签到获取更多或明天再来")
@@ -45,5 +47,5 @@ def consume_quota(user: User = Depends(get_current_user), db: Session = Depends(
     quota.used_count += 1
     db.commit()
 
-    new_remaining = quota.base_quota + quota.bonus_quota - quota.used_count
+    new_remaining = quota.base_quota + quota.bonus_quota + (quota.gifted_quota or 0) - quota.used_count
     return {"success": True, "remaining": max(0, new_remaining)}

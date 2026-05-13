@@ -95,6 +95,8 @@ class UserInfo(BaseModel):
     zodiac: Optional[str] = None
     is_verified: bool
     is_admin: bool
+    membership_tier: Optional[str] = "free"
+    membership_expiry: Optional[datetime] = None
     created_at: datetime
     birth_date: Optional[date] = None
     birth_time: Optional[str] = None    # serialized as "HH:MM"
@@ -121,6 +123,7 @@ class QuotaResponse(BaseModel):
     date: str
     base_quota: int
     bonus_quota: int
+    gifted_quota: int
     used_count: int
     remaining: int
 
