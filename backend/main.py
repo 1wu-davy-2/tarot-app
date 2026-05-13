@@ -128,7 +128,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Tarot App API", version="1.0.0", lifespan=lifespan)
 
-# CORS — allow all origins for development
+# CORS — allow all origins (with explicit preflight handling)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -136,6 +136,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Fallback: ensure CORS headers on ALL responses, including errors
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
+
+class CorsFallbackMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.method == "OPTIONS":
+            return Response(status_code=200, headers={
+                "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+                "Access-Control-Allow-Methods": "*",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Max-Age": "86400",
+            })
+        response = await call_next(request)
+        origin = request.headers.get("origin", "")
+        if origin and "Access-Control-Allow-Origin" not in response.headers:
+            response.headers["Access-Control-Allow-Origin"] = origin
+        return response
+
+app.add_middleware(CorsFallbackMiddleware)
 
 # Routers
 app.include_router(auth.router)
