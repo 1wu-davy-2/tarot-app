@@ -19,6 +19,17 @@ function buildQuestion(base: string | undefined, spreadType: string | undefined)
   return q;
 }
 
+function getBirthChart() {
+  const user = getStoredUser();
+  if (!user) return undefined;
+  const bc: any = {};
+  if (user.zodiac) bc.zodiac = user.zodiac;
+  if (user.birth_date) bc.birth_date = user.birth_date;
+  if (user.birth_time) bc.birth_time = user.birth_time;
+  if (user.birth_place) bc.birth_place = user.birth_place;
+  return Object.keys(bc).length > 0 ? bc : undefined;
+}
+
 interface CardInterpretationProps {
   card: TarotCard;
   isReversed: boolean;
@@ -435,6 +446,7 @@ function AIInterpretationTab({
           positions: positions || undefined,
           style: persona,
           history: history || undefined,
+          birthChart: getBirthChart(),
         }),
       });
 

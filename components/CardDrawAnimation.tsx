@@ -101,8 +101,8 @@ export function CardDrawAnimation({ cards, count, onComplete }: CardDrawAnimatio
       {/* Fan spread */}
       <AnimatePresence>
         {(phase === "fan" || phase === "selecting" || phase === "complete") && (
-          <div className="relative flex justify-center" style={{ minHeight: "360px", width: "100%" }}>
-            <div className="relative" style={{ width: "700px", height: "340px" }}>
+          <div className="relative flex justify-center w-full overflow-hidden" style={{ minHeight: "360px" }}>
+            <div className="relative fan-container">
               {fanCards.map((card, idx) => {
                 const angle = startAngle + (angleRange * idx) / (fanCards.length - 1);
                 const isSelected = selected.has(idx);
@@ -111,10 +111,8 @@ export function CardDrawAnimation({ cards, count, onComplete }: CardDrawAnimatio
                 return (
                   <motion.div
                     key={idx}
-                    className="absolute cursor-pointer"
+                    className="absolute cursor-pointer fan-card"
                     style={{
-                      width: "120px",
-                      height: "200px",
                       bottom: "20px",
                       left: "50%",
                       transformOrigin: "bottom center",

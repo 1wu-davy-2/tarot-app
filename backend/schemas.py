@@ -216,3 +216,16 @@ class BirthChartUpdate(BaseModel):
         if v is not None and v != "" and not re.match(r"^\d{2}:\d{2}(:\d{2})?$", v):
             raise ValueError("时间格式必须为 HH:MM")
         return v
+
+
+# ── Weekly Report ──
+
+class WeeklyReportRequest(BaseModel):
+    start_date: str   # "YYYY-MM-DD"
+    end_date: str     # "YYYY-MM-DD"
+
+    @validator("start_date", "end_date")
+    def date_valid(cls, v):
+        if not re.match(r"^\d{4}-\d{2}-\d{2}$", v):
+            raise ValueError("日期格式必须为 YYYY-MM-DD")
+        return v

@@ -98,3 +98,40 @@ body {
 .text-glow {
   text-shadow: 0 0 20px rgba(212, 168, 83, 0.5), 0 0 40px rgba(212, 168, 83, 0.2);
 }
+
+/* ── Card Draw Fan — responsive scaling ── */
+.fan-container {
+  width: 700px;
+  height: 340px;
+}
+.fan-card {
+  width: 120px;
+  height: 200px;
+}
+
+@media (max-width: 768px) {
+  .fan-container {
+    transform: scale(0.7);
+    transform-origin: top center;
+    height: 260px;
+  }
+}
+@media (max-width: 480px) {
+  .fan-container {
+    transform: scale(0.52);
+    transform-origin: top center;
+    height: 210px;
+  }
+}
+@media (max-width: 360px) {
+  .fan-container {
+    transform: scale(0.45);
+    transform-origin: top center;
+    height: 180px;
+  }
+}
+
+/* ── Mobile bottom nav safe area ── */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

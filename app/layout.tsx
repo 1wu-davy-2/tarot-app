@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { OnboardingGuide } from "@/components/OnboardingGuide";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 export const metadata: Metadata = {
   title: "命运之镜 · Mirror of Fate",
@@ -27,13 +28,14 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col relative">
+      <body className="min-h-full flex flex-col relative overflow-x-hidden">
         <MysticBackground />
         <AnnouncementBar />
         <Header />
-        <main className="relative z-10 flex-1 flex flex-col">
+        <main className="relative z-10 flex-1 flex flex-col pb-16 md:pb-0">
           <AuthGuard>{children}</AuthGuard>
         </main>
+        <MobileBottomNav />
         <OnboardingGuide />
         <FeedbackWidget />
       </body>

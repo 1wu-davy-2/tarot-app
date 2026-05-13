@@ -6,7 +6,8 @@
     "dev": "next dev -p 5200",
     "build": "next build",
     "start": "next start -p 5200",
-    "lint": "eslint"
+    "lint": "eslint",
+    "apk:build": "cross-env BUILD_TARGET=apk NEXT_PUBLIC_BUILD_TARGET=apk next build"
   },
   "dependencies": {
     "@capacitor/android": "^5.7.8",
@@ -19,6 +20,7 @@
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "recharts": "^3.8.1",
     "tarot-card-img": "^0.1.0"
   },
   "devDependencies": {

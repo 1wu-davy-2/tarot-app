@@ -1,11 +1,38 @@
-import { type NextRequest, NextResponse } from "next/server";
+export const dynamic = "force-static";
 
-// 代理所有未被具体路由处理的 /api/* 请求到 Python 后端
-// Vercel 环境必需（避免 HTTPS→HTTP 混合内容），Docker 环境不会经过此处
+export function generateStaticParams() {
+  // Pre-render static pages for known API endpoints during export build.
+  // In APK mode these are never actually called — the app talks to the backend directly.
+  // This just satisfies Next.js static export requirements.
+  return [
+    { path: ["health"] },
+    { path: ["auth", "login"] },
+    { path: ["auth", "register"] },
+    { path: ["auth", "me"] },
+    { path: ["quota"] },
+    { path: ["checkin"] },
+    { path: ["readings"] },
+    { path: ["journal"] },
+    { path: ["zodiac", "list"] },
+    { path: ["horoscope"] },
+    { path: ["announcement"] },
+    { path: ["ai-config"] },
+    { path: ["feedback"] },
+  ];
+}
+
+// Proxy /api/* to Python backend (web/standalone mode)
+// In APK static export mode: returns empty JSON — the APK calls backend directly
+import { type NextRequest, NextResponse } from "next/server";
 
 const BACKEND = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8188";
 
 async function proxy(request: NextRequest) {
+  // Static export mode: return empty response (APK calls backend directly)
+  if (process.env.NEXT_PHASE === "phase-production-build" && process.env.BUILD_TARGET === "apk") {
+    return NextResponse.json({ static: true });
+  }
+
   const path = request.nextUrl.pathname.replace(/^\/api/, "/api");
   const search = request.nextUrl.search;
   const url = `${BACKEND}${path}${search}`;
@@ -24,14 +51,10 @@ async function proxy(request: NextRequest) {
 
     const res = await fetch(url, {
       method: request.method,
-      headers: {
-        ...headers,
-        "X-Forwarded-Host": request.headers.get("host") || "",
-      },
+      headers: { ...headers, "X-Forwarded-Host": request.headers.get("host") || "" },
       body,
     });
 
-    // Stream back — especially important for SSE
     const responseHeaders: Record<string, string> = {};
     res.headers.forEach((value, key) => {
       if (!["transfer-encoding"].includes(key.toLowerCase())) {
@@ -39,15 +62,9 @@ async function proxy(request: NextRequest) {
       }
     });
 
-    return new Response(res.body, {
-      status: res.status,
-      headers: responseHeaders,
-    });
+    return new Response(res.body, { status: res.status, headers: responseHeaders });
   } catch {
-    return NextResponse.json(
-      { detail: "后端服务不可用" },
-      { status: 502 }
-    );
+    return NextResponse.json({ detail: "后端服务不可用" }, { status: 502 });
   }
 }
 

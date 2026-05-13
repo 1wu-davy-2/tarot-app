@@ -18,8 +18,11 @@ import {
 } from "@/lib/journal-local";
 import { getDailyCard, type DailyCard } from "@/lib/daily-seed";
 import { tarotCards, type TarotCard } from "@/lib/tarot-data";
+import { getAstroEventsForMonth, type AstroEvent } from "@/lib/astro-events";
 import JournalCalendar from "@/components/JournalCalendar";
 import JournalEntrySheet from "@/components/JournalEntrySheet";
+import WeeklyReport from "@/components/WeeklyReport";
+import MonthlyReport from "@/components/MonthlyReport";
 
 const MONTH_NAMES = [
   "一月", "二月", "三月", "四月", "五月", "六月",
@@ -88,13 +91,18 @@ export default function JournalPage() {
     return map;
   }, [entries]);
 
+  // Astro events for the current month
+  const astroEvents = useMemo(
+    () => getAstroEventsForMonth(currentMonth.getFullYear(), currentMonth.getMonth() + 1),
+    [currentMonth]
+  );
+
   const handlePrevMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   };
 
   const handleNextMonth = () => {
-    const next = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
-    if (next <= new Date()) setCurrentMonth(next);
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
   const handleSelectDate = (date: string) => {
@@ -174,7 +182,47 @@ export default function JournalPage() {
   }, [selectedDate, sheetOpen]);
 
   const selectedEntry = selectedDate ? entries.get(selectedDate) : null;
-  const isNextMonthDisabled = currentMonth >= new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`;
+  const isFutureDate = selectedDate ? selectedDate > todayStr : false;
+
+  // Week helpers for WeeklyReport
+  const getWeekStart = () => {
+    const now = new Date();
+    const day = now.getDay();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+    return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`;
+  };
+  const getWeekEnd = () => {
+    const now = new Date();
+    const day = now.getDay();
+    const sunday = new Date(now);
+    sunday.setDate(now.getDate() + (day === 0 ? 0 : 7 - day));
+    return `${sunday.getFullYear()}-${String(sunday.getMonth() + 1).padStart(2, "0")}-${String(sunday.getDate()).padStart(2, "0")}`;
+  };
+  const getWeekEntryCount = () => {
+    const start = getWeekStart();
+    const end = getWeekEnd();
+    let count = 0;
+    for (const [date] of entries) {
+      if (date >= start && date <= end) count++;
+    }
+    return count;
+  };
+  const handleDivination = (question: string) => {
+    // Navigate to spread page with electional divination context
+    const dateParam = encodeURIComponent(selectedDate || "");
+    const qParam = encodeURIComponent(question);
+    router.push(`/spread?date=${dateParam}&question=${qParam}&electional=1`);
+  };
+
+  const getWeekLabel = () => {
+    const start = getWeekStart();
+    const end = getWeekEnd();
+    const s = new Date(start);
+    const e = new Date(end);
+    return `${s.getMonth() + 1}月${s.getDate()}日 — ${e.getMonth() + 1}月${e.getDate()}日`;
+  };
 
   return (
     <div className="min-h-screen py-8 px-4">
@@ -182,7 +230,7 @@ export default function JournalPage() {
         {/* Back */}
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-mystic-rose/50 hover:text-mystic-rose transition-colors text-sm mb-6"
+          className="inline-flex items-center gap-1.5 text-mystic-rose/60 hover:text-mystic-gold transition-colors text-sm mb-6 px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
         >
           <ArrowLeft className="w-4 h-4" />
           返回首页
@@ -196,6 +244,39 @@ export default function JournalPage() {
         >
           <h1 className="text-2xl font-cinzel text-mystic-gold text-glow">塔罗日记</h1>
           <p className="text-xs text-mystic-rose/40 mt-2">Tarot Diary</p>
+        </motion.div>
+
+        {/* Weekly Report */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <WeeklyReport
+            startDate={getWeekStart()}
+            endDate={getWeekEnd()}
+            entryCount={getWeekEntryCount()}
+            weekLabel={getWeekLabel()}
+          />
+        </motion.div>
+
+        {/* Monthly Report */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
+        >
+          <MonthlyReport
+            month={`${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}`}
+            monthLabel={`${currentMonth.getFullYear()}年${currentMonth.getMonth() + 1}月`}
+            entryCount={entries.size}
+            entries={Array.from(entries.values()).map(e => ({
+              date: e.date,
+              cardId: e.cardId,
+              isReversed: e.isReversed,
+              mood: e.mood,
+            }))}
+          />
         </motion.div>
 
         {/* Month navigator */}
@@ -216,10 +297,7 @@ export default function JournalPage() {
           </p>
           <button
             onClick={handleNextMonth}
-            disabled={isNextMonthDisabled}
-            className={`p-2 rounded-full hover:bg-mystic-purple/10 transition-colors ${
-              isNextMonthDisabled ? "text-mystic-rose/10 pointer-events-none" : "text-mystic-rose/50 hover:text-mystic-rose"
-            }`}
+            className="p-2 rounded-full hover:bg-mystic-purple/10 text-mystic-rose/50 hover:text-mystic-rose transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -243,6 +321,7 @@ export default function JournalPage() {
               entries={calendarData}
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
+              astroEvents={astroEvents}
             />
           )}
         </motion.div>
@@ -273,6 +352,8 @@ export default function JournalPage() {
           onSave={handleSaveEntry}
           onDelete={selectedEntry ? handleDeleteEntry : undefined}
           onClose={() => setSheetOpen(false)}
+          isFuture={isFutureDate}
+          onDivination={handleDivination}
         />
       )}
     </div>

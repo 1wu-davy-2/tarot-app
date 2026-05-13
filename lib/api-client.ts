@@ -12,6 +12,9 @@ interface StoredUser {
   email: string;
   zodiac?: string;
   is_admin: boolean;
+  birth_date?: string;
+  birth_time?: string;
+  birth_place?: string;
 }
 
 // ── Token management ──
@@ -166,6 +169,9 @@ export async function apiGetMe() {
     email: data.email,
     zodiac: data.zodiac,
     is_admin: data.is_admin,
+    birth_date: data.birth_date,
+    birth_time: data.birth_time,
+    birth_place: data.birth_place,
   });
   return data;
 }
@@ -255,6 +261,127 @@ export async function apiDeleteJournalEntry(id: number) {
   return api(`/api/journal/${id}`, { method: "DELETE", auth: true });
 }
 
+export async function apiGenerateMonthlyReport(
+  month: string,
+  onChunk: (text: string) => void,
+  onDone: () => void,
+  onError: (msg: string) => void,
+): Promise<{ elements?: Record<string, number>; moods?: Record<string, number>; upright?: number; reversed?: number; total?: number } | null> {
+  const token = getToken();
+  const url = `${API_BASE}/api/journal/monthly-report`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ month }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      onError(data.error || data.detail || "请求失败");
+      return null;
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) { onError("无法读取响应流"); return null; }
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith("data: ")) continue;
+        const data = trimmed.slice(6);
+        if (data === "[DONE]") { onDone(); return null; }
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.error) { onError(parsed.error); return null; }
+          if (parsed.content) onChunk(parsed.content);
+        } catch {}
+      }
+    }
+    onDone();
+    return null;
+  } catch (err: any) {
+    onError(err.message || "网络错误");
+    return null;
+  }
+}
+
+export async function apiGetJournalRange(start: string, end: string) {
+  return api<{ entries: any[] }>(`/api/journal?start=${start}&end=${end}`, { auth: true });
+}
+
+export async function apiGenerateWeeklyReport(
+  startDate: string,
+  endDate: string,
+  onChunk: (text: string) => void,
+  onDone: () => void,
+  onError: (msg: string) => void,
+): Promise<void> {
+  const token = getToken();
+  const url = `${API_BASE}/api/journal/weekly-report`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ start_date: startDate, end_date: endDate }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      onError(data.error || data.detail || "请求失败");
+      return;
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) { onError("无法读取响应流"); return; }
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith("data: ")) continue;
+        const data = trimmed.slice(6);
+        if (data === "[DONE]") { onDone(); return; }
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.error) { onError(parsed.error); return; }
+          if (parsed.content) onChunk(parsed.content);
+        } catch {}
+      }
+    }
+    onDone();
+  } catch (err: any) {
+    onError(err.message || "网络错误");
+  }
+}
+
 // ── Profile Update ──
 
 export async function apiUpdateProfile(data: {
@@ -274,6 +401,9 @@ export async function apiUpdateProfile(data: {
     email: result.email,
     zodiac: result.zodiac,
     is_admin: result.is_admin,
+    birth_date: result.birth_date,
+    birth_time: result.birth_time,
+    birth_place: result.birth_place,
   });
   return result;
 }

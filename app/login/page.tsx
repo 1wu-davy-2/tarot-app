@@ -115,7 +115,7 @@ export default function LoginPage() {
       <div className="max-w-md w-full">
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-mystic-rose/50 hover:text-mystic-rose transition-colors text-sm mb-8"
+          className="inline-flex items-center gap-1.5 text-mystic-rose/60 hover:text-mystic-gold transition-colors text-sm mb-6 px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
         >
           <ArrowLeft className="w-4 h-4" />
           返回首页

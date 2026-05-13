@@ -13,86 +13,109 @@ from config import get_settings
 
 router = APIRouter(prefix="/api", tags=["interpret"])
 
-# ── System prompts (mirrored from frontend app/api/interpret/route.ts) ──
+# ── Question Classification ──
 
-BASE_SYSTEM_PROMPT = """你是融合东西方智慧的资深塔罗解读师。
+def classify_question(q: str) -> str:
+    """Classify question into: love, career, finance, decision, daily, general."""
+    t = (q or "").lower()
+    import re
+    if re.search(r"感情|恋爱|分手|喜欢|暗恋|表白|婚姻|前任|对象|男友|女友|老公|老婆|暧昧|复合|相亲", t):
+        return "love"
+    if re.search(r"工作|面试|跳槽|辞职|老板|同事|职场|学业|考试|学习|读书|学校|专业|考研", t):
+        return "career"
+    if re.search(r"钱|投资|理财|财运|生意|赚钱|亏损|股票|基金|贷款|债务", t):
+        return "finance"
+    if re.search(r"要不要|该不该|选哪个|怎么办|建议|决定|选择|纠结|犹豫|怎么选", t):
+        return "decision"
+    if re.search(r"今天|今日|运势|今天怎么样|明天的运势|本周|这周", t):
+        return "daily"
+    return "general"
+
+
+# ── Adaptive output guidance by category ──
+
+CATEGORY_GUIDANCE = {
+    "love": """## 输出结构
+- 开篇直接给出核心判断（1-2句，结论前置）
+- 重点分析感情/人际关系的现状、对方心态、关系走向
+- 可附带个人成长方向，但不必展开事业或财运
+- 若牌面有明显的事业/财运信号，可在末尾简要提及
+- 结尾给一句可执行的建议""",
+
+    "career": """## 输出结构
+- 开篇直接给出核心判断（1-2句，结论前置）
+- 重点分析工作/学业方向、机遇与挑战、关键时间节点
+- 给出务实的具体行动建议
+- 可附带情绪状态的影响，但不必展开感情维度
+- 结尾给一句可执行的建议""",
+
+    "finance": """## 输出结构
+- 开篇直接给出核心判断（1-2句，结论前置）
+- 重点分析财务趋势、风险点、机会窗口
+- 结合牌面元素给出理财方向的具体指引
+- 结尾给一句可执行的建议""",
+
+    "decision": """## 输出结构
+- 开篇**直接给出推荐选择**（1-2句，结论前置）
+- 分"有利因素"和"需要注意"两部分分析
+- 若有多个选项，逐一简析各自的牌面信号
+- 3条具体行动步骤，每条关联具体牌面""",
+
+    "daily": """## 输出结构
+- 开篇一句话总览今日能量
+- 简短分析今日的关键主题和需要注意的事
+- 1-2条行动提示
+- 总体200-350字，简洁直接""",
+
+    "general": """## 输出结构
+- 开篇给出核心洞察（1-2句，结论前置）
+- 根据牌面自然展开2-4个相关维度（不必强行覆盖所有领域）
+- 分析牌与牌之间的呼应、矛盾或能量流动
+- 2-3条具体建议，每条关联具体牌面
+- 结尾一句总结""",
+}
+
+# ── System prompts (mirrored from frontend lib/ai-prompts.ts) ──
+
+BASE_SYSTEM_PROMPT = """你是融合东西方智慧的资深塔罗解读师。你说话自然、接地气，像一个真正懂行的朋友在帮人解牌——不故作神秘，不堆砌术语，直接告诉求问者牌面在说什么。
 
 ## 核心原则
-- 每张牌必须结合其所在牌位的含义进行解读，而非孤立地解释牌面
+- 每张牌必须结合其所在牌位的含义进行解读
 - 分析牌与牌之间的呼应、冲突和能量流动
-- 综合解读应揭示牌阵整体的能量格局，而非逐牌罗列
 - 每个判断必须有牌面象征或牌位逻辑作为依据
-
-## 回复格式
-必须严格按照以下五个维度进行解读，每个维度用 Markdown 二级标题（##）分隔：
-
-## 综合解读
-- 结合牌阵整体格局与问询者处境，分析核心能量与关键主题
-- 揭示牌面之间的呼应关系与潜在矛盾
-- 解读牌位之间的能量流动方向
-- 80-120字
-
-## 感情运势
-- 结合牌面象征与对应牌位，分析感情/人际关系的现状与趋势
-- 不论问询者是否明确问感情，都需分析情感维度
-- 60-100字
-
-## 事业学业
-- 结合牌面与牌位，分析工作、学业、事业发展方向
-- 给出务实的具体指引
-- 60-100字
-
-## 财运分析
-- 分析财务趋势和金钱相关的能量
-- 结合牌面元素给出理财方向的指引
-- 50-80字
-
-## 行动建议
-- 提供3条具体可行的建议，每条建议应关联特定的牌面或牌位
-- 每条建议以编号列出
-- 每条20-40字
-
-## 箴言
-- 用一句话总结本次解读的核心智慧
-- 简洁有力，富有诗意
-
-## 风格要求
-- 融合西方塔罗象征与东方哲学智慧
-- 不过于玄学化，每个判断都有牌面依据
-- 总字数400-600字"""
+- **结论前置**：开篇直接给出最重要的判断，别绕弯子
+- 语言自然口语化，像在跟朋友聊天，不是写星座专栏
+- 总字数200-800字，根据问题复杂度自调节，不必凑字数"""
 
 FOLLOW_UP_SYSTEM_PROMPT = """你是融合东西方智慧的资深塔罗解读师。现在求问者正在对你的上次解读进行追问。
 
 ## 回复要求
-- 基于上次解读的牌面和结论进行回答
-- 回答要聚焦于求问者的追问，给出实用、具体的指引
-- 保持温暖而有力量的口吻
-- 如果追问与牌面无关，也可以从塔罗智慧的角度给出一般性建议
-- 150-300字"""
+- 直接回答追问，不绕弯子
+- 基于上次解读的牌面进行延伸，不要凭空发挥
+- 如果追问涉及具体行动，给出可执行的建议
+- 允许反问或引导求问者澄清问题
+- 150-350字"""
 
 PERSONA_PROMPTS = {
-    "default": BASE_SYSTEM_PROMPT + "\n## 解读风格\n- 平衡神秘与务实，像一位睿智的引路人\n- 温暖而有力量",
+    "default": BASE_SYSTEM_PROMPT + "\n## 风格\n- 平衡务实与灵性，像一位阅历丰富的朋友\n- 温暖直接，说人话",
 
-    "mystic": BASE_SYSTEM_PROMPT + """\n## 解读风格：神秘巫师
-- 你是一位隐居在古老图书馆中的神秘学者，精通东西方玄学
-- 语言如诗般优美，充满隐喻和象征
-- 引用牌面的神话原型和宇宙能量
-- 让求问者感受到命运的宏大与神秘
-- 可以适当使用"命运之轮"、"宇宙"、"星辰"等神秘意象""",
+    "mystic": BASE_SYSTEM_PROMPT + """\n## 风格：诗意哲人
+- 善于用自然意象和故事隐喻来解释牌面
+- 引用神话原型但不掉书袋，点到为止
+- 让求问者感受到牌面背后的深层智慧
+- 每段解读都像在讲一个短小有力的寓言""",
 
-    "counselor": BASE_SYSTEM_PROMPT + """\n## 解读风格：心理咨询师
-- 你是一位温暖而专业的心理顾问，融合荣格心理学与塔罗智慧
-- 注重求问者的内心感受和潜意识模式
-- 语言温和、共情，使用心理学视角解读牌面
-- 帮助求问者理解自己的内在动机和情感需求
-- 可以适当使用"内在小孩"、"阴影"、"自性化"等心理学概念""",
+    "counselor": BASE_SYSTEM_PROMPT + """\n## 风格：心理顾问
+- 融合荣格心理学视角，关注潜意识模式和内在动力
+- 用共情的方式点出求问者可能没意识到的情绪或信念
+- 帮助求问者看到"为什么我会抽到这些牌"
+- 语言温和但有穿透力，不兜圈子""",
 
-    "coach": BASE_SYSTEM_PROMPT + """\n## 解读风格：实用教练
-- 你是一位务实的人生教练，擅长将塔罗智慧转化为行动计划
-- 语言直接、简洁、有力，不喜欢绕弯子
-- 每个观点都附带可执行的行动步骤
-- 关注实际问题的解决，而非空泛的安慰
-- 可以适当使用"第一步"、"关键行动"、"突破口"等行动导向的词汇""",
+    "coach": BASE_SYSTEM_PROMPT + """\n## 风格：行动教练
+- 直接、干脆、不废话
+- 每个观点都带一个可执行的动作建议
+- 关注"下一步做什么"，而非空洞安慰
+- 允许使用"第一步""关键动作""踩坑提醒"等务实表达""",
 }
 
 
@@ -162,6 +185,7 @@ async def interpret(request: Request):
     positions = body.get("positions") or []
     style = body.get("style", "default")
     history = body.get("history") or []
+    birth_chart = body.get("birthChart") or {}
 
     if not cards:
         return JSONResponse({"error": "Missing cards data"}, status_code=400)
@@ -198,27 +222,47 @@ async def interpret(request: Request):
         for h in history:
             messages.append({"role": h["role"], "content": h["content"]})
     else:
+        # Classify the question
+        category = classify_question(question)
+        cat_labels = {"love": "感情", "career": "事业学业", "finance": "财运", "decision": "决策", "daily": "日常运势", "general": "综合"}
+
         position_context = ""
         if positions:
-            position_context = "\n## 各牌位含义（每张牌所处的位置代表此牌在该领域的能量与影响）\n" + "\n".join(
-                f"{j + 1}. **{p}**：此牌位代表求问者此方面的能量状态，解读此位置的牌时需要聚焦于该领域"
+            position_context = "\n## 各牌位含义\n" + "\n".join(
+                f"{j + 1}. **{p}**：此牌位代表求问者此方面的能量状态"
                 for j, p in enumerate(positions)
             ) + "\n"
 
+        guidance = CATEGORY_GUIDANCE.get(category, CATEGORY_GUIDANCE["general"])
+
+        # Build birth chart context
+        birth_context = ""
+        if birth_chart:
+            parts = []
+            if birth_chart.get("zodiac"):
+                parts.append(f"- 太阳星座：{birth_chart['zodiac']}")
+            if birth_chart.get("birth_date"):
+                parts.append(f"- 出生日期：{birth_chart['birth_date']}")
+            if birth_chart.get("birth_time"):
+                parts.append(f"- 出生时间：{birth_chart['birth_time']}")
+            if birth_chart.get("birth_place"):
+                parts.append(f"- 出生地点：{birth_chart['birth_place']}")
+            if parts:
+                birth_context = "\n## 问询者星盘信息\n" + "\n".join(parts) + "\n\n请在解读时结合以上星盘信息——分析牌面元素与星盘元素的呼应或冲突，以及牌面行星对应与星盘可能的关联。\n"
+
         user_prompt = f"""## 问询者的问题
 {question_text}
+（问题类别：{cat_labels.get(category, "综合")}）
 
 ## 牌阵类型
 {spread_type}
 {position_context}
 ## 抽到的牌
 {chr(10).join(card_descriptions)}
+{birth_context}
+{guidance}
 
-请结合每个牌位的含义，对以上牌面进行完整解读。要求：
-1. 每张牌的解读必须与其所处的牌位含义紧密结合
-2. 分析牌与牌之间的呼应、矛盾或能量流动
-3. 综合解读应揭示牌阵整体的能量格局
-4. 按系统提示中要求的五个维度 + 一句箴言输出"""
+请按以上结构和原则进行解读。"""
 
         messages.append({"role": "user", "content": user_prompt})
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import type { AstroEvent } from "@/lib/astro-events";
 
 const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"];
 
@@ -14,10 +15,11 @@ const MOOD_EMOJIS: Record<number, string> = {
 
 interface JournalCalendarProps {
   year: number;
-  month: number;           // 1-12
+  month: number;
   entries: Map<string, { mood?: number; hasEntry: boolean }>;
   selectedDate: string | null;
   onSelectDate: (date: string) => void;
+  astroEvents?: Map<string, AstroEvent[]>;
 }
 
 export default function JournalCalendar({
@@ -26,6 +28,7 @@ export default function JournalCalendar({
   entries,
   selectedDate,
   onSelectDate,
+  astroEvents,
 }: JournalCalendarProps) {
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
@@ -33,7 +36,6 @@ export default function JournalCalendar({
   const firstDay = new Date(year, month - 1, 1);
   const lastDay = new Date(year, month, 0);
   const daysInMonth = lastDay.getDate();
-  // 0=Sun, 1=Mon ... 6=Sat → we want Mon=0, Sun=6
   const startDow = firstDay.getDay();
   const startOffset = startDow === 0 ? 6 : startDow - 1;
 
@@ -69,6 +71,7 @@ export default function JournalCalendar({
           const isToday = dateStr === todayStr;
           const isSelected = dateStr === selectedDate;
           const isFuture = dateStr > todayStr;
+          const dayEvents = astroEvents?.get(dateStr);
 
           return (
             <motion.button
@@ -76,11 +79,9 @@ export default function JournalCalendar({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.01 }}
-              disabled={isFuture}
               onClick={() => onSelectDate(dateStr)}
               className={`aspect-square flex flex-col items-center justify-center rounded-lg relative transition-all
-                ${isFuture ? "opacity-15 pointer-events-none" : "hover:bg-mystic-purple/10"}
-                ${isSelected ? "bg-mystic-purple/15 ring-1 ring-mystic-purple/40" : ""}
+                ${isSelected ? "bg-mystic-purple/15 ring-1 ring-mystic-purple/40" : isFuture ? "hover:bg-mystic-purple/5" : "hover:bg-mystic-purple/10"}
               `}
             >
               {/* Today ring */}
@@ -91,11 +92,28 @@ export default function JournalCalendar({
               {/* Day number */}
               <span
                 className={`text-xs font-cormorant ${
-                  isToday ? "text-mystic-gold" : hasEntry ? "text-foreground/80" : "text-foreground/40"
+                  isToday ? "text-mystic-gold" : isFuture ? "text-foreground/30" : hasEntry ? "text-foreground/80" : "text-foreground/40"
                 }`}
               >
                 {day}
               </span>
+
+              {/* Astro event icons */}
+              {dayEvents && dayEvents.length > 0 && (
+                <div className="flex items-center gap-0.5 mt-0.5">
+                  {dayEvents.map((ev, j) => (
+                    <span
+                      key={j}
+                      title={ev.label}
+                      className={`text-[10px] leading-none ${
+                        ev.type === "mercury-rx" ? "text-mystic-rose/60" : "text-mystic-gold/60"
+                      }`}
+                    >
+                      {ev.icon}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {/* Mood emoji or entry dot */}
               {hasEntry && mood ? (
@@ -107,6 +125,21 @@ export default function JournalCalendar({
           );
         })}
       </div>
+
+      {/* Astro legend */}
+      {astroEvents && astroEvents.size > 0 && (
+        <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-mystic-purple/10">
+          <div className="flex items-center gap-1 text-[9px] text-mystic-rose/30">
+            <span>🌑</span><span>新月</span>
+          </div>
+          <div className="flex items-center gap-1 text-[9px] text-mystic-rose/30">
+            <span>🌕</span><span>满月</span>
+          </div>
+          <div className="flex items-center gap-1 text-[9px] text-mystic-rose/30">
+            <span className="text-mystic-rose/60">☿</span><span>水逆</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Sparkles } from "lucide-react";
 import MoodSelector from "./MoodSelector";
 import { type TarotCard } from "@/lib/tarot-data";
+import { getAstroEventsForDate, getMoonPhaseEmoji, ELECTIONAL_TEMPLATES, type AstroEvent } from "@/lib/astro-events";
 
 interface JournalEntryData {
   id?: number;
@@ -21,6 +22,8 @@ interface JournalEntrySheetProps {
   onSave: (data: { mood: number | null; note: string }) => void;
   onDelete?: () => void;
   onClose: () => void;
+  isFuture?: boolean;
+  onDivination?: (question: string) => void;
 }
 
 const MONTH_NAMES = [
@@ -37,6 +40,8 @@ export default function JournalEntrySheet({
   onSave,
   onDelete,
   onClose,
+  isFuture,
+  onDivination,
 }: JournalEntrySheetProps) {
   const [mood, setMood] = useState<number | null>(null);
   const [note, setNote] = useState("");
@@ -124,32 +129,84 @@ export default function JournalEntrySheet({
                 </div>
               </div>
 
-              {/* Mood selector */}
-              <p className="text-xs text-mystic-rose/40 mb-1 ml-1">今天的心情</p>
-              <MoodSelector value={mood} onChange={setMood} />
+              {/* Future date: Electional Divination */}
+              {isFuture ? (
+                <div className="space-y-4">
+                  {/* Astro events for this date */}
+                  <ElectionalInfo date={date} />
 
-              {/* Note */}
-              <div className="mt-4">
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="记录一句话..."
-                  maxLength={200}
-                  rows={3}
-                  className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl p-4 text-sm text-foreground/80 placeholder:text-foreground/20 focus:outline-none focus:border-mystic-gold/40 transition-colors resize-none"
-                />
-                <p className="text-[10px] text-mystic-rose/20 text-right mt-1">
-                  {note.length}/200
-                </p>
-              </div>
+                  {/* Quick templates */}
+                  <div>
+                    <p className="text-xs text-mystic-rose/40 mb-3 ml-1">择日占卜</p>
+                    <div className="space-y-2">
+                      {ELECTIONAL_TEMPLATES.map((t, j) => (
+                        <button
+                          key={j}
+                          onClick={() => onDivination?.(t.question)}
+                          className="w-full text-left p-3 rounded-xl bg-mystic-dark/60 border border-mystic-purple/15 hover:border-mystic-gold/30 transition-colors text-sm text-foreground/70 hover:text-foreground/90 flex items-center gap-2"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-mystic-gold/60 flex-shrink-0" />
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              {/* Save button */}
-              <button
-                onClick={handleSave}
-                className="w-full mt-5 py-3 rounded-full bg-gradient-to-r from-mystic-purple via-mystic-gold to-mystic-rose text-white font-cinzel text-base tracking-wider hover:opacity-90 transition-opacity shadow-lg shadow-mystic-gold/20"
-              >
-                保存记录
-              </button>
+                  {/* Custom question */}
+                  <div>
+                    <p className="text-xs text-mystic-rose/40 mb-2 ml-1">或输入你的问题</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder="这天适合..."
+                        maxLength={100}
+                        className="flex-1 bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 placeholder:text-foreground/20 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                      />
+                      <button
+                        onClick={() => {
+                          if (note.trim()) {
+                            onDivination?.(note.trim());
+                            setNote("");
+                          }
+                        }}
+                        disabled={!note.trim()}
+                        className="px-4 py-2.5 rounded-xl bg-mystic-gold/20 border border-mystic-gold/40 text-mystic-gold hover:bg-mystic-gold/30 transition-colors disabled:opacity-30 disabled:pointer-events-none text-sm"
+                      >
+                        占卜
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Past/today: Diary entry mode */}
+                  <p className="text-xs text-mystic-rose/40 mb-1 ml-1">今天的心情</p>
+                  <MoodSelector value={mood} onChange={setMood} />
+
+                  <div className="mt-4">
+                    <textarea
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      placeholder="记录一句话..."
+                      maxLength={200}
+                      rows={3}
+                      className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl p-4 text-sm text-foreground/80 placeholder:text-foreground/20 focus:outline-none focus:border-mystic-gold/40 transition-colors resize-none"
+                    />
+                    <p className="text-[10px] text-mystic-rose/20 text-right mt-1">
+                      {note.length}/200
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleSave}
+                    className="w-full mt-5 py-3 rounded-full bg-gradient-to-r from-mystic-purple via-mystic-gold to-mystic-rose text-white font-cinzel text-base tracking-wider hover:opacity-90 transition-opacity shadow-lg shadow-mystic-gold/20"
+                  >
+                    保存记录
+                  </button>
+                </>
+              )}
             </div>
           </motion.div>
         </>
@@ -157,3 +214,44 @@ export default function JournalEntrySheet({
     </AnimatePresence>
   );
 }
+
+// ── Electional info sub-component ──
+
+function ElectionalInfo({ date }: { date: string }) {
+  const events = getAstroEventsForDate(date);
+
+  if (events.length === 0) {
+    return (
+      <div className="glass-card p-4 flex items-center gap-3">
+        <span className="text-xl">{getMoonPhaseEmoji(new Date(date + "T12:00:00"))}</span>
+        <div>
+          <p className="text-xs text-foreground/60">当日无特殊天象</p>
+          <p className="text-[10px] text-mystic-rose/30 mt-0.5">可正常择日参考</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass-card p-4">
+      <p className="text-[10px] text-mystic-rose/40 mb-2">当日天象</p>
+      <div className="space-y-2">
+        {events.map((ev, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <span className="text-lg">{ev.icon}</span>
+            <div>
+              <p className="text-sm text-foreground/80">{ev.label}</p>
+              <p className="text-[10px] text-mystic-rose/30">
+                {ev.type === "new-moon" ? "适合开启新计划，设定意图" :
+                 ev.type === "full-moon" ? "适合总结收尾，释放不再需要的事物" :
+                 ev.type === "mercury-rx" ? "水逆期间，注意沟通细节，避免签约" :
+                 ev.type === "venus-rx" ? "金逆期间，感情/财务决策需三思" : ""}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+

@@ -124,7 +124,7 @@ export default function ProfilePage() {
       <div className="max-w-2xl mx-auto">
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-mystic-rose/50 hover:text-mystic-rose transition-colors text-sm mb-8"
+          className="inline-flex items-center gap-1.5 text-mystic-rose/60 hover:text-mystic-gold transition-colors text-sm mb-6 px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
         >
           <ArrowLeft className="w-4 h-4" />
           返回首页
@@ -167,7 +167,7 @@ export default function ProfilePage() {
             <h2 className="text-sm font-cinzel text-mystic-gold mb-4">今日额度</h2>
 
             {/* Quota grid — 4 cards */}
-            <div className="grid grid-cols-4 gap-3 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
               <div className="text-center p-3 rounded-xl bg-mystic-purple/10 border border-mystic-purple/15">
                 <p className="text-[10px] text-mystic-rose/50 mb-1">基础</p>
                 <p className="text-xl font-bold text-foreground/70">{quota.base_quota}</p>
