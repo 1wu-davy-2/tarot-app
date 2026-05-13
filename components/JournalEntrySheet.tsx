@@ -121,7 +121,7 @@ export default function JournalEntrySheet({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50 max-h-[90vh] rounded-t-3xl bg-mystic-deep border-t border-mystic-purple/30 flex flex-col"
+            className={`fixed bottom-16 left-0 right-0 z-50 rounded-t-3xl bg-mystic-deep border-t border-mystic-purple/30 flex flex-col ${isFuture ? "max-h-[82vh]" : "max-h-[60vh]"}`}
           >
             {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-1 shrink-0">
@@ -153,21 +153,21 @@ export default function JournalEntrySheet({
 
             {/* Scrollable body */}
             <div className="px-6 overflow-y-auto flex-1">
-              {/* Card preview */}
-              <div className="glass-card p-4 mb-4 flex items-center gap-4">
-                <div className="w-14 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-mystic-dark/60 border border-mystic-purple/20">
+              {/* Card preview — compact */}
+              <div className="glass-card p-3 mb-3 flex items-center gap-3">
+                <div className="w-10 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-mystic-dark/60 border border-mystic-purple/20">
                   <img
                     src={card.imageUrl}
                     alt={card.nameCN}
                     className={`w-full h-full object-cover ${isReversed ? "rotate-180" : ""}`}
                   />
                 </div>
-                <div>
-                  <p className="text-sm font-cinzel text-mystic-gold">{card.nameCN}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-cinzel text-mystic-gold truncate">{card.nameCN}</p>
                   <p className="text-[10px] text-mystic-rose/55 mt-0.5">
                     {isReversed ? "逆位" : "正位"} · {card.element || card.suit}
                   </p>
-                  <p className="text-[10px] text-foreground/65 mt-1 line-clamp-2">
+                  <p className="text-[10px] text-foreground/65 mt-0.5 line-clamp-1">
                     {isReversed ? card.reversedMeaning : card.uprightMeaning}
                   </p>
                 </div>
@@ -175,19 +175,19 @@ export default function JournalEntrySheet({
 
               {/* Future date: Electional Divination */}
               {isFuture ? (
-                <div className="space-y-4 pb-2">
+                <div className="space-y-3 pb-2">
                   <ElectionalInfo date={date} />
 
                   <div>
-                    <p className="text-xs text-mystic-rose/55 mb-3 ml-1">择日占卜</p>
-                    <div className="space-y-2">
+                    <p className="text-[10px] text-mystic-rose/55 mb-2 ml-1">择日占卜</p>
+                    <div className="space-y-1.5">
                       {ELECTIONAL_TEMPLATES.map((t, j) => (
                         <button
                           key={j}
                           onClick={() => onDivination?.(t.question)}
-                          className="w-full text-left p-3 rounded-xl bg-mystic-dark/60 border border-mystic-purple/15 hover:border-mystic-gold/30 transition-colors text-sm text-foreground/85 hover:text-foreground/90 flex items-center gap-2"
+                          className="w-full text-left p-2.5 rounded-xl bg-mystic-dark/60 border border-mystic-purple/15 hover:border-mystic-gold/30 transition-colors text-xs text-foreground/85 hover:text-foreground/90 flex items-center gap-2"
                         >
-                          <Sparkles className="w-3.5 h-3.5 text-mystic-gold/60 flex-shrink-0" />
+                          <Sparkles className="w-3 h-3 text-mystic-gold/60 flex-shrink-0" />
                           {t.label}
                         </button>
                       ))}
@@ -195,7 +195,7 @@ export default function JournalEntrySheet({
                   </div>
 
                   <div>
-                    <p className="text-xs text-mystic-rose/55 mb-2 ml-1">或输入你的问题</p>
+                    <p className="text-[10px] text-mystic-rose/55 mb-2 ml-1">或输入你的问题</p>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -203,7 +203,7 @@ export default function JournalEntrySheet({
                         onChange={(e) => setNote(e.target.value)}
                         placeholder="这天适合..."
                         maxLength={100}
-                        className="flex-1 bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 placeholder:text-foreground/35 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                        className="flex-1 bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-3 py-2 text-sm text-foreground/80 placeholder:text-foreground/35 focus:outline-none focus:border-mystic-gold/40 transition-colors"
                       />
                       <button
                         onClick={() => {
@@ -213,7 +213,7 @@ export default function JournalEntrySheet({
                           }
                         }}
                         disabled={!note.trim()}
-                        className="px-4 py-2.5 rounded-xl bg-mystic-gold/20 border border-mystic-gold/40 text-mystic-gold hover:bg-mystic-gold/30 transition-colors disabled:opacity-30 disabled:pointer-events-none text-sm"
+                        className="px-4 py-2 rounded-xl bg-mystic-gold/20 border border-mystic-gold/40 text-mystic-gold hover:bg-mystic-gold/30 transition-colors disabled:opacity-30 disabled:pointer-events-none text-sm"
                       >
                         占卜
                       </button>
@@ -225,14 +225,14 @@ export default function JournalEntrySheet({
                   <p className="text-xs text-mystic-rose/55 mb-1 ml-1">今天的心情</p>
                   <MoodSelector value={mood} onChange={setMood} />
 
-                  <div className="mt-4">
+                  <div className="mt-3">
                     <textarea
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
                       placeholder="记录一句话..."
                       maxLength={200}
-                      rows={3}
-                      className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl p-4 text-sm text-foreground/80 placeholder:text-foreground/35 focus:outline-none focus:border-mystic-gold/40 transition-colors resize-none"
+                      rows={2}
+                      className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl p-3 text-sm text-foreground/80 placeholder:text-foreground/35 focus:outline-none focus:border-mystic-gold/40 transition-colors resize-none"
                     />
                     <p className="text-[10px] text-mystic-rose/35 text-right mt-1">
                       {note.length}/200
@@ -243,10 +243,10 @@ export default function JournalEntrySheet({
             </div>
 
             {/* Sticky action button */}
-            <div className="px-6 pb-6 pt-3 shrink-0">
+            <div className="px-5 pb-4 pt-2 shrink-0">
               <button
                 onClick={handleSave}
-                className="w-full py-3 rounded-full bg-gradient-to-r from-mystic-purple via-mystic-gold to-mystic-rose text-white font-cinzel text-base tracking-wider hover:opacity-90 transition-opacity shadow-lg shadow-mystic-gold/20"
+                className="w-full py-2.5 rounded-full bg-gradient-to-r from-mystic-purple via-mystic-gold to-mystic-rose text-white font-cinzel text-sm tracking-wider hover:opacity-90 transition-opacity shadow-lg shadow-mystic-gold/20"
               >
                 保存记录
               </button>

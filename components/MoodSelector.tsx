@@ -17,7 +17,7 @@ interface MoodSelectorProps {
 
 export default function MoodSelector({ value, onChange }: MoodSelectorProps) {
   return (
-    <div className="flex items-center justify-center gap-3 py-4">
+    <div className="flex items-center justify-center gap-2 py-3">
       {MOODS.map((m) => {
         const selected = value === m.value;
         return (

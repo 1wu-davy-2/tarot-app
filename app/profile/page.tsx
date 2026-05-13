@@ -30,6 +30,7 @@ export default function ProfilePage() {
   const [birthPlace, setBirthPlace] = useState("");
   const [birthSaving, setBirthSaving] = useState(false);
   const [birthMsg, setBirthMsg] = useState("");
+  const [showMemberModal, setShowMemberModal] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn()) { router.push("/login"); return; }
@@ -149,12 +150,22 @@ export default function ProfilePage() {
                   管理员
                 </span>
               )}
-              {user?.membership_tier && user.membership_tier !== "free" && (
-                <span className="inline-block mt-2 ml-1 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-400/30 text-blue-400 text-[10px]">
+              {user?.membership_tier && user.membership_tier !== "free" ? (
+                <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-400/30 text-blue-400 text-[10px]">
                   {user.membership_tier === "premium" ? "高级会员" : "基础会员"}
                   {user.membership_expiry && ` · 至${user.membership_expiry.slice(0, 10)}`}
                 </span>
+              ) : (
+                <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-mystic-purple/10 border border-mystic-purple/20 text-mystic-rose/55 text-[10px]">
+                  未订阅
+                </span>
               )}
+              <button
+                onClick={() => setShowMemberModal(true)}
+                className="inline-block mt-2 ml-2 text-[10px] text-mystic-gold/60 hover:text-mystic-gold underline transition-colors"
+              >
+                会员详情
+              </button>
             </div>
             <button
               onClick={handleLogout}
@@ -175,36 +186,39 @@ export default function ProfilePage() {
           >
             <h2 className="text-sm font-cinzel text-mystic-gold mb-4">今日额度</h2>
 
-            {/* Quota grid */}
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 mb-5">
-              <div className="text-center p-3 rounded-xl bg-mystic-purple/10 border border-mystic-purple/15">
+            {/* Quota grid — 4 cards in one row */}
+            <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-4">
+              <div className="text-center p-2 sm:p-3 rounded-xl bg-mystic-purple/10 border border-mystic-purple/15">
                 <p className="text-[10px] text-mystic-rose/65 mb-1">基础</p>
-                <p className="text-xl font-bold text-foreground/85">{quota.base_quota}</p>
+                <p className="text-lg sm:text-xl font-bold text-foreground/85">{quota.base_quota}</p>
               </div>
-              <div className="text-center p-3 rounded-xl bg-mystic-gold/5 border border-mystic-gold/15">
+              <div className="text-center p-2 sm:p-3 rounded-xl bg-mystic-gold/5 border border-mystic-gold/15">
                 <p className="text-[10px] text-mystic-rose/65 mb-1">签到</p>
-                <p className="text-xl font-bold text-mystic-gold">+{quota.bonus_quota}</p>
+                <p className="text-lg sm:text-xl font-bold text-mystic-gold">+{quota.bonus_quota}</p>
               </div>
-              {(quota.gifted_quota ?? 0) > 0 && (
-                <div className="text-center p-3 rounded-xl bg-emerald-500/5 border border-emerald-400/20">
-                  <p className="text-[10px] text-mystic-rose/65 mb-1">赠送</p>
-                  <p className="text-xl font-bold text-emerald-400/80">+{quota.gifted_quota}</p>
-                </div>
-              )}
-              <div className="text-center p-3 rounded-xl bg-mystic-purple/10 border border-mystic-purple/15">
+              <div className="text-center p-2 sm:p-3 rounded-xl bg-mystic-purple/10 border border-mystic-purple/15">
                 <p className="text-[10px] text-mystic-rose/65 mb-1">已用</p>
-                <p className="text-xl font-bold text-foreground/85">{quota.used_count}</p>
+                <p className="text-lg sm:text-xl font-bold text-foreground/85">{quota.used_count}</p>
               </div>
-              <div className="text-center p-3 rounded-xl bg-mystic-gold/10 border border-mystic-gold/20">
+              <div className="text-center p-2 sm:p-3 rounded-xl bg-mystic-gold/10 border border-mystic-gold/20">
                 <p className="text-[10px] text-mystic-rose/65 mb-1">剩余</p>
-                <p className={`text-2xl font-cinzel font-bold ${quota.remaining > 0 ? "text-mystic-gold" : "text-mystic-rose/75"}`}>
+                <p className={`text-lg sm:text-2xl font-cinzel font-bold ${quota.remaining > 0 ? "text-mystic-gold" : "text-mystic-rose/75"}`}>
                   {quota.remaining}
                 </p>
               </div>
             </div>
 
-            {/* Check-in button */}
-            <div className="flex items-center gap-3">
+            {/* Gifted quota badge — shown separately */}
+            {(quota.gifted_quota ?? 0) > 0 && (
+              <div className="text-center mb-3">
+                <span className="inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/20 text-emerald-400/80 text-xs">
+                  系统赠送 +{quota.gifted_quota} 次
+                </span>
+              </div>
+            )}
+
+            {/* Check-in button — centered */}
+            <div className="flex justify-center">
               <button
                 onClick={handleCheckIn}
                 disabled={checkinLoading}
@@ -218,14 +232,18 @@ export default function ProfilePage() {
                 每日签到
               </button>
               {checkinMsg && (
-                <span className="text-xs text-mystic-rose/65">{checkinMsg}</span>
+                <span className="text-xs text-mystic-rose/65 ml-3">{checkinMsg}</span>
               )}
             </div>
           </motion.div>
         )}
 
-        {/* Membership comparison */}
-        <MembershipPlans userMembership={user?.membership_tier} />
+        {/* Membership Detail Modal */}
+        <MembershipModal
+          open={showMemberModal}
+          onClose={() => setShowMemberModal(false)}
+          userMembership={user?.membership_tier}
+        />
 
         {/* Horoscope */}
         {user?.zodiac && (
@@ -482,87 +500,59 @@ const PLANS = [
   },
 ];
 
-function MembershipPlans({ userMembership }: { userMembership?: string }) {
-  const [open, setOpen] = useState(false);
+function MembershipModal({ open, onClose, userMembership }: { open: boolean; onClose: () => void; userMembership?: string }) {
+  if (!open) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-      className="glass-card p-5 mb-6"
-    >
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+        className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto bg-[#0f0a1a] border border-mystic-purple/30 rounded-2xl shadow-2xl p-6"
       >
-        <div className="flex items-center gap-2">
-          <Crown className="w-4 h-4 text-mystic-gold" />
-          <span className="text-sm font-cinzel text-mystic-gold">
-            {userMembership && userMembership !== "free"
-              ? `当前：${userMembership === "premium" ? "高级会员" : "基础会员"}`
-              : "订阅会员"}
-          </span>
-        </div>
-        <ChevronDown
-          className={`w-4 h-4 text-mystic-rose/55 transition-transform duration-300 ${
-            open ? "rotate-180" : ""
-          }`}
-        />
-      </button>
+        <button onClick={onClose} className="absolute top-4 right-4 text-mystic-rose/55 hover:text-mystic-rose">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
 
-      {open && (
-        <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          className="overflow-hidden"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-mystic-purple/10">
-            {PLANS.map((plan) => {
-              const isCurrent =
-                (userMembership || "free") === plan.tier ||
-                (!userMembership && plan.tier === "free");
-              return (
-                <div
-                  key={plan.tier}
-                  className={`rounded-xl p-4 border ${plan.color} ${plan.bg} ${
-                    isCurrent ? "ring-1 ring-mystic-gold/30" : ""
-                  }`}
-                >
-                  <div className="text-center mb-3">
-                    <span className="text-2xl">{plan.icon}</span>
-                    <h4 className={`text-sm font-cinzel mt-1 ${plan.textColor}`}>
-                      {plan.name}
-                    </h4>
-                    <p className="text-xs text-mystic-rose/65 mt-0.5">{plan.price}</p>
-                  </div>
-                  <div className="text-center mb-3">
-                    <span className={`text-xs font-cinzel ${plan.textColor}`}>
-                      {plan.quota}
-                    </span>
-                  </div>
-                  <ul className="space-y-1">
-                    {plan.features.map((f, i) => (
-                      <li
-                        key={i}
-                        className="text-[10px] text-foreground/75 flex items-center gap-1"
-                      >
-                        <span className="text-mystic-gold/60">•</span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  {isCurrent && (
-                    <p className="text-center text-[10px] text-mystic-gold mt-3">
-                      当前方案
-                    </p>
-                  )}
+        <h3 className="text-lg font-cinzel text-mystic-gold text-center mb-1">会员方案对比</h3>
+        <p className="text-xs text-mystic-rose/55 text-center mb-5">选择适合你的方案</p>
+
+        <div className="grid grid-cols-3 gap-3">
+          {PLANS.map((plan) => {
+            const isCurrent = (userMembership || "free") === plan.tier || (!userMembership && plan.tier === "free");
+            return (
+              <div
+                key={plan.tier}
+                className={`rounded-xl p-3 border ${plan.color} ${plan.bg} ${isCurrent ? "ring-1 ring-mystic-gold/30" : ""}`}
+              >
+                <div className="text-center mb-2">
+                  <span className="text-xl">{plan.icon}</span>
+                  <h4 className={`text-xs font-cinzel mt-1 ${plan.textColor}`}>{plan.name}</h4>
+                  <p className="text-[10px] text-mystic-rose/55">{plan.price}</p>
                 </div>
-              );
-            })}
-          </div>
-        </motion.div>
-      )}
-    </motion.div>
+                <div className="text-center mb-2">
+                  <span className={`text-[10px] font-cinzel ${plan.textColor}`}>{plan.quota}</span>
+                </div>
+                <ul className="space-y-0.5">
+                  {plan.features.map((f, i) => (
+                    <li key={i} className="text-[9px] text-foreground/75 flex items-start gap-1">
+                      <span className="text-mystic-gold/60 shrink-0 mt-0.5">•</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                {isCurrent && (
+                  <p className="text-center text-[9px] text-mystic-gold mt-2">当前方案</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </motion.div>
+    </div>
   );
 }
