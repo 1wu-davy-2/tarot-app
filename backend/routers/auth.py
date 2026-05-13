@@ -5,11 +5,12 @@ from models import User
 from schemas import (
     RegisterRequest, LoginRequest, SendCodeRequest,
     VerifyEmailRequest, ResetPasswordRequest,
-    TokenResponse, UserInfo,
+    TokenResponse, UserInfo, BirthChartUpdate,
 )
 from auth import hash_password, verify_password, create_access_token, decode_access_token
 from email_utils import send_verification_email, generate_code
 from redis_utils import save_code, verify_code
+from datetime import date, time
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -168,4 +169,30 @@ def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserInfo)
 def me(user: User = Depends(get_current_user)):
+    return user
+
+
+@router.patch("/me", response_model=UserInfo)
+def update_profile(
+    req: BirthChartUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if req.birth_date is not None:
+        if req.birth_date == "":
+            user.birth_date = None
+        else:
+            user.birth_date = date.fromisoformat(req.birth_date)
+    if req.birth_time is not None:
+        if req.birth_time == "":
+            user.birth_time = None
+        else:
+            parts = req.birth_time.split(":")
+            user.birth_time = time(int(parts[0]), int(parts[1]))
+    if req.birth_place is not None:
+        user.birth_place = req.birth_place if req.birth_place != "" else None
+    if req.zodiac is not None:
+        user.zodiac = req.zodiac if req.zodiac != "" else None
+    db.commit()
+    db.refresh(user)
     return user

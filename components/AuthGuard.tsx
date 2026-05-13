@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { isLoggedIn, checkSession, updateActivity, logout } from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
 
-const PROTECTED_ROUTES = ["/profile", "/history"];
+const PROTECTED_ROUTES = ["/profile", "/history", "/journal"];
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

@@ -230,3 +230,50 @@ export async function apiGetHoroscope(sign: string) {
 export async function apiGetAnnouncement() {
   return api<{ text: string; expire_at: string | null }>("/api/announcement");
 }
+
+// ── Journal ──
+
+export async function apiSaveJournalEntry(data: {
+  date: string;
+  card_id: number;
+  is_reversed: boolean;
+  mood?: number;
+  note?: string;
+}) {
+  return api("/api/journal", { method: "POST", auth: true, body: data });
+}
+
+export async function apiGetJournalEntry(date: string) {
+  return api<any>(`/api/journal?date=${date}`, { auth: true });
+}
+
+export async function apiGetMonthJournal(month: string) {
+  return api<{ entries: any[] }>(`/api/journal?month=${month}`, { auth: true });
+}
+
+export async function apiDeleteJournalEntry(id: number) {
+  return api(`/api/journal/${id}`, { method: "DELETE", auth: true });
+}
+
+// ── Profile Update ──
+
+export async function apiUpdateProfile(data: {
+  birth_date?: string;
+  birth_time?: string;
+  birth_place?: string;
+  zodiac?: string;
+}) {
+  const result = await api<any>("/api/auth/me", {
+    method: "PATCH",
+    auth: true,
+    body: data,
+  });
+  setStoredUser({
+    id: result.id,
+    username: result.username,
+    email: result.email,
+    zodiac: result.zodiac,
+    is_admin: result.is_admin,
+  });
+  return result;
+}

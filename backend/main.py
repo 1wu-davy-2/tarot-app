@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from config import get_settings
-from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement
+from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement, journal
 from redis_utils import get_dev_code
 
 settings = get_settings()
@@ -55,16 +55,31 @@ def ensure_columns():
     from database import engine, SessionLocal
     from sqlalchemy import text, inspect
     insp = inspect(engine)
+
     if insp.has_table("users"):
         existing = {c["name"] for c in insp.get_columns("users")}
-        if "zodiac" not in existing:
-            try:
-                with engine.connect() as conn:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN zodiac VARCHAR(20) NULL"))
-                    conn.commit()
-                print("[startup] Added column users.zodiac")
-            except Exception as e:
-                print(f"[startup] Failed to add column zodiac: {e}")
+        desired = {
+            "zodiac": "VARCHAR(20) NULL",
+            "birth_date": "DATE NULL",
+            "birth_time": "TIME NULL",
+            "birth_place": "VARCHAR(100) NULL",
+            "birth_lat": "FLOAT NULL",
+            "birth_lng": "FLOAT NULL",
+        }
+        for col, typedef in desired.items():
+            if col not in existing:
+                try:
+                    with engine.connect() as conn:
+                        conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {typedef}"))
+                        conn.commit()
+                    print(f"[startup] Added column users.{col}")
+                except Exception as e:
+                    print(f"[startup] Failed to add column {col}: {e}")
+
+    if not insp.has_table("daily_journal"):
+        from models import DailyJournal
+        DailyJournal.__table__.create(engine, checkfirst=True)
+        print("[startup] Created table daily_journal")
 
 
 def ensure_admin():
@@ -133,6 +148,7 @@ app.include_router(feedback.router)
 app.include_router(admin.router)
 app.include_router(zodiac.router)
 app.include_router(announcement.router)
+app.include_router(journal.router)
 
 
 # Dev helper: get latest verification code

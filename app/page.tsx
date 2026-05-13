@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Sparkles, LayoutGrid, BookOpen, Library, User, LogIn } from "lucide-react";
+import { Sparkles, LayoutGrid, BookHeart, Library, User, LogIn } from "lucide-react";
 import { isLoggedIn, getStoredUser } from "@/lib/api-client";
 
 const container = {
@@ -103,12 +103,12 @@ export default function HomePage() {
             </div>
           </Link>
 
-          <Link href="/history" className="group">
+          <Link href="/journal" className="group">
             <div className="glass-card p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
-              <BookOpen className="w-10 h-10 text-mystic-gold mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" />
-              <h2 className="text-xl font-cinzel text-mystic-gold mb-2">解读历史</h2>
-              <p className="text-foreground/50 text-sm mb-3">Reading History</p>
-              <p className="text-mystic-rose/40 text-xs">回溯过往占卜记录</p>
+              <BookHeart className="w-10 h-10 text-mystic-gold mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" />
+              <h2 className="text-xl font-cinzel text-mystic-gold mb-2">塔罗日记</h2>
+              <p className="text-foreground/50 text-sm mb-3">Tarot Diary</p>
+              <p className="text-mystic-rose/40 text-xs">每日记录 · 心情点滴</p>
             </div>
           </Link>
 

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, Date, Time, Float
 from sqlalchemy.sql import func
 from database import Base
 
@@ -11,6 +11,11 @@ class User(Base):
     email = Column(String(120), unique=True, nullable=False, index=True)
     phone = Column(String(20), default="")
     zodiac = Column(String(20), nullable=True, default=None)
+    birth_date = Column(Date, nullable=True)
+    birth_time = Column(Time, nullable=True)
+    birth_place = Column(String(100), nullable=True)
+    birth_lat = Column(Float, nullable=True)
+    birth_lng = Column(Float, nullable=True)
     password_hash = Column(String(255), nullable=False)
     is_verified = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
@@ -48,4 +53,17 @@ class ReadingRecord(Base):
     ai_response = Column(Text, default="")
     spread_type = Column(String(50), default="")
     cards_json = Column(Text, default="[]")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class DailyJournal(Base):
+    __tablename__ = "daily_journal"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    date = Column(String(10), nullable=False, index=True)  # "YYYY-MM-DD"
+    card_id = Column(Integer, nullable=False)
+    is_reversed = Column(Boolean, default=False)
+    mood = Column(Integer, nullable=True)   # 1-5 or null
+    note = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

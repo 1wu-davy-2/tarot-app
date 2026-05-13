@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date, time
 import re
 
 
@@ -96,9 +96,23 @@ class UserInfo(BaseModel):
     is_verified: bool
     is_admin: bool
     created_at: datetime
+    birth_date: Optional[date] = None
+    birth_time: Optional[str] = None    # serialized as "HH:MM"
+    birth_place: Optional[str] = None
+    birth_lat: Optional[float] = None
+    birth_lng: Optional[float] = None
 
     class Config:
         from_attributes = True
+
+    @validator("birth_time", pre=True)
+    def format_birth_time(cls, v):
+        """Serialize time object to 'HH:MM' string."""
+        if v is None:
+            return None
+        if isinstance(v, time):
+            return v.strftime("%H:%M")
+        return v
 
 
 # ── Quota ──
@@ -136,3 +150,69 @@ class ReadingResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ── Journal ──
+
+class JournalCreate(BaseModel):
+    date: str          # YYYY-MM-DD
+    card_id: int
+    is_reversed: bool = False
+    mood: Optional[int] = None   # 1-5
+    note: Optional[str] = None
+
+    @validator("date")
+    def date_valid(cls, v):
+        if not re.match(r"^\d{4}-\d{2}-\d{2}$", v):
+            raise ValueError("日期格式必须为 YYYY-MM-DD")
+        return v
+
+    @validator("mood")
+    def mood_valid(cls, v):
+        if v is not None and (v < 1 or v > 5):
+            raise ValueError("心情值必须在1-5之间")
+        return v
+
+    @validator("note")
+    def note_valid(cls, v):
+        if v and len(v) > 200:
+            raise ValueError("笔记最多200字")
+        return v
+
+
+class JournalResponse(BaseModel):
+    id: int
+    date: str
+    card_id: int
+    is_reversed: bool
+    mood: Optional[int] = None
+    note: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class MonthJournalResponse(BaseModel):
+    entries: list[JournalResponse] = []
+
+
+# ── Birth Chart / Profile Update ──
+
+class BirthChartUpdate(BaseModel):
+    birth_date: Optional[str] = None     # "YYYY-MM-DD", None = no change
+    birth_time: Optional[str] = None     # "HH:MM", None = no change
+    birth_place: Optional[str] = None    # city name, None = no change
+    zodiac: Optional[str] = None         # existing zodiac field
+
+    @validator("birth_date")
+    def bd_valid(cls, v):
+        if v is not None and v != "" and not re.match(r"^\d{4}-\d{2}-\d{2}$", v):
+            raise ValueError("生日格式必须为 YYYY-MM-DD")
+        return v
+
+    @validator("birth_time")
+    def bt_valid(cls, v):
+        if v is not None and v != "" and not re.match(r"^\d{2}:\d{2}(:\d{2})?$", v):
+            raise ValueError("时间格式必须为 HH:MM")
+        return v
