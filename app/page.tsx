@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Sparkles, LayoutGrid, BookHeart, Library, User, LogIn } from "lucide-react";
+import { Sparkles, LayoutGrid, BookHeart, Library, User, LogIn, Crown } from "lucide-react";
 import { isLoggedIn, getStoredUser } from "@/lib/api-client";
 
 const container = {
@@ -22,11 +22,19 @@ const item = {
 export default function HomePage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
+  const [isMember, setIsMember] = useState(false);
 
   useEffect(() => {
     setLoggedIn(isLoggedIn());
     const u = getStoredUser();
-    if (u) setUserName(u.username);
+    if (u) { setUserName(u.username); setIsMember(!!(u.membership_tier && u.membership_tier !== "free")); }
+    const onAuthChange = () => {
+      setLoggedIn(isLoggedIn());
+      const u2 = getStoredUser();
+      if (u2) { setUserName(u2.username); setIsMember(!!(u2.membership_tier && u2.membership_tier !== "free")); }
+    };
+    window.addEventListener("auth-change", onAuthChange);
+    return () => window.removeEventListener("auth-change", onAuthChange);
   }, []);
 
   const today = new Date().toLocaleDateString("zh-CN", {
@@ -130,7 +138,7 @@ export default function HomePage() {
           >
             {loggedIn ? (
               <>
-                <User className="w-4 h-4" />
+                {isMember ? <Crown className="w-4 h-4 text-mystic-gold" /> : <User className="w-4 h-4" />}
                 <span>{userName || "个人中心"}</span>
               </>
             ) : (

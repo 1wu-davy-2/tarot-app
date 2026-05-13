@@ -3,8 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, BookHeart, LayoutGrid, Home, User } from "lucide-react";
-import { isLoggedIn } from "@/lib/api-client";
+import { Sparkles, BookHeart, LayoutGrid, Home, User, Crown } from "lucide-react";
+import { isLoggedIn, getStoredUser } from "@/lib/api-client";
 
 const IS_APK = process.env.NEXT_PUBLIC_BUILD_TARGET === "apk";
 
@@ -28,6 +28,14 @@ export function MobileBottomNav() {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [isMember, setIsMember] = useState(false);
+
+  const checkAuth = () => {
+    setLoggedIn(isLoggedIn());
+    const u = getStoredUser();
+    const isMem = !!(u && u.membership_tier && u.membership_tier !== "free");
+    setIsMember(isMem);
+  };
 
   useEffect(() => {
     // Always show in APK mode; in web mode, show on mobile screens
@@ -44,7 +52,10 @@ export function MobileBottomNav() {
   }, []);
 
   useEffect(() => {
-    setLoggedIn(isLoggedIn());
+    checkAuth();
+    const onAuthChange = () => checkAuth();
+    window.addEventListener("auth-change", onAuthChange);
+    return () => window.removeEventListener("auth-change", onAuthChange);
   }, [pathname]);
 
   // Don't show on login page
@@ -77,18 +88,23 @@ export function MobileBottomNav() {
                   className="absolute top-0 left-1/4 right-1/4 h-0.5 rounded-full bg-gradient-to-r from-mystic-purple via-mystic-gold to-mystic-rose"
                 />
               )}
-              <Icon
-                className={`w-5 h-5 transition-colors ${
-                  isActive ? "text-mystic-gold" : "text-mystic-rose/45"
-                }`}
-                strokeWidth={isActive ? 2 : 1.5}
-              />
+              <div className="relative">
+                <Icon
+                  className={`w-5 h-5 transition-colors ${
+                    isActive ? "text-mystic-gold" : "text-mystic-rose/45"
+                  }`}
+                  strokeWidth={isActive ? 2 : 1.5}
+                />
+                {item.path === "/profile" && isMember && (
+                  <Crown className="absolute -top-1.5 -right-3 w-3 h-3 text-mystic-gold" />
+                )}
+              </div>
               <span
                 className={`text-[10px] transition-colors ${
                   isActive ? "text-mystic-gold" : "text-mystic-rose/25"
                 }`}
               >
-                {item.label}
+                {item.path === "/profile" && isMember ? "Pro" : item.label}
               </span>
             </button>
           );

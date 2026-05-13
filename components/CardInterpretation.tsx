@@ -749,35 +749,26 @@ export function CardInterpretation({
         </button>
       </div>
 
-      {/* Tab content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={tab}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-        >
-          {tab === "standard" ? (
-            <StandardInterpretation
-              card={card}
-              isReversed={isReversed}
-              allCards={allCards}
-              allReversed={allReversed}
-              positions={positions}
-            />
-          ) : (
-            <AIInterpretationTab
-              cards={interpCards}
-              isReversed={interpReversed}
-              question={question}
-              spreadType={spreadType}
-              positions={positions}
-              onText={onAiText}
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
+      {/* Tab content — keep both mounted to preserve AI state */}
+      <div className={tab === "standard" ? "block" : "hidden"}>
+        <StandardInterpretation
+          card={card}
+          isReversed={isReversed}
+          allCards={allCards}
+          allReversed={allReversed}
+          positions={positions}
+        />
+      </div>
+      <div className={tab === "ai" ? "block" : "hidden"}>
+        <AIInterpretationTab
+          cards={interpCards}
+          isReversed={interpReversed}
+          question={question}
+          spreadType={spreadType}
+          positions={positions}
+          onText={onAiText}
+        />
+      </div>
     </div>
   );
 }

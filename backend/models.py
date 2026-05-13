@@ -70,3 +70,16 @@ class DailyJournal(Base):
     mood = Column(Integer, nullable=True)   # 1-5 or null
     note = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Feedback(Base):
+    __tablename__ = "feedbacks"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    username = Column(String(50), default="")
+    email = Column(String(120), default="")
+    phone = Column(String(20), default="")
+    message = Column(Text, nullable=False)
+    sent = Column(Boolean, default=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, LogOut, Gift, Sparkles, Loader2, ChevronDown, Save,
+  ArrowLeft, LogOut, Gift, Sparkles, Loader2, ChevronDown, Save, Crown, ChevronUp,
 } from "lucide-react";
 import {
   isLoggedIn, logout, apiGetMe, apiGetQuota, apiCheckIn,
@@ -224,6 +224,9 @@ export default function ProfilePage() {
           </motion.div>
         )}
 
+        {/* Membership comparison */}
+        <MembershipPlans userMembership={user?.membership_tier} />
+
         {/* Horoscope */}
         {user?.zodiac && (
           <motion.div
@@ -440,5 +443,126 @@ export default function ProfilePage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+const PLANS = [
+  {
+    tier: "free",
+    name: "普通用户",
+    icon: "✨",
+    price: "免费",
+    quota: "2次/天",
+    features: ["每日单牌抽取", "标准解读（本地）", "3种基础牌阵", "本地历史记录"],
+    color: "border-mystic-purple/30",
+    bg: "bg-mystic-purple/5",
+    textColor: "text-mystic-rose/65",
+  },
+  {
+    tier: "basic",
+    name: "基础会员",
+    icon: "⭐",
+    price: "¥19/月",
+    quota: "30次/天 + 签到叠加",
+    features: ["全部牌阵", "塔罗日记", "星盘联动", "AI 周报/月报"],
+    color: "border-blue-400/30",
+    bg: "bg-blue-500/5",
+    textColor: "text-blue-400/80",
+  },
+  {
+    tier: "premium",
+    name: "高级会员",
+    icon: "👑",
+    price: "¥49/月",
+    quota: "50次/天 + 签到叠加",
+    features: ["无限 AI 解读", "AI 长期记忆", "月度深度报告", "语音解读"],
+    color: "border-mystic-gold/40",
+    bg: "bg-mystic-gold/5",
+    textColor: "text-mystic-gold",
+  },
+];
+
+function MembershipPlans({ userMembership }: { userMembership?: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+      className="glass-card p-5 mb-6"
+    >
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between"
+      >
+        <div className="flex items-center gap-2">
+          <Crown className="w-4 h-4 text-mystic-gold" />
+          <span className="text-sm font-cinzel text-mystic-gold">
+            {userMembership && userMembership !== "free"
+              ? `当前：${userMembership === "premium" ? "高级会员" : "基础会员"}`
+              : "订阅会员"}
+          </span>
+        </div>
+        <ChevronDown
+          className={`w-4 h-4 text-mystic-rose/55 transition-transform duration-300 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {open && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          className="overflow-hidden"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-mystic-purple/10">
+            {PLANS.map((plan) => {
+              const isCurrent =
+                (userMembership || "free") === plan.tier ||
+                (!userMembership && plan.tier === "free");
+              return (
+                <div
+                  key={plan.tier}
+                  className={`rounded-xl p-4 border ${plan.color} ${plan.bg} ${
+                    isCurrent ? "ring-1 ring-mystic-gold/30" : ""
+                  }`}
+                >
+                  <div className="text-center mb-3">
+                    <span className="text-2xl">{plan.icon}</span>
+                    <h4 className={`text-sm font-cinzel mt-1 ${plan.textColor}`}>
+                      {plan.name}
+                    </h4>
+                    <p className="text-xs text-mystic-rose/65 mt-0.5">{plan.price}</p>
+                  </div>
+                  <div className="text-center mb-3">
+                    <span className={`text-xs font-cinzel ${plan.textColor}`}>
+                      {plan.quota}
+                    </span>
+                  </div>
+                  <ul className="space-y-1">
+                    {plan.features.map((f, i) => (
+                      <li
+                        key={i}
+                        className="text-[10px] text-foreground/75 flex items-center gap-1"
+                      >
+                        <span className="text-mystic-gold/60">•</span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  {isCurrent && (
+                    <p className="text-center text-[10px] text-mystic-gold mt-3">
+                      当前方案
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
   );
 }

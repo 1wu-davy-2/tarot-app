@@ -93,6 +93,11 @@ def ensure_columns():
             except Exception as e:
                 print(f"[startup] Failed to add column gifted_quota: {e}")
 
+    if not insp.has_table("feedbacks"):
+        from models import Feedback
+        Feedback.__table__.create(engine, checkfirst=True)
+        print("[startup] Created table feedbacks")
+
 
 def ensure_admin():
     """Ensure an admin user exists on startup."""
@@ -135,6 +140,8 @@ async def lifespan(app: FastAPI):
     run_migrations()
     ensure_columns()
     ensure_admin()
+    from routers.feedback import start_feedback_scheduler
+    start_feedback_scheduler()
     yield
 
 

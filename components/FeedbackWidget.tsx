@@ -74,6 +74,7 @@ export function FeedbackWidget() {
               <div className="flex flex-col items-center gap-2 py-8">
                 <Check className="w-8 h-8 text-green-400" />
                 <p className="text-sm text-green-400">已发送，感谢反馈！</p>
+                <p className="text-[10px] text-mystic-rose/55">作者收到后会第一时间进行优化</p>
               </div>
             ) : (
               <>
@@ -85,6 +86,7 @@ export function FeedbackWidget() {
                   rows={4}
                   className="w-full bg-transparent px-4 py-3 text-sm text-foreground/80 placeholder:text-foreground/35 outline-none resize-none"
                 />
+                <p className="px-4 text-[10px] text-mystic-rose/55">作者收到消息后会第一时间进行优化处理</p>
                 {error && <p className="px-4 text-xs text-red-400/80">{error}</p>}
                 <div className="flex items-center justify-between px-4 py-2 border-t border-mystic-purple/10">
                   <span className="text-[10px] text-mystic-rose/55">{text.length}/2000</span>

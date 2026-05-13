@@ -12,6 +12,8 @@ interface StoredUser {
   email: string;
   zodiac?: string;
   is_admin: boolean;
+  membership_tier?: string;
+  membership_expiry?: string;
   birth_date?: string;
   birth_time?: string;
   birth_place?: string;
@@ -143,7 +145,10 @@ export async function apiLogin(account: string, password: string) {
     email: data.email,
     zodiac: data.zodiac,
     is_admin: data.is_admin,
+    membership_tier: data.membership_tier,
+    membership_expiry: data.membership_expiry,
   });
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("auth-change"));
   return data;
 }
 

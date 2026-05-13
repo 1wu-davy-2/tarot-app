@@ -85,6 +85,8 @@ class TokenResponse(BaseModel):
     email: str
     zodiac: Optional[str] = None
     is_admin: bool
+    membership_tier: Optional[str] = "free"
+    membership_expiry: Optional[datetime] = None
 
 
 class UserInfo(BaseModel):

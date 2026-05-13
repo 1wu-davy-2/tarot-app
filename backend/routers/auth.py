@@ -31,6 +31,20 @@ def get_current_user(
     return user
 
 
+def get_current_user_optional(
+    authorization: str = Header(None),
+    db: Session = Depends(get_db),
+) -> User | None:
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    token = authorization[7:]
+    payload = decode_access_token(token)
+    if not payload:
+        return None
+    user = db.query(User).filter(User.id == int(payload["sub"])).first()
+    return user
+
+
 @router.post("/register")
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
     username = req.username.strip()
@@ -132,6 +146,8 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         email=user.email,
         zodiac=user.zodiac,
         is_admin=user.is_admin,
+        membership_tier=user.membership_tier,
+        membership_expiry=user.membership_expiry,
     )
 
 
