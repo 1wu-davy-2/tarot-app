@@ -1,15 +1,8 @@
-// Proxy /api/* to Python backend (web/standalone mode)
-// In APK static export mode: returns empty JSON — the APK calls backend directly
 import { type NextRequest, NextResponse } from "next/server";
 
 const BACKEND = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8188";
 
 async function proxy(request: NextRequest) {
-  // Static export mode: return empty response (APK calls backend directly)
-  if (process.env.NEXT_PHASE === "phase-production-build" && process.env.BUILD_TARGET === "apk") {
-    return NextResponse.json({ static: true });
-  }
-
   const path = request.nextUrl.pathname.replace(/^\/api/, "/api");
   const search = request.nextUrl.search;
   const url = `${BACKEND}${path}${search}`;
@@ -28,7 +21,10 @@ async function proxy(request: NextRequest) {
 
     const res = await fetch(url, {
       method: request.method,
-      headers: { ...headers, "X-Forwarded-Host": request.headers.get("host") || "" },
+      headers: {
+        ...headers,
+        "X-Forwarded-Host": request.headers.get("host") || "",
+      },
       body,
     });
 
@@ -39,9 +35,15 @@ async function proxy(request: NextRequest) {
       }
     });
 
-    return new Response(res.body, { status: res.status, headers: responseHeaders });
+    return new Response(res.body, {
+      status: res.status,
+      headers: responseHeaders,
+    });
   } catch {
-    return NextResponse.json({ detail: "后端服务不可用" }, { status: 502 });
+    return NextResponse.json(
+      { detail: "后端服务不可用" },
+      { status: 502 }
+    );
   }
 }
 
