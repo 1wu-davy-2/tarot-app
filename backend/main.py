@@ -1,6 +1,5 @@
 import os
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from config import get_settings
@@ -128,36 +127,45 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Tarot App API", version="1.0.0", lifespan=lifespan)
 
-# CORS — allow all origins (with explicit preflight handling)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS — pure ASGI middleware (most reliable approach, no BaseHTTPMiddleware)
+from starlette.types import ASGIApp, Scope, Receive, Send
 
-# Fallback: ensure CORS headers on ALL responses, including errors
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import Response
+class ForceCorsMiddleware:
+    def __init__(self, app: ASGIApp):
+        self.app = app
 
-class CorsFallbackMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        if request.method == "OPTIONS":
-            return Response(status_code=200, headers={
-                "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
-                "Access-Control-Allow-Methods": "*",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Max-Age": "86400",
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def cors_send(message):
+            if message["type"] == "http.response.start":
+                headers = dict(message.get("headers", []))
+                headers[b"access-control-allow-origin"] = b"*"
+                headers[b"access-control-allow-methods"] = b"*"
+                headers[b"access-control-allow-headers"] = b"*"
+                headers[b"access-control-max-age"] = b"86400"
+                message["headers"] = list(headers.items())
+            await send(message)
+
+        if scope["method"] == "OPTIONS":
+            await send({
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [
+                    (b"access-control-allow-origin", b"*"),
+                    (b"access-control-allow-methods", b"*"),
+                    (b"access-control-allow-headers", b"*"),
+                    (b"access-control-max-age", b"86400"),
+                ],
             })
-        response = await call_next(request)
-        origin = request.headers.get("origin", "")
-        if origin and "Access-Control-Allow-Origin" not in response.headers:
-            response.headers["Access-Control-Allow-Origin"] = origin
-        return response
+            await send({"type": "http.response.body", "body": b""})
+            return
 
-app.add_middleware(CorsFallbackMiddleware)
+        await self.app(scope, receive, cors_send)
+
+app.add_middleware(ForceCorsMiddleware)
 
 # Routers
 app.include_router(auth.router)
