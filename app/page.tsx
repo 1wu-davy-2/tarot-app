@@ -44,7 +44,7 @@ export default function HomePage() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 sm:py-16 relative overflow-hidden">
       {/* Nebula background blobs */}
       <div
         className="absolute w-[600px] h-[600px] rounded-full opacity-20 pointer-events-none"
@@ -66,7 +66,7 @@ export default function HomePage() {
       />
 
       <motion.div
-        className="relative z-10 flex flex-col items-center gap-12 max-w-lg mx-auto"
+        className="relative z-10 flex flex-col items-center gap-6 sm:gap-12 max-w-lg mx-auto"
         variants={container}
         initial="hidden"
         animate="show"
@@ -74,69 +74,30 @@ export default function HomePage() {
         {/* App logo / title */}
         <motion.div variants={item} className="text-center">
           <motion.div
-            className="text-7xl md:text-8xl mb-6 text-mystic-gold"
+            className="text-5xl sm:text-7xl md:text-8xl mb-4 sm:mb-6 text-mystic-gold"
             animate={{ rotate: 360 }}
             transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
           >
             ✧
           </motion.div>
-          <h1 className="text-4xl md:text-5xl font-cinzel text-mystic-gold text-glow tracking-wider">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-cinzel text-mystic-gold text-glow tracking-wider">
             命运之镜
           </h1>
-          <p className="text-mystic-rose/65 text-sm md:text-base mt-3 tracking-widest font-cormorant">
+          <p className="text-mystic-rose/65 text-sm md:text-base mt-2 sm:mt-3 tracking-widest font-cormorant">
             Mirror of Fate
           </p>
-          <p className="text-foreground/55 text-xs mt-4 max-w-xs mx-auto leading-relaxed">
+          <p className="text-foreground/65 text-xs mt-3 sm:mt-4 max-w-xs mx-auto leading-relaxed">
             融合东西方古老智慧的塔罗指引，照见你内心深处的光
           </p>
         </motion.div>
 
-        {/* Entry cards — 2×2 grid */}
-        <motion.div variants={item} className="grid grid-cols-2 gap-4 sm:gap-6 w-full max-w-lg">
-          <Link href="/daily" className="group">
-            <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
-              <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
-              <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">每日卦算</h2>
-              <p className="text-foreground/65 text-xs sm:text-sm mb-2 sm:mb-3">Daily Tarot</p>
-              <p className="text-mystic-rose/55 text-[10px] sm:text-xs">{today}</p>
-            </div>
-          </Link>
-
-          <Link href="/spread" className="group">
-            <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
-              <LayoutGrid className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
-              <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">牌阵占卜</h2>
-              <p className="text-foreground/65 text-xs sm:text-sm mb-2 sm:mb-3">Card Spread</p>
-              <p className="text-mystic-rose/55 text-[10px] sm:text-xs">多种牌阵 · 深度解读</p>
-            </div>
-          </Link>
-
-          <Link href="/journal" className="group">
-            <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
-              <BookHeart className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
-              <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">塔罗日记</h2>
-              <p className="text-foreground/65 text-xs sm:text-sm mb-2 sm:mb-3">Tarot Diary</p>
-              <p className="text-mystic-rose/55 text-[10px] sm:text-xs">每日记录 · 心情点滴</p>
-            </div>
-          </Link>
-
-          <Link href="/library" className="group">
-            <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
-              <Library className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
-              <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">塔罗图鉴</h2>
-              <p className="text-foreground/65 text-xs sm:text-sm mb-2 sm:mb-3">Card Library</p>
-              <p className="text-mystic-rose/55 text-[10px] sm:text-xs">78张牌 · 完整释义</p>
-            </div>
-          </Link>
-
-          <Link href="/fortune" className="group">
-            <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
-              <Compass className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
-              <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">每日运势</h2>
-              <p className="text-foreground/65 text-xs sm:text-sm mb-2 sm:mb-3">Daily Fortune</p>
-              <p className="text-mystic-rose/55 text-[10px] sm:text-xs">星座运势 · 幸运指引</p>
-            </div>
-          </Link>
+        {/* Entry cards grid */}
+        <motion.div variants={item} className="grid grid-cols-2 gap-3 sm:gap-6 w-full max-w-lg">
+          <EntryCard href="/daily" icon={Sparkles} title="每日卦算" enTitle="Daily Tarot" desc={today} />
+          <EntryCard href="/spread" icon={LayoutGrid} title="牌阵占卜" enTitle="Card Spread" desc="多种牌阵 · 深度解读" />
+          <EntryCard href="/journal" icon={BookHeart} title="塔罗日记" enTitle="Tarot Diary" desc="每日记录 · 心情点滴" />
+          <EntryCard href="/library" icon={Library} title="塔罗图鉴" enTitle="Card Library" desc="78张牌 · 完整释义" />
+          <EntryCard href="/fortune" icon={Compass} title="每日运势" enTitle="Daily Fortune" desc="星座运势 · 幸运指引" />
         </motion.div>
 
         {/* Login / Profile link */}
@@ -159,14 +120,31 @@ export default function HomePage() {
           </Link>
         </motion.div>
 
-        {/* Footer hint */}
+        {/* Footer hint — desktop only */}
         <motion.p
           variants={item}
-          className="text-foreground/35 text-xs text-center mt-4 tracking-wider"
+          className="hidden sm:block text-foreground/35 text-xs text-center mt-4 tracking-wider"
         >
           &ldquo;答案不在牌中，而在你凝视牌面的眼中&rdquo;
         </motion.p>
       </motion.div>
     </div>
+  );
+}
+
+function EntryCard({
+  href, icon: Icon, title, enTitle, desc,
+}: {
+  href: string; icon: any; title: string; enTitle: string; desc: string;
+}) {
+  return (
+    <Link href={href} className="group">
+      <div className="glass-card p-3 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
+        <Icon className="w-6 h-6 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-2 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
+        <h2 className="text-sm sm:text-xl font-cinzel text-mystic-gold mb-1 sm:mb-2">{title}</h2>
+        <p className="text-foreground/65 text-[10px] sm:text-sm mb-1.5 sm:mb-3">{enTitle}</p>
+        <p className="text-mystic-rose/55 text-[10px] sm:text-xs leading-tight">{desc}</p>
+      </div>
+    </Link>
   );
 }

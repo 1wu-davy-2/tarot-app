@@ -67,13 +67,14 @@ export default function FortunePage() {
       setZodiac(u.zodiac);
       return;
     }
-    // Try fetching fresh profile from API (only once)
+    // Try fetching fresh profile from API (only once, guest skip)
     const token = localStorage.getItem("tarot_token");
-    if (!token || zodiacFetched.current) return;
+    if (!token || zodiacFetched.current || token === "undefined") return;
     zodiacFetched.current = true;
     fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
+      .then(r => { if (!r.ok) return null; return r.json(); })
       .then(data => {
+        if (!data) return;
         if (data.zodiac && ZODIAC_SIGNS.some(z => z.name === data.zodiac)) {
           setZodiac(data.zodiac);
         } else if (data.birth_date) {
