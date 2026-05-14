@@ -39,6 +39,7 @@ def _build_fortune_prompt(zodiac: str, gender_hint: str = "") -> str:
 @router.post("/daily")
 async def daily_fortune(
     zodiac: str = Query(""),
+    date: str = Query(""),
     gender: str = Query(""),
     user: User | None = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
@@ -47,11 +48,21 @@ async def daily_fortune(
     if zodiac not in ZODIAC_NAMES:
         raise HTTPException(status_code=400, detail="无效的星座名称")
 
-    # Determine gender from user profile or query param
     gender_hint = gender or ""
 
     async def event_stream():
-        prompt = _build_fortune_prompt(zodiac, gender_hint)
+        # Build date-specific prompt
+        target_date = date or __import__("datetime").date.today().strftime("%Y年%m月%d日")
+        prompt = f"""你是命运之镜的运势占卜师，请为一位{zodiac}用户生成{target_date}的今日运势解读。
+
+请严格用以下JSON格式回复（不要markdown代码块，直接输出JSON）：
+{{
+  "summary": "一句话运势总结（15字以内，温暖治愈风）",
+  "interpretation": "今日运势详细解读（80-120字），结合星座特点和{target_date}的日期能量给出个性化建议",
+  "advice": "今日行动建议（40字以内）",
+  "warning": "今日避坑提醒（30字以内）",
+  "mood": "今日心情关键词（2-3个词）"
+}}"""
 
         try:
             async with httpx.AsyncClient(timeout=60) as client:

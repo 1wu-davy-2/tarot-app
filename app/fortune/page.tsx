@@ -5,10 +5,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, Sparkles, RefreshCw, Loader2 } from "lucide-react";
 import {
-  generateLuckyItems, generateFortuneScores, getZodiacIndex,
+  generateLuckyItems, generateFortuneScores,
   SCORE_LABELS, type LuckyItems, type FortuneScores,
-  generatePeriodScores, generatePeriodLuckyItems, PERIOD_LABELS,
-  type Period,
 } from "@/lib/fortune-data";
 import { getStoredUser } from "@/lib/api-client";
 
@@ -52,9 +50,10 @@ function deriveZodiac(birthDate: string): string | null {
 }
 
 export default function FortunePage() {
+  const todayStr = new Date().toISOString().slice(0, 10);
   const [zodiac, setZodiac] = useState("");
   const [zodiacOpen, setZodiacOpen] = useState(false);
-  const [period, setPeriod] = useState<Period>("daily");
+  const [selectedDate, setSelectedDate] = useState(todayStr);
   const [scores, setScores] = useState<FortuneScores | null>(null);
   const [lucky, setLucky] = useState<LuckyItems | null>(null);
   const [aiText, setAiText] = useState("");
@@ -62,6 +61,21 @@ export default function FortunePage() {
   const [error, setError] = useState("");
 
   const zodiacFetched = useRef(false);
+
+  // Compute Mon-Sun of the current week
+  const weekDates = (() => {
+    const now = new Date(todayStr + "T12:00:00");
+    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    const dates: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      dates.push(d.toISOString().slice(0, 10));
+    }
+    return dates;
+  })();
 
   // Init from stored user first, then try API, then derive from birth_date
   useEffect(() => {
@@ -88,19 +102,14 @@ export default function FortunePage() {
       .catch(() => {});
   }, []);
 
-  // When zodiac or period changes, generate scores + lucky (local)
+  // When zodiac or date changes, generate scores + lucky (local)
   useEffect(() => {
     if (!zodiac) { setScores(null); setLucky(null); return; }
-    if (period === "daily") {
-      setScores(generateFortuneScores(zodiac));
-      setLucky(generateLuckyItems(zodiac));
-    } else {
-      setScores(generatePeriodScores(zodiac, period));
-      setLucky(generatePeriodLuckyItems(zodiac, period));
-    }
+    setScores(generateFortuneScores(zodiac, selectedDate));
+    setLucky(generateLuckyItems(zodiac, selectedDate));
     setAiText("");
     setError("");
-  }, [zodiac, period]);
+  }, [zodiac, selectedDate]);
 
   const fetchFortune = useCallback(async () => {
     if (!zodiac) return;
@@ -110,9 +119,8 @@ export default function FortunePage() {
     let accumulated = "";
 
     try {
-      const endpoint = period === "daily" ? "/api/fortune/daily" : "/api/fortune/period";
-      const params = new URLSearchParams({ zodiac, ...(period !== "daily" ? { period } : {}) });
-      const url = API_BASE ? `${API_BASE}${endpoint}?${params}` : `${endpoint}?${params}`;
+      const params = new URLSearchParams({ zodiac, date: selectedDate });
+      const url = API_BASE ? `${API_BASE}/api/fortune/daily?${params}` : `/api/fortune/daily?${params}`;
       const res = await fetch(url, { method: "POST" });
       if (!res.ok) throw new Error("AI service error");
 
@@ -144,7 +152,7 @@ export default function FortunePage() {
     } finally {
       setLoading(false);
     }
-  }, [zodiac, period]);
+  }, [zodiac, selectedDate]);
 
   const today = new Date().toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
 
@@ -210,23 +218,41 @@ export default function FortunePage() {
           )}
         </div>
 
-        {/* Period tabs */}
+        {/* Week date strip */}
         {zodiac && (
-          <div className="flex justify-center mb-5">
-            <div className="flex bg-mystic-dark/60 border border-mystic-purple/20 rounded-full p-0.5">
-              {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([p, label]) => (
-                <button
-                  key={p}
-                  onClick={() => setPeriod(p)}
-                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm transition-all ${
-                    period === p
-                      ? "bg-mystic-gold/20 text-mystic-gold font-cinzel"
-                      : "text-foreground/55 hover:text-foreground/75"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+          <div className="mb-5">
+            <div className="flex justify-between items-center gap-1">
+              {weekDates.map((d) => {
+                const dayNum = new Date(d + "T12:00:00").getDate();
+                const dayNames = ["日", "一", "二", "三", "四", "五", "六"];
+                const dayOfWeek = new Date(d + "T12:00:00").getDay();
+                const isToday = d === todayStr;
+                const isSelected = d === selectedDate;
+                // Mini score preview
+                const miniScores = zodiac ? generateFortuneScores(zodiac, d) : null;
+                return (
+                  <button
+                    key={d}
+                    onClick={() => setSelectedDate(d)}
+                    className={`flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-xs transition-all min-w-[36px] ${
+                      isSelected
+                        ? "bg-mystic-gold/20 border border-mystic-gold/40 text-mystic-gold"
+                        : isToday
+                        ? "bg-mystic-purple/15 border border-mystic-purple/30 text-foreground/80"
+                        : "border border-transparent text-foreground/55 hover:bg-mystic-purple/10"
+                    }`}
+                  >
+                    <span className="text-[10px] opacity-60">周{dayNames[dayOfWeek]}</span>
+                    <span className={`text-sm font-bold ${isToday ? "text-mystic-gold" : ""}`}>{dayNum}</span>
+                    {miniScores && (
+                      <span className={`text-[10px] font-cinzel ${isSelected ? "text-mystic-gold" : "text-mystic-gold/60"}`}>
+                        {miniScores.overall}
+                      </span>
+                    )}
+                    {isToday && <span className="w-1 h-1 rounded-full bg-mystic-gold" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
