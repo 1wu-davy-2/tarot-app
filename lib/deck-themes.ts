@@ -99,8 +99,30 @@ export function getThemeDownloadUrl(theme: DeckTheme): string {
 
 // ── React hook ──
 
+import { useState, useEffect, useCallback } from "react";
+
 export function useDeckTheme(): DeckTheme {
-  if (typeof window === "undefined") return "rider-waite";
-  // Simple read — components that need reactivity should listen to theme-change event
-  return getCurrentTheme();
+  const [theme, setTheme] = useState<DeckTheme>(getCurrentTheme);
+
+  useEffect(() => {
+    const handler = () => setTheme(getCurrentTheme());
+    window.addEventListener("theme-change", handler);
+    return () => window.removeEventListener("theme-change", handler);
+  }, []);
+
+  return theme;
+}
+
+export function useThemeImageUrl(imageUrl: string): string {
+  const theme = useDeckTheme();
+  if (theme === "rider-waite") return imageUrl;
+
+  const baseName = imageUrl.split("/").pop() || "";
+  const nameWithoutExt = baseName.replace(/\.(webp|jpg|png)$/i, "");
+  const themeFilename = `${nameWithoutExt}.svg`;
+
+  if (API_BASE) {
+    return `${API_BASE}/api/theme-images/${theme}/${themeFilename}`;
+  }
+  return `/api/theme-images/${theme}/${themeFilename}`;
 }

@@ -47,6 +47,12 @@ export default function JournalEntrySheet({
   const [mood, setMood] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [, setThemeTick] = useState(0);
+  useEffect(() => {
+    const h = () => setThemeTick((t) => t + 1);
+    window.addEventListener("theme-change", h);
+    return () => window.removeEventListener("theme-change", h);
+  }, []);
 
   useEffect(() => {
     if (open) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, X, Search, ChevronDown, Brain } from "lucide-react";
@@ -8,7 +8,7 @@ import { tarotCards, getMajorArcana, getCardsBySuit, type TarotCard } from "@/li
 import { getCollectedCount, getCollectedMajorCount } from "@/lib/achievements";
 import { getQuizStats, getLearnedCards, SUIT_LABELS, SUIT_TOTALS } from "@/lib/quiz-generator";
 import { QuizModal } from "@/components/QuizModal";
-import { getCardImageUrl } from "@/lib/deck-themes";
+import { getCardImageUrl, useThemeImageUrl } from "@/lib/deck-themes";
 
 const filters = [
   { key: "all", label: "全部", icon: "🃏" },
@@ -155,6 +155,12 @@ function CollectionProgress() {
 function CardDetailModal({ card, onClose }: { card: TarotCard; onClose: () => void }) {
   const [openSection, setOpenSection] = useState<string>("general");
   const [orientation, setOrientation] = useState<"upright" | "reversed">("upright");
+  const [, setThemeTick] = useState(0);
+  useEffect(() => {
+    const h = () => setThemeTick((t) => t + 1);
+    window.addEventListener("theme-change", h);
+    return () => window.removeEventListener("theme-change", h);
+  }, []);
   const interp = card.interpretation[orientation];
   const keys = Object.keys(interp) as (keyof typeof interp)[];
 
@@ -315,6 +321,14 @@ export default function LibraryPage() {
   const [search, setSearch] = useState("");
   const [selectedCard, setSelectedCard] = useState<TarotCard | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
+  const [, setThemeTick] = useState(0);
+
+  // Re-render on theme change so getCardImageUrl() picks up new theme
+  useEffect(() => {
+    const h = () => setThemeTick((t) => t + 1);
+    window.addEventListener("theme-change", h);
+    return () => window.removeEventListener("theme-change", h);
+  }, []);
 
   const cards = getCards(filter).filter((c) => {
     if (!search.trim()) return true;

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import type { TarotCard as TarotCardType } from "@/lib/tarot-data";
-import { getCardImageUrl } from "@/lib/deck-themes";
+import { useThemeImageUrl, getCardImageUrl } from "@/lib/deck-themes";
 
 interface TarotCardProps {
   card: TarotCardType;
@@ -49,6 +49,7 @@ export function TarotCard({
   const [imgError, setImgError] = useState(false);
   const symbol = card.arcana === "major" ? arcanaSymbols.major : arcanaSymbols[card.suit!];
   const suitCN = card.suit ? suitNames[card.suit] : "";
+  const themeImageUrl = useThemeImageUrl(card.imageUrl);
 
   // Build card face style once
   const faceStyle: React.CSSProperties = {
@@ -148,7 +149,7 @@ export function TarotCard({
           {/* Card image */}
           {!imgError && (
             <img
-              src={getCardImageUrl(card.imageUrl)}
+              src={themeImageUrl}
               alt={card.nameCN}
               className="absolute inset-0 w-full h-full object-cover rounded-xl"
               onError={() => setImgError(true)}

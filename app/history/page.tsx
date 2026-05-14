@@ -11,6 +11,12 @@ export default function HistoryPage() {
   const [readings, setReadings] = useState<ReadingRecord[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [, setThemeTick] = useState(0);
+  useEffect(() => {
+    const h = () => setThemeTick((t) => t + 1);
+    window.addEventListener("theme-change", h);
+    return () => window.removeEventListener("theme-change", h);
+  }, []);
 
   useEffect(() => {
     setReadings(getReadings());
