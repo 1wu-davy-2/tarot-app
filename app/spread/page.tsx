@@ -419,15 +419,14 @@ export default function SpreadPage() {
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2 mb-3">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
+            className="inline-flex items-center gap-1 text-mystic-rose/65 hover:text-mystic-gold transition-colors text-sm px-2 py-1.5 -ml-2 rounded-lg hover:bg-mystic-purple/10 shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">返回首页</span>
           </Link>
-          <div className="w-[60px]" />
+          <span className="text-sm font-cinzel text-mystic-gold/80">牌阵占卜</span>
         </div>
 
         <AnimatePresence mode="wait">
@@ -440,10 +439,7 @@ export default function SpreadPage() {
               exit={{ opacity: 0, y: -20 }}
               className="flex flex-col items-center gap-10"
             >
-              <div className="text-center">
-                <h1 className="text-3xl md:text-4xl font-cinzel text-mystic-gold text-glow">牌阵占卜</h1>
-                <p className="text-mystic-rose/65 text-sm mt-2">选择牌阵，聆听命运的指引</p>
-              </div>
+              <p className="text-mystic-rose/55 text-xs text-center">选择牌阵，聆听命运的指引</p>
 
               {/* Spread selection */}
               {!showBuilder && (

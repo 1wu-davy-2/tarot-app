@@ -66,7 +66,7 @@ export default function HomePage() {
       />
 
       <motion.div
-        className="relative z-10 flex flex-col items-center gap-6 sm:gap-12 max-w-lg mx-auto"
+        className="relative z-10 flex flex-col items-center gap-4 sm:gap-10 max-w-lg mx-auto"
         variants={container}
         initial="hidden"
         animate="show"

@@ -50,6 +50,8 @@ export default function ProfilePage() {
   const [birthSaving, setBirthSaving] = useState(false);
   const [birthMsg, setBirthMsg] = useState("");
   const [showMemberModal, setShowMemberModal] = useState(false);
+  const [birthExpanded, setBirthExpanded] = useState(false);
+  const [notifyExpanded, setNotifyExpanded] = useState(false);
 
   // Tab system: "info" | "achievements"
   const [activeTab, setActiveTab] = useState<"info" | "achievements">("info");
@@ -268,46 +270,27 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-1 mb-3">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
+            className="inline-flex items-center gap-1 text-mystic-rose/65 hover:text-mystic-gold transition-colors text-sm px-2 py-1.5 -ml-2 rounded-lg hover:bg-mystic-purple/10 shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">返回首页</span>
           </Link>
-          <div className="w-[60px]" />
-        </div>
-
-        {/* Tab switcher */}
-        <div className="flex border-b border-mystic-purple/20 mb-6">
-          <button
-            onClick={() => {
-              setActiveTab("info");
-              if (activeTab === "achievements") setAchievements(getAllAchievementProgress());
-            }}
-            className={`flex items-center gap-2 px-5 py-3 text-sm transition-colors border-b-2 -mb-[1px] ${
-              activeTab === "info"
-                ? "border-mystic-gold text-mystic-gold"
-                : "border-transparent text-foreground/55 hover:text-foreground/75"
-            }`}
-          >
-            📋 资料
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("info");
-              setAchievements(getAllAchievementProgress());
-              setActiveTab("achievements");
-            }}
-            className={`flex items-center gap-2 px-5 py-3 text-sm transition-colors border-b-2 -mb-[1px] ${
-              activeTab === "achievements"
-                ? "border-mystic-gold text-mystic-gold"
-                : "border-transparent text-foreground/55 hover:text-foreground/75"
-            }`}
-          >
-            🏆 成就
-          </button>
+          <div className="flex border-b border-mystic-purple/20 flex-1">
+            <button
+              onClick={() => setActiveTab("info")}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm transition-colors border-b-2 -mb-[1px] ${activeTab==="info"?"border-mystic-gold text-mystic-gold":"border-transparent text-foreground/55 hover:text-foreground/75"}`}
+            >
+              资料
+            </button>
+            <button
+              onClick={() => { setActiveTab("achievements"); setAchievements(getAllAchievementProgress()); }}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm transition-colors border-b-2 -mb-[1px] ${activeTab==="achievements"?"border-mystic-gold text-mystic-gold":"border-transparent text-foreground/55 hover:text-foreground/75"}`}
+            >
+              成就
+            </button>
+          </div>
         </div>
 
         {/* ═══════ INFO TAB ═══════ */}
@@ -450,7 +433,16 @@ export default function ProfilePage() {
           transition={{ delay: 0.08 }}
           className="glass-card p-6 mb-6"
         >
-          <h2 className="text-sm font-cinzel text-mystic-gold mb-4">出生星盘</h2>
+          <button onClick={() => setBirthExpanded(!birthExpanded)} className="w-full flex items-center justify-between mb-3">
+            <h2 className="text-sm font-cinzel text-mystic-gold">出生星盘</h2>
+            {birthDate && (
+              <span className="text-[11px] text-foreground/60 truncate max-w-[60%]">
+                {zodiacSign} · {birthDate}{birthTime ? ` · ${birthTime}` : ""}{birthPlace ? ` · ${birthPlace}` : ""}
+              </span>
+            )}
+            <ChevronDown className={`w-4 h-4 text-mystic-rose/45 transition-transform ${birthExpanded ? "rotate-180" : ""}`} />
+          </button>
+          {(birthExpanded || !birthDate) && (<>
 
           {/* Progress */}
           <div className="mb-5">
@@ -599,6 +591,7 @@ export default function ProfilePage() {
               </span>
             )}
           </div>
+          </>)}
         </motion.div>
 
         {/* Notification Settings */}
@@ -608,11 +601,19 @@ export default function ProfilePage() {
           transition={{ delay: 0.1 }}
           className="glass-card p-6 mb-6"
         >
-          <h2 className="text-sm font-cinzel text-mystic-gold mb-4 flex items-center gap-2">
-            <Bell className="w-4 h-4" />
-            通知设置
-          </h2>
-
+          <button onClick={() => setNotifyExpanded(!notifyExpanded)} className="w-full flex items-center justify-between mb-3">
+            <span className="flex items-center gap-2">
+              <Bell className="w-4 h-4 text-mystic-gold/70" />
+              <h2 className="text-sm font-cinzel text-mystic-gold">通知设置</h2>
+            </span>
+            <span className="text-[11px] text-foreground/55">
+              {notifySettings.dailyCard.enabled ? "每日塔罗" : ""}
+              {notifySettings.checkIn.enabled ? (notifySettings.dailyCard.enabled ? " + 签到" : "签到") : ""}
+              {!notifySettings.dailyCard.enabled && !notifySettings.checkIn.enabled ? "已关闭" : ""}
+            </span>
+            <ChevronDown className={`w-4 h-4 text-mystic-rose/45 transition-transform ${notifyExpanded ? "rotate-180" : ""}`} />
+          </button>
+          {notifyExpanded && (
           <div className="space-y-4">
             {/* Daily card */}
             <div className="flex items-center justify-between">
@@ -668,6 +669,7 @@ export default function ProfilePage() {
               <Toggle checked={notifySettings.membershipExpiry.enabled} onChange={() => toggleNotify("membershipExpiry")} />
             </div>
           </div>
+        )}
         </motion.div>
 
         {/* Deck Theme Switcher (premium gated) */}
