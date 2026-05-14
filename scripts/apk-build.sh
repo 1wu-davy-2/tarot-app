@@ -35,6 +35,14 @@ STUB
   fi
 done
 
+# Warn if still using default localhost (won't work on real devices)
+if [ "${NEXT_PUBLIC_API_URL}" = "http://localhost:8188" ] || [ -z "${NEXT_PUBLIC_API_URL}" ]; then
+  echo "⚠  WARNING: NEXT_PUBLIC_API_URL is set to localhost. The APK won't connect to the server on real devices!"
+  echo "   Set it to your server IP:"
+  echo "   export NEXT_PUBLIC_API_URL=http://YOUR_SERVER_IP:8188"
+  echo ""
+fi
+
 # Build
 BUILD_TARGET=apk NEXT_PUBLIC_BUILD_TARGET=apk NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-http://localhost:8188}" npx next build
 
