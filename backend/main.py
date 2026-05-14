@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from config import get_settings
-from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement, journal, spread_templates, theme_images
+from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement, journal, spread_templates, theme_images, app_update
 from redis_utils import get_dev_code
 
 settings = get_settings()
@@ -206,6 +206,7 @@ app.include_router(announcement.router)
 app.include_router(journal.router)
 app.include_router(spread_templates.router)
 app.include_router(theme_images.router)
+app.include_router(app_update.router)
 
 
 # Dev helper: get latest verification code
