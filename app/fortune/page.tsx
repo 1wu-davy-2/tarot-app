@@ -7,6 +7,8 @@ import { ArrowLeft, Sparkles, RefreshCw, Loader2 } from "lucide-react";
 import {
   generateLuckyItems, generateFortuneScores, getZodiacIndex,
   SCORE_LABELS, type LuckyItems, type FortuneScores,
+  generatePeriodScores, generatePeriodLuckyItems, PERIOD_LABELS,
+  type Period,
 } from "@/lib/fortune-data";
 import { getStoredUser } from "@/lib/api-client";
 
@@ -52,6 +54,7 @@ function deriveZodiac(birthDate: string): string | null {
 export default function FortunePage() {
   const [zodiac, setZodiac] = useState("");
   const [zodiacOpen, setZodiacOpen] = useState(false);
+  const [period, setPeriod] = useState<Period>("daily");
   const [scores, setScores] = useState<FortuneScores | null>(null);
   const [lucky, setLucky] = useState<LuckyItems | null>(null);
   const [aiText, setAiText] = useState("");
@@ -85,14 +88,19 @@ export default function FortunePage() {
       .catch(() => {});
   }, []);
 
-  // When zodiac changes, generate scores + lucky (local)
+  // When zodiac or period changes, generate scores + lucky (local)
   useEffect(() => {
     if (!zodiac) { setScores(null); setLucky(null); return; }
-    setScores(generateFortuneScores(zodiac));
-    setLucky(generateLuckyItems(zodiac));
+    if (period === "daily") {
+      setScores(generateFortuneScores(zodiac));
+      setLucky(generateLuckyItems(zodiac));
+    } else {
+      setScores(generatePeriodScores(zodiac, period));
+      setLucky(generatePeriodLuckyItems(zodiac, period));
+    }
     setAiText("");
     setError("");
-  }, [zodiac]);
+  }, [zodiac, period]);
 
   const fetchFortune = useCallback(async () => {
     if (!zodiac) return;
@@ -102,9 +110,9 @@ export default function FortunePage() {
     let accumulated = "";
 
     try {
-      const url = API_BASE
-        ? `${API_BASE}/api/fortune/daily?zodiac=${encodeURIComponent(zodiac)}`
-        : `/api/fortune/daily?zodiac=${encodeURIComponent(zodiac)}`;
+      const endpoint = period === "daily" ? "/api/fortune/daily" : "/api/fortune/period";
+      const params = new URLSearchParams({ zodiac, ...(period !== "daily" ? { period } : {}) });
+      const url = API_BASE ? `${API_BASE}${endpoint}?${params}` : `${endpoint}?${params}`;
       const res = await fetch(url, { method: "POST" });
       if (!res.ok) throw new Error("AI service error");
 
@@ -136,7 +144,7 @@ export default function FortunePage() {
     } finally {
       setLoading(false);
     }
-  }, [zodiac]);
+  }, [zodiac, period]);
 
   const today = new Date().toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
 
@@ -149,23 +157,19 @@ export default function FortunePage() {
   return (
     <div className="min-h-screen py-6 px-4">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-3">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-mystic-rose/65 hover:text-mystic-gold transition-colors text-sm"
+            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">返回首页</span>
           </Link>
+          <h1 className="text-xl sm:text-2xl font-cinzel text-mystic-gold text-glow">每日运势</h1>
           <div className="w-[60px]" />
         </div>
-
-        {/* Title */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl sm:text-3xl font-cinzel text-mystic-gold text-glow">每日运势</h1>
-          <p className="text-xs text-mystic-rose/55 mt-1">{today}</p>
-        </div>
+        <p className="text-xs text-mystic-rose/55 text-center -mt-1 mb-4">{today}</p>
 
         {/* Zodiac selector */}
         <div className="mb-6 relative">
@@ -205,6 +209,27 @@ export default function FortunePage() {
             </motion.div>
           )}
         </div>
+
+        {/* Period tabs */}
+        {zodiac && (
+          <div className="flex justify-center mb-5">
+            <div className="flex bg-mystic-dark/60 border border-mystic-purple/20 rounded-full p-0.5">
+              {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([p, label]) => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm transition-all ${
+                    period === p
+                      ? "bg-mystic-gold/20 text-mystic-gold font-cinzel"
+                      : "text-foreground/55 hover:text-foreground/75"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Scores */}
         {scores && (

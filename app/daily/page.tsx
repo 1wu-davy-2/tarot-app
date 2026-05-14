@@ -148,7 +148,7 @@ export default function DailyPage() {
           <div className="flex border-b border-mystic-purple/20">
             <button
               onClick={() => setTab("reading")}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm transition-colors border-b-2 -mb-[1px] ${
+              className={`flex items-center gap-1.5 px-3 py-2 text-sm sm:text-base font-cinzel transition-colors border-b-2 -mb-[1px] ${
                 tab === "reading" ? "border-mystic-gold text-mystic-gold" : "border-transparent text-foreground/55 hover:text-foreground/75"
               }`}
             >
@@ -156,7 +156,7 @@ export default function DailyPage() {
             </button>
             <button
               onClick={() => setTab("learning")}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm transition-colors border-b-2 -mb-[1px] ${
+              className={`flex items-center gap-1.5 px-3 py-2 text-sm sm:text-base font-cinzel transition-colors border-b-2 -mb-[1px] ${
                 tab === "learning" ? "border-mystic-gold text-mystic-gold" : "border-transparent text-foreground/55 hover:text-foreground/75"
               }`}
             >

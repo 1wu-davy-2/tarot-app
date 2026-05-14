@@ -282,13 +282,13 @@ export default function ProfilePage() {
           <div className="flex border-b border-mystic-purple/20">
             <button
               onClick={() => setActiveTab("info")}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm transition-colors border-b-2 -mb-[1px] ${activeTab==="info"?"border-mystic-gold text-mystic-gold":"border-transparent text-foreground/55 hover:text-foreground/75"}`}
+              className={`flex items-center gap-1.5 px-3 py-2 text-sm sm:text-base font-cinzel transition-colors border-b-2 -mb-[1px] ${activeTab==="info"?"border-mystic-gold text-mystic-gold":"border-transparent text-foreground/55 hover:text-foreground/75"}`}
             >
               资料
             </button>
             <button
               onClick={() => { setActiveTab("achievements"); setAchievements(getAllAchievementProgress()); }}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm transition-colors border-b-2 -mb-[1px] ${activeTab==="achievements"?"border-mystic-gold text-mystic-gold":"border-transparent text-foreground/55 hover:text-foreground/75"}`}
+              className={`flex items-center gap-1.5 px-3 py-2 text-sm sm:text-base font-cinzel transition-colors border-b-2 -mb-[1px] ${activeTab==="achievements"?"border-mystic-gold text-mystic-gold":"border-transparent text-foreground/55 hover:text-foreground/75"}`}
             >
               成就
             </button>

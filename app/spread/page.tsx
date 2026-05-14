@@ -428,7 +428,7 @@ export default function SpreadPage() {
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">返回首页</span>
           </Link>
-          <h1 className="text-lg sm:text-xl font-cinzel text-mystic-gold text-glow">牌阵占卜</h1>
+          <h1 className="text-xl sm:text-2xl font-cinzel text-mystic-gold text-glow">牌阵占卜</h1>
           <div className="w-[60px]" />
         </div>
 

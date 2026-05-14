@@ -140,6 +140,36 @@ export function generateFortuneScores(zodiac: string, dateStr?: string): Fortune
   };
 }
 
+export type Period = "daily" | "weekly" | "monthly" | "yearly";
+
+export const PERIOD_LABELS: Record<Period, string> = {
+  daily: "日", weekly: "周", monthly: "月", yearly: "年",
+};
+
+export function generatePeriodScores(zodiac: string, period: Period, dateStr?: string): FortuneScores {
+  const today = dateStr || new Date().toISOString().slice(0, 10);
+  const count = period === "daily" ? 1 : period === "weekly" ? 7 : period === "monthly" ? 30 : 365;
+  const keys = ["overall", "love", "wealth", "career", "study", "social"] as const;
+  const result: any = {};
+
+  for (const key of keys) {
+    let sum = 0;
+    for (let d = 0; d < count; d++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() + d);
+      const ds = date.toISOString().slice(0, 10);
+      const seed = hashCode(`${ds}-${zodiac}-scores-${key}`);
+      sum += 55 + (seed % 34);
+    }
+    result[key] = Math.min(98, Math.round(sum / count));
+  }
+  return result as FortuneScores;
+}
+
+export function generatePeriodLuckyItems(zodiac: string, period: Period, dateStr?: string): LuckyItems {
+  return generateLuckyItems(zodiac, dateStr || new Date().toISOString().slice(0, 10));
+}
+
 export const SCORE_LABELS: Record<string, { label: string; icon: string; color: string }> = {
   overall: { label: "综合运势", icon: "⭐", color: "#d4a853" },
   love: { label: "爱情运势", icon: "💕", color: "#ec4899" },

@@ -102,6 +102,74 @@ async def daily_fortune(
     )
 
 
+@router.post("/period")
+async def period_fortune(
+    zodiac: str = Query(""),
+    period: str = Query("weekly"),
+    gender: str = Query(""),
+    user: User | None = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+):
+    """AI fortune for any period (weekly/monthly/yearly). SSE stream."""
+    if zodiac not in ZODIAC_NAMES:
+        raise HTTPException(status_code=400, detail="无效的星座名称")
+    if period not in ("weekly", "monthly", "yearly"):
+        raise HTTPException(status_code=400, detail="period must be weekly, monthly, or yearly")
+
+    period_names = {"weekly": "本周", "monthly": "本月", "yearly": "本年"}
+    period_hint = {"weekly": "请给出7天的整体趋势和每日要点", "monthly": "请给出30天的月度趋势和关键节点", "yearly": "请给出12个月的年度趋势和各月主题"}
+
+    async def event_stream():
+        today = __import__("datetime").date.today().strftime("%Y年%m月%d日")
+        prompt = f"""你是命运之镜的运势占卜师，请为一位{zodiac}用户生成{period_names[period]}运势解读。
+
+{period_hint[period]}
+当前日期：{today}
+
+请严格用以下JSON格式回复（不要markdown代码块）：
+{{
+  "summary": "一句话运势总结（15字以内，温暖治愈风）",
+  "interpretation": "运势详细解读（80-120字），结合星座特点给出个性化建议",
+  "advice": "行动建议（40字以内）",
+  "warning": "避坑提醒（30字以内）",
+  "mood": "运势关键词（2-3个词）"
+}}"""
+
+        try:
+            async with httpx.AsyncClient(timeout=60) as client:
+                response = await client.post(
+                    "https://api.deepseek.com/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {settings.deepseek_api_key}", "Content-Type": "application/json"},
+                    json={"model": "deepseek-chat", "messages": [{"role": "user", "content": prompt}], "temperature": 0.8, "stream": True},
+                )
+                response.raise_for_status()
+                buffer = ""
+                async for chunk in response.aiter_bytes():
+                    buffer += chunk.decode("utf-8")
+                    while "\n" in buffer:
+                        line, buffer = buffer.split("\n", 1)
+                        line = line.strip()
+                        if not line or not line.startswith("data: "): continue
+                        data = line[6:]
+                        if data == "[DONE]":
+                            yield "data: [DONE]\n\n"; continue
+                        try:
+                            parsed = json.loads(data)
+                            content = parsed.get("choices", [{}])[0].get("delta", {}).get("content", "")
+                            if content: yield f"data: {json.dumps({'content': content})}\n\n"
+                        except json.JSONDecodeError: pass
+        except httpx.ReadTimeout:
+            yield f"data: {json.dumps({'error': '运势生成超时'})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': f'AI服务连接失败：{str(e)}'})}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+    )
+
+
 @router.get("/zodiac-list")
 def zodiac_list():
     """Return list of zodiac signs with emojis."""
