@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Sparkles, LayoutGrid, BookHeart, Library, User, LogIn, Crown } from "lucide-react";
+import { Sparkles, LayoutGrid, BookHeart, Library, User, LogIn, Crown, Compass } from "lucide-react";
 import { isLoggedIn, getStoredUser } from "@/lib/api-client";
 
 const container = {
@@ -126,6 +126,15 @@ export default function HomePage() {
               <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">塔罗图鉴</h2>
               <p className="text-foreground/65 text-xs sm:text-sm mb-2 sm:mb-3">Card Library</p>
               <p className="text-mystic-rose/55 text-[10px] sm:text-xs">78张牌 · 完整释义</p>
+            </div>
+          </Link>
+
+          <Link href="/fortune" className="group">
+            <div className="glass-card p-5 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
+              <Compass className="w-8 h-8 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
+              <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold mb-1.5 sm:mb-2">每日运势</h2>
+              <p className="text-foreground/65 text-xs sm:text-sm mb-2 sm:mb-3">Daily Fortune</p>
+              <p className="text-mystic-rose/55 text-[10px] sm:text-xs">星座运势 · 幸运指引</p>
             </div>
           </Link>
         </motion.div>

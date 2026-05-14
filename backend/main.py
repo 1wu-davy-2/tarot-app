@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from config import get_settings
-from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement, journal, spread_templates, theme_images, app_update
+from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement, journal, spread_templates, theme_images, app_update, journal_reports, fortune
 from redis_utils import get_dev_code
 
 settings = get_settings()
@@ -97,6 +97,11 @@ def ensure_columns():
         from models import Feedback
         Feedback.__table__.create(engine, checkfirst=True)
         print("[startup] Created table feedbacks")
+
+    if not insp.has_table("report_records"):
+        from models import ReportRecord
+        ReportRecord.__table__.create(engine, checkfirst=True)
+        print("[startup] Created table report_records")
 
     if not insp.has_table("spread_templates"):
         from models import SpreadTemplate
@@ -204,9 +209,11 @@ app.include_router(admin.router)
 app.include_router(zodiac.router)
 app.include_router(announcement.router)
 app.include_router(journal.router)
+app.include_router(journal_reports.router)
 app.include_router(spread_templates.router)
 app.include_router(theme_images.router)
 app.include_router(app_update.router)
+app.include_router(fortune.router)
 
 
 # Dev helper: get latest verification code

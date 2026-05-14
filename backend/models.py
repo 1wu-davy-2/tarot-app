@@ -96,3 +96,15 @@ class Feedback(Base):
     message = Column(Text, nullable=False)
     sent = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ReportRecord(Base):
+    __tablename__ = "report_records"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    type = Column(String(20), nullable=False)  # "weekly" or "monthly"
+    title = Column(String(200), default="")
+    period = Column(String(50), default="")
+    content_html = Column(Text, default="")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

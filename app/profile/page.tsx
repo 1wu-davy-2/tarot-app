@@ -25,7 +25,7 @@ import {
   downloadHTML,
 } from "@/lib/export-utils";
 import {
-  getCurrentTheme, setCurrentTheme, canAccessPremiumThemes,
+  getCurrentTheme, setCurrentTheme, canAccessPremiumThemes, syncStoredMembership,
   getThemePreviewUrl,
   THEMES, type DeckTheme,
 } from "@/lib/deck-themes";
@@ -46,6 +46,7 @@ export default function ProfilePage() {
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [birthPlace, setBirthPlace] = useState("");
+  const [zodiacSign, setZodiacSign] = useState("");
   const [birthSaving, setBirthSaving] = useState(false);
   const [birthMsg, setBirthMsg] = useState("");
   const [showMemberModal, setShowMemberModal] = useState(false);
@@ -77,10 +78,13 @@ export default function ProfilePage() {
       setUser(userData);
       setQuota(quotaData);
       setReadings(readingsData);
+      // Sync membership to localStorage so theme access checks pass
+      syncStoredMembership(userData);
       // Init birth chart fields
       if (userData?.birth_date) setBirthDate(userData.birth_date);
       if (userData?.birth_time) setBirthTime(userData.birth_time);
       if (userData?.birth_place) setBirthPlace(userData.birth_place);
+      if (userData?.zodiac) setZodiacSign(userData.zodiac);
       // Load horoscope if zodiac is set
       if (userData?.zodiac) loadHoroscope(userData.zodiac);
     } catch (err: any) {
@@ -131,6 +135,7 @@ export default function ProfilePage() {
         birth_date: birthDate || "",
         birth_time: birthTime || "",
         birth_place: birthPlace || "",
+        zodiac: zodiacSign || "",
       });
       setUser(result);
       setBirthMsg("星盘信息已保存");
@@ -547,6 +552,31 @@ export default function ProfilePage() {
                 className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 placeholder:text-foreground/40 focus:outline-none focus:border-mystic-gold/40 transition-colors"
               />
             </div>
+            <div>
+              <label className="block text-[10px] text-mystic-rose/55 mb-1.5 ml-1">
+                星座 <span className="text-mystic-rose/35">(选取对应的星座)</span>
+              </label>
+              <select
+                value={zodiacSign}
+                onChange={(e) => setZodiacSign(e.target.value)}
+                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                style={{ colorScheme: "dark" }}
+              >
+                <option value="">选择星座（可选）</option>
+                <option value="白羊座">♈ 白羊座 3.21-4.19</option>
+                <option value="金牛座">♉ 金牛座 4.20-5.20</option>
+                <option value="双子座">♊ 双子座 5.21-6.21</option>
+                <option value="巨蟹座">♋ 巨蟹座 6.22-7.22</option>
+                <option value="狮子座">♌ 狮子座 7.23-8.22</option>
+                <option value="处女座">♍ 处女座 8.23-9.22</option>
+                <option value="天秤座">♎ 天秤座 9.23-10.23</option>
+                <option value="天蝎座">♏ 天蝎座 10.24-11.22</option>
+                <option value="射手座">♐ 射手座 11.23-12.21</option>
+                <option value="摩羯座">♑ 摩羯座 12.22-1.19</option>
+                <option value="水瓶座">♒ 水瓶座 1.20-2.18</option>
+                <option value="双鱼座">♓ 双鱼座 2.19-3.20</option>
+              </select>
+            </div>
           </div>
 
           {/* Save button */}
@@ -595,7 +625,7 @@ export default function ProfilePage() {
                   type="time"
                   value={notifySettings.dailyCard.time}
                   onChange={(e) => updateNotifyTime("dailyCard", e.target.value)}
-                  className="w-20 bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-2 py-1 text-xs text-foreground/70 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                  className="w-24 sm:w-28 bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-2 py-1 text-xs text-foreground/70 focus:outline-none focus:border-mystic-gold/40 transition-colors"
                   style={{ colorScheme: "dark" }}
                 />
                 <Toggle checked={notifySettings.dailyCard.enabled} onChange={() => toggleNotify("dailyCard")} />
@@ -622,7 +652,7 @@ export default function ProfilePage() {
                   type="time"
                   value={notifySettings.checkIn.time}
                   onChange={(e) => updateNotifyTime("checkIn", e.target.value)}
-                  className="w-20 bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-2 py-1 text-xs text-foreground/70 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                  className="w-24 sm:w-28 bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-2 py-1 text-xs text-foreground/70 focus:outline-none focus:border-mystic-gold/40 transition-colors"
                   style={{ colorScheme: "dark" }}
                 />
                 <Toggle checked={notifySettings.checkIn.enabled} onChange={() => toggleNotify("checkIn")} />
@@ -641,7 +671,7 @@ export default function ProfilePage() {
         </motion.div>
 
         {/* Deck Theme Switcher (premium gated) */}
-        <DeckThemeSection userMembership={user?.membership_tier} isAdmin={user?.is_admin} />
+        <DeckThemeSection user={user} />
 
         {/* Data Export */}
         <motion.div
@@ -856,7 +886,7 @@ function AchievementGrid({ achievements }: { achievements: ReturnType<typeof get
               <h3 className={`text-xs font-cinzel mb-0.5 ${isUnlocked ? "text-mystic-gold" : "text-foreground/45"}`}>
                 {isUnlocked ? a.title : (a.secret ? "???" : a.title)}
               </h3>
-              <p className="text-[9px] text-mystic-rose/45 mb-2">
+              <p className="text-[10px] text-mystic-rose/45 mb-2">
                 {isUnlocked ? a.description : (a.secret ? "隐藏成就" : a.description)}
               </p>
               {/* Progress bar */}
@@ -868,11 +898,11 @@ function AchievementGrid({ achievements }: { achievements: ReturnType<typeof get
                   transition={{ duration: 0.4, delay: 0.2 + i * 0.03 }}
                 />
               </div>
-              <p className="text-[9px] text-mystic-rose/35 mt-1">
+              <p className="text-[10px] text-mystic-rose/35 mt-1">
                 {a.current}/{a.target}
               </p>
               {isUnlocked && (
-                <span className="inline-block mt-2 text-[9px] text-mystic-gold/60">✓ 已解锁</span>
+                <span className="inline-block mt-2 text-[10px] text-mystic-gold/60">✓ 已解锁</span>
               )}
             </motion.div>
           );
@@ -922,9 +952,9 @@ const PLANS = [
   },
 ];
 
-function DeckThemeSection({ userMembership, isAdmin }: { userMembership?: string; isAdmin?: boolean }) {
+function DeckThemeSection({ user }: { user: any }) {
   const [theme, setTheme] = useState<DeckTheme>(getCurrentTheme());
-  const hasAccess = canAccessPremiumThemes() || isAdmin;
+  const hasAccess = canAccessPremiumThemes(user) || user?.is_admin;
 
   const handleSelect = (t: DeckTheme) => {
     if (THEMES.find((th) => th.id === t)?.premiumOnly && !hasAccess) return;
@@ -966,29 +996,36 @@ function DeckThemeSection({ userMembership, isAdmin }: { userMembership?: string
                   : "border-mystic-purple/20 bg-mystic-dark/30 hover:border-mystic-rose/30"
               }`}
             >
-              <div className="w-full aspect-[3/4] rounded-lg overflow-hidden bg-mystic-dark/50 flex items-center justify-center">
-                {t.id === "rider-waite" ? (
-                  <img
-                    src="/cards/00-fool.webp"
-                    alt=""
-                    className="w-full h-full object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  />
-                ) : (
-                  <img
-                    src={getThemePreviewUrl(t.id)}
-                    alt=""
-                    className="w-full h-full object-contain p-1"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  />
+              <div className="w-full aspect-[3/4] rounded-lg overflow-hidden flex items-center justify-center relative" style={{
+                background: t.id === "rider-waite" ? "linear-gradient(135deg, #1a0f2e, #2d1b69, #1a1040)" :
+                           t.id === "marseille" ? "linear-gradient(135deg, #faf3e0, #e8d5b0, #f0e6c8)" :
+                           "linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)"
+              }}>
+                {/* Decorative border */}
+                <div className="absolute inset-2 rounded-md border opacity-30" style={{
+                  borderColor: t.id === "marseille" ? "#8b4513" : t.id === "modern-minimal" ? "#e94560" : "rgba(212,168,83,0.4)"
+                }} />
+                {/* Inner pattern */}
+                <div className="absolute inset-4 rounded-sm border border-dashed opacity-20" style={{
+                  borderColor: t.id === "marseille" ? "#c41e3a" : t.id === "modern-minimal" ? "#0f3460" : "rgba(212,168,83,0.3)"
+                }} />
+                {/* Center symbol */}
+                <span className="relative z-10 text-3xl sm:text-4xl drop-shadow-lg" style={{
+                  filter: t.id === "marseille" ? "none" : "drop-shadow(0 0 8px rgba(212,168,83,0.4))"
+                }}>
+                  {t.id === "rider-waite" ? "✧" : t.id === "marseille" ? "🜂" : "◇"}
+                </span>
+                {/* Rider-Waite: show actual mini card image */}
+                {t.id === "rider-waite" && (
+                  <img src="/cards/00-fool.webp" alt="" className="absolute inset-0 w-full h-full object-cover rounded-lg opacity-60" />
                 )}
               </div>
               <div>
                 <p className={`text-xs ${isActive ? "text-mystic-gold" : "text-foreground/70"}`}>
                   {t.icon} {t.name}
                 </p>
-                {locked && <p className="text-[9px] text-mystic-rose/45 mt-0.5">🔒 需升级</p>}
-                {isActive && <p className="text-[9px] text-mystic-gold/60 mt-0.5">使用中</p>}
+                {locked && <p className="text-[10px] text-mystic-rose/45 mt-0.5">🔒 需升级</p>}
+                {isActive && <p className="text-[10px] text-mystic-gold/60 mt-0.5">使用中</p>}
               </div>
             </button>
           );
@@ -1037,14 +1074,14 @@ function MembershipModal({ open, onClose, userMembership }: { open: boolean; onC
                 </div>
                 <ul className="space-y-0.5">
                   {plan.features.map((f, i) => (
-                    <li key={i} className="text-[9px] text-foreground/75 flex items-start gap-1">
+                    <li key={i} className="text-[10px] text-foreground/75 flex items-start gap-1">
                       <span className="text-mystic-gold/60 shrink-0 mt-0.5">•</span>
                       {f}
                     </li>
                   ))}
                 </ul>
                 {isCurrent && (
-                  <p className="text-center text-[9px] text-mystic-gold mt-2">当前方案</p>
+                  <p className="text-center text-[10px] text-mystic-gold mt-2">当前方案</p>
                 )}
               </div>
             );

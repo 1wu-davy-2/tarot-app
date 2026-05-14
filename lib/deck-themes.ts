@@ -52,21 +52,30 @@ export function setCurrentTheme(theme: DeckTheme) {
   window.dispatchEvent(new CustomEvent("theme-change", { detail: theme }));
 }
 
-export function canAccessPremiumThemes(): boolean {
+export function canAccessPremiumThemes(freshUser?: { membership_tier?: string; membership_expiry?: string; is_admin?: boolean } | null): boolean {
   if (typeof window === "undefined") return false;
-  const user = getStoredUser();
+  const user = freshUser || getStoredUser();
   if (!user) return false;
   if (user.is_admin) return true;
-  const tier = (user.membership_tier || "free").toLowerCase();
+  const tier = ((user as any).membership_tier || "free").toLowerCase();
   if (tier === "premium") return true;
   if (tier === "basic") {
-    if (user.membership_expiry) {
-      const expiry = new Date(user.membership_expiry);
+    if ((user as any).membership_expiry) {
+      const expiry = new Date((user as any).membership_expiry);
       return expiry > new Date();
     }
-    return true; // basic with no expiry (early registrants)
+    return true;
   }
   return false;
+}
+
+export function syncStoredMembership(userData: { membership_tier?: string; membership_expiry?: string }) {
+  if (typeof window === "undefined") return;
+  const stored = getStoredUser();
+  if (stored && userData.membership_tier) {
+    const u = { ...stored, membership_tier: userData.membership_tier || stored.membership_tier, membership_expiry: userData.membership_expiry ?? stored.membership_expiry };
+    localStorage.setItem("tarot_user", JSON.stringify(u));
+  }
 }
 
 // ── Image URL construction ──

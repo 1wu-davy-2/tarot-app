@@ -434,12 +434,16 @@ export async function apiUpdateProfile(data: {
     auth: true,
     body: data,
   });
+  const prev = getStoredUser() || {} as any;
   setStoredUser({
+    ...prev,
     id: result.id,
     username: result.username,
     email: result.email,
     zodiac: result.zodiac,
     is_admin: result.is_admin,
+    membership_tier: result.membership_tier ?? prev.membership_tier,
+    membership_expiry: result.membership_expiry ?? prev.membership_expiry,
     birth_date: result.birth_date,
     birth_time: result.birth_time,
     birth_place: result.birth_place,
