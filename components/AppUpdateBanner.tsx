@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, X, Loader2, Wifi, WifiOff } from "lucide-react";
+import { Download, X, Loader2 } from "lucide-react";
 
 const IS_APK = process.env.NEXT_PUBLIC_BUILD_TARGET === "apk";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
@@ -80,27 +80,8 @@ export function AppUpdateBanner() {
     setDownloading(false);
   };
 
-  // Always show a tiny status dot in APK mode
-  const statusDot = {
-    checking: <Loader2 className="w-2.5 h-2.5 text-mystic-rose/45 animate-spin" />,
-    connected: <Wifi className="w-2.5 h-2.5 text-emerald-400/60" />,
-    error: <WifiOff className="w-2.5 h-2.5 text-red-400/60" />,
-    "update-available": <Wifi className="w-2.5 h-2.5 text-mystic-gold" />,
-  };
-
   return (
     <>
-      {/* Tiny status indicator — always visible in APK, top-right */}
-      {IS_APK && (
-        <div className="fixed top-2 right-2 z-[56] flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#0a0612]/80 text-[9px] text-foreground/40">
-          {statusDot[status]}
-          <span>v{APP_VERSION}</span>
-          {status === "update-available" && (
-            <span className="text-mystic-gold">→ v{serverVersion}</span>
-          )}
-        </div>
-      )}
-
       {/* Update banner */}
       <AnimatePresence>
         {visible && status === "update-available" && (

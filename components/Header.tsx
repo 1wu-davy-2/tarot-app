@@ -24,12 +24,13 @@ export function Header() {
       }
     };
     check();
-    // Re-check on focus (e.g. after login/register in another tab)
     window.addEventListener("focus", check);
     window.addEventListener("storage", check);
+    window.addEventListener("auth-change", check);
     return () => {
       window.removeEventListener("focus", check);
       window.removeEventListener("storage", check);
+      window.removeEventListener("auth-change", check);
     };
   }, []);
 
