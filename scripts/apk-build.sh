@@ -18,11 +18,20 @@ trap cleanup EXIT
 for dir in app/api/\[...path\] app/api/daily-reading app/api/interpret; do
   if [ -f "$dir/route.ts" ]; then
     mv "$dir/route.ts" "$dir/route.ts.bak"
-    cat > "$dir/route.ts" << 'STUB'
+    if [[ "$dir" == *"[...path]"* ]]; then
+      # Catch-all route needs path array in generateStaticParams
+      cat > "$dir/route.ts" << 'STUB_CATCHALL'
+export const dynamic = "force-static";
+export function generateStaticParams() { return [{ path: ["_"] }]; }
+export async function GET() { return new Response(JSON.stringify({ static: true }), { headers: { "Content-Type": "application/json" } }); }
+STUB_CATCHALL
+    else
+      cat > "$dir/route.ts" << 'STUB'
 export const dynamic = "force-static";
 export function generateStaticParams() { return [{}]; }
 export async function GET() { return new Response(JSON.stringify({ static: true }), { headers: { "Content-Type": "application/json" } }); }
 STUB
+    fi
   fi
 done
 
