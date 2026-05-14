@@ -67,6 +67,16 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="邮箱已被注册")
 
     # Step 3: Create verified user
+    # Early registrants (before 2026-06-30) get basic membership for 1 year
+    from datetime import date, datetime, timedelta
+    now = date.today()
+    cutoff = date(2026, 6, 30)
+    default_tier = "free"
+    default_expiry = None
+    if now <= cutoff:
+        default_tier = "basic"
+        default_expiry = datetime.utcnow() + timedelta(days=365)
+
     user = User(
         username=username,
         email=email,
@@ -74,6 +84,8 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
         password_hash=hash_password(req.password),
         is_verified=True,
         zodiac=req.zodiac.strip() if req.zodiac and req.zodiac.strip() else None,
+        membership_tier=default_tier,
+        membership_expiry=default_expiry,
     )
     db.add(user)
     db.commit()

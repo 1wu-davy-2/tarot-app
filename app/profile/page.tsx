@@ -945,7 +945,7 @@ function DeckThemeSection({ userMembership, isAdmin }: { userMembership?: string
         🎨 牌面主题
         {!hasAccess && (
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-mystic-gold/10 border border-mystic-gold/20 text-mystic-gold/70">
-            高级会员专享
+            会员专享
           </span>
         )}
       </h2>

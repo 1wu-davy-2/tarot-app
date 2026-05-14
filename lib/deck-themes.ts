@@ -19,8 +19,8 @@ const CACHE_PREFIX = "tarot_theme_cache_";
 
 export const THEMES: ThemeInfo[] = [
   { id: "rider-waite", name: "经典韦特", description: "Rider-Waite-Smith 经典牌面", icon: "🃏", premiumOnly: false, isDefault: true },
-  { id: "marseille", name: "马赛风格", description: "法式经典马赛塔罗牌", icon: "🎴", premiumOnly: true, isDefault: false },
-  { id: "modern-minimal", name: "现代极简", description: "简约几何现代风格", icon: "✨", premiumOnly: true, isDefault: false },
+  { id: "marseille", name: "马赛风格", description: "法式经典马赛塔罗牌 · 会员专属", icon: "🎴", premiumOnly: true, isDefault: false },
+  { id: "modern-minimal", name: "现代极简", description: "简约几何现代风格 · 会员专属", icon: "✨", premiumOnly: true, isDefault: false },
 ];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
@@ -59,10 +59,12 @@ export function canAccessPremiumThemes(): boolean {
   if (user.is_admin) return true;
   const tier = (user.membership_tier || "free").toLowerCase();
   if (tier === "premium") return true;
-  // Check expiry
-  if (tier === "basic" && user.membership_expiry) {
-    const expiry = new Date(user.membership_expiry);
-    if (expiry > new Date()) return false; // basic isn't premium even if valid
+  if (tier === "basic") {
+    if (user.membership_expiry) {
+      const expiry = new Date(user.membership_expiry);
+      return expiry > new Date();
+    }
+    return true; // basic with no expiry (early registrants)
   }
   return false;
 }

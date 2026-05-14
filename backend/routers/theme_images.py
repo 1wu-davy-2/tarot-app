@@ -16,23 +16,22 @@ from routers.auth import get_current_user
 router = APIRouter(prefix="/api/theme-images", tags=["theme-images"])
 
 # Configure this path to where theme card images are stored
-THEMES_DIR = os.environ.get("THEMES_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "theme-cards"))
+THEMES_DIR = os.path.abspath(os.environ.get("THEMES_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "theme-cards")))
 
 ALLOWED_THEMES = {"marseille", "modern-minimal"}
-PREMIUM_ONLY = {"marseille", "modern-minimal"}
+MEMBER_THEMES = {"marseille", "modern-minimal"}
 
 
-def check_premium(user: User):
-    """Raise 403 if user is not premium member."""
+def check_theme_access(user: User):
+    """Raise 403 if user is not basic+ member."""
     if user.is_admin:
         return
     tier = (user.membership_tier or "free").lower()
-    if tier != "premium":
-        # Check expiry
+    if tier == "free":
         from datetime import datetime
         if user.membership_expiry and user.membership_expiry > datetime.utcnow():
-            return  # still valid
-        raise HTTPException(status_code=403, detail="需要高级会员才能使用主题牌面")
+            return
+        raise HTTPException(status_code=403, detail="需要基础会员以上才能使用主题牌面")
 
 
 @router.get("/{theme}/{filename}")
@@ -93,8 +92,8 @@ def download_theme_pack(
     if theme not in ALLOWED_THEMES:
         raise HTTPException(status_code=404, detail="主题不存在")
 
-    if theme in PREMIUM_ONLY:
-        check_premium(user)
+    if theme in MEMBER_THEMES:
+        check_theme_access(user)
 
     theme_dir = os.path.join(THEMES_DIR, theme)
     if not os.path.isdir(theme_dir):
@@ -133,7 +132,7 @@ def theme_manifest():
         {
             "id": "marseille",
             "name": "马赛风格",
-            "description": "法式经典马赛塔罗牌",
+            "description": "法式经典马赛塔罗牌 · 会员专属",
             "icon": "🎴",
             "premiumOnly": True,
             "default": False,
@@ -141,7 +140,7 @@ def theme_manifest():
         {
             "id": "modern-minimal",
             "name": "现代极简",
-            "description": "简约几何现代风格",
+            "description": "简约几何现代风格 · 会员专属",
             "icon": "✨",
             "premiumOnly": True,
             "default": False,
