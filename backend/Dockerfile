@@ -20,12 +20,6 @@ RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ --trus
 # Copy app
 COPY . .
 
-# Copy APK for app update download endpoint
-COPY ../downloads /opt/tarot-app/downloads
-
-# Set APK path for app_update router
-ENV APK_FILE_PATH=/opt/tarot-app/downloads/tarot-app.apk
-
 # Expose port
 EXPOSE 8188
 

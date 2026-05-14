@@ -6,6 +6,10 @@ services:
     network_mode: host
     env_file:
       - ./backend/.env
+    environment:
+      - APK_FILE_PATH=/opt/tarot-app/downloads/tarot-app.apk
+    volumes:
+      - ./downloads:/opt/tarot-app/downloads
 
   web:
     build:
