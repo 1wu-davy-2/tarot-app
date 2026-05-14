@@ -8,7 +8,7 @@ const IS_APK = process.env.NEXT_PUBLIC_BUILD_TARGET === "apk";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 // Bump on each APK release
-const APP_VERSION = "1.2.1";
+const APP_VERSION = "1.2.2";
 const DISMISSED_KEY = "tarot_update_dismissed";
 
 export function AppUpdateBanner() {
