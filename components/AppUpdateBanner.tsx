@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, X, Loader2 } from "lucide-react";
+import { Download, X, Loader2, Wifi, WifiOff } from "lucide-react";
 
 const IS_APK = process.env.NEXT_PUBLIC_BUILD_TARGET === "apk";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-// Bump on each APK release
 const APP_VERSION = "1.2.2";
 const DISMISSED_KEY = "tarot_update_dismissed";
 
@@ -17,52 +16,58 @@ export function AppUpdateBanner() {
   const [releaseNotes, setReleaseNotes] = useState("");
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
+  const [status, setStatus] = useState<"checking" | "connected" | "error" | "update-available">("checking");
+  const [serverVersion, setServerVersion] = useState("?");
 
   useEffect(() => {
     if (!IS_APK) return;
 
     const dismissed = localStorage.getItem(DISMISSED_KEY);
-    if (dismissed === APP_VERSION) return;
 
     const check = async () => {
+      setStatus("checking");
       try {
         const url = API_BASE ? `${API_BASE}/api/app-version` : "/api/app-version";
-        console.log("[update] checking:", url, "local:", APP_VERSION);
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
         if (!res.ok) {
-          console.log("[update] fetch failed:", res.status);
+          setStatus("error");
           return;
         }
         const data = await res.json();
-        console.log("[update] server version:", data.version, "local:", APP_VERSION);
-        if (data.version && data.version !== APP_VERSION) {
+        setServerVersion(data.version || "?");
+        setStatus("connected");
+
+        if (data.version && data.version !== APP_VERSION && dismissed !== data.version) {
           let dlUrl: string = data.download_url || "";
           if (dlUrl && dlUrl.startsWith("/") && API_BASE) {
             dlUrl = API_BASE + dlUrl;
           }
           setDownloadUrl(dlUrl);
-          setReleaseNotes(data.release_notes || "新版本可用，建议更新");
+          setReleaseNotes(data.release_notes || "新版本可用");
+          setStatus("update-available");
           setVisible(true);
         }
-      } catch (e: any) {
-        console.log("[update] error:", e?.message || e);
+      } catch {
+        setStatus("error");
       }
     };
 
-    const t = setTimeout(check, 3000);
-    return () => clearTimeout(t);
+    // Check immediately, then every 5 minutes
+    check();
+    const interval = setInterval(check, 300000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleDismiss = () => {
     setVisible(false);
-    localStorage.setItem(DISMISSED_KEY, APP_VERSION);
+    if (serverVersion !== "?") {
+      localStorage.setItem(DISMISSED_KEY, serverVersion);
+    }
   };
 
   const handleDownload = () => {
     if (!downloadUrl || downloading) return;
     setDownloading(true);
-
-    // Open download URL in system browser — Android handles APK install natively
     const a = document.createElement("a");
     a.href = downloadUrl;
     a.target = "_blank";
@@ -71,49 +76,69 @@ export function AppUpdateBanner() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-
     setDownloaded(true);
     setDownloading(false);
   };
 
+  // Always show a tiny status dot in APK mode
+  const statusDot = {
+    checking: <Loader2 className="w-2.5 h-2.5 text-mystic-rose/45 animate-spin" />,
+    connected: <Wifi className="w-2.5 h-2.5 text-emerald-400/60" />,
+    error: <WifiOff className="w-2.5 h-2.5 text-red-400/60" />,
+    "update-available": <Wifi className="w-2.5 h-2.5 text-mystic-gold" />,
+  };
+
   return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          initial={{ opacity: 0, y: -60 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -60 }}
-          className="fixed top-14 left-2 right-2 z-[55]"
-        >
-          <div className="max-w-lg mx-auto bg-[#1a0f2e]/95 backdrop-blur-xl border border-mystic-gold/30 rounded-xl px-4 py-3 shadow-2xl flex items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-cinzel text-mystic-gold">发现新版本</p>
-              <p className="text-[10px] text-foreground/70 mt-0.5 truncate">{releaseNotes}</p>
-            </div>
-            {downloading ? (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-mystic-gold/10 border border-mystic-gold/20 text-mystic-gold text-xs shrink-0">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                下载中
-              </div>
-            ) : downloaded ? (
-              <span className="text-[10px] text-emerald-400/80 shrink-0">已下载</span>
-            ) : downloadUrl ? (
-              <button
-                onClick={handleDownload}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-mystic-gold/15 border border-mystic-gold/30 text-mystic-gold text-xs hover:bg-mystic-gold/25 transition-colors shrink-0"
-              >
-                <Download className="w-3 h-3" />
-                安装
-              </button>
-            ) : (
-              <span className="text-[10px] text-mystic-rose/65 shrink-0">请联系管理员</span>
-            )}
-            <button onClick={handleDismiss} className="text-mystic-rose/45 hover:text-mystic-rose/75 shrink-0">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </motion.div>
+    <>
+      {/* Tiny status indicator — always visible in APK, top-right */}
+      {IS_APK && (
+        <div className="fixed top-2 right-2 z-[56] flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#0a0612]/80 text-[9px] text-foreground/40">
+          {statusDot[status]}
+          <span>v{APP_VERSION}</span>
+          {status === "update-available" && (
+            <span className="text-mystic-gold">→ v{serverVersion}</span>
+          )}
+        </div>
       )}
-    </AnimatePresence>
+
+      {/* Update banner */}
+      <AnimatePresence>
+        {visible && status === "update-available" && (
+          <motion.div
+            initial={{ opacity: 0, y: -60 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -60 }}
+            className="fixed top-8 right-2 left-2 z-[55]"
+          >
+            <div className="max-w-lg mx-auto bg-[#1a0f2e]/95 backdrop-blur-xl border border-mystic-gold/30 rounded-xl px-4 py-3 shadow-2xl flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-cinzel text-mystic-gold">
+                  发现新版本 v{serverVersion}
+                </p>
+                <p className="text-[10px] text-foreground/70 mt-0.5">{releaseNotes}</p>
+              </div>
+              {downloading ? (
+                <span className="text-[10px] text-mystic-gold/70 shrink-0">
+                  <Loader2 className="w-3 h-3 animate-spin inline" /> 下载中
+                </span>
+              ) : downloaded ? (
+                <span className="text-[10px] text-emerald-400/80 shrink-0">已下载</span>
+              ) : (
+                <button
+                  onClick={handleDownload}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-mystic-gold/15 border border-mystic-gold/30 text-mystic-gold text-xs hover:bg-mystic-gold/25 transition-colors shrink-0"
+                >
+                  <Download className="w-3 h-3" />
+                  安装
+                </button>
+              )}
+              <button onClick={handleDismiss} className="text-mystic-rose/45 hover:text-mystic-rose/75 shrink-0">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
