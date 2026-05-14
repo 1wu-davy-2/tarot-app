@@ -136,22 +136,23 @@ export default function DailyPage() {
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        {/* Header: back + tabs inline */}
-        <div className="flex items-center gap-1 mb-4">
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-mystic-rose/65 hover:text-mystic-gold transition-colors text-sm px-2 py-1.5 -ml-2 rounded-lg hover:bg-mystic-purple/10 shrink-0"
+            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
           >
             <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">返回首页</span>
           </Link>
-          <div className="flex border-b border-mystic-purple/20 flex-1">
+          <div className="flex border-b border-mystic-purple/20">
             <button
               onClick={() => setTab("reading")}
               className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm transition-colors border-b-2 -mb-[1px] ${
                 tab === "reading" ? "border-mystic-gold text-mystic-gold" : "border-transparent text-foreground/55 hover:text-foreground/75"
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" /> 今日占卜
+              今日占卜
             </button>
             <button
               onClick={() => setTab("learning")}
@@ -159,9 +160,10 @@ export default function DailyPage() {
                 tab === "learning" ? "border-mystic-gold text-mystic-gold" : "border-transparent text-foreground/55 hover:text-foreground/75"
               }`}
             >
-              <BookOpen className="w-3.5 h-3.5" /> 今日学习
+              今日学习
             </button>
           </div>
+          <div className="w-[60px]" />
         </div>
 
         {/* Learning tab content */}

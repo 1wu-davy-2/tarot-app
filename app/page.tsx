@@ -44,7 +44,7 @@ export default function HomePage() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 sm:py-16 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-start pt-12 sm:justify-center sm:py-16 px-4 relative overflow-hidden">
       {/* Nebula background blobs */}
       <div
         className="absolute w-[600px] h-[600px] rounded-full opacity-20 pointer-events-none"
