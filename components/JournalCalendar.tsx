@@ -129,13 +129,13 @@ export default function JournalCalendar({
       {/* Astro legend */}
       {astroEvents && astroEvents.size > 0 && (
         <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-mystic-purple/10">
-          <div className="flex items-center gap-1 text-[9px] text-mystic-rose/45">
+          <div className="flex items-center gap-1 text-[10px] text-mystic-rose/45">
             <span>🌑</span><span>新月</span>
           </div>
-          <div className="flex items-center gap-1 text-[9px] text-mystic-rose/45">
+          <div className="flex items-center gap-1 text-[10px] text-mystic-rose/45">
             <span>🌕</span><span>满月</span>
           </div>
-          <div className="flex items-center gap-1 text-[9px] text-mystic-rose/45">
+          <div className="flex items-center gap-1 text-[10px] text-mystic-rose/45">
             <span className="text-mystic-rose/75">☿</span><span>水逆</span>
           </div>
         </div>

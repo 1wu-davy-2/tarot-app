@@ -181,10 +181,10 @@ export default function HistoryPage() {
                               <span className="text-[10px] text-mystic-gold/70 font-cinzel max-w-[4rem] text-center leading-tight">
                                 {c.nameCN}
                               </span>
-                              <span className={`text-[9px] ${c.isReversed ? "text-mystic-rose/65" : "text-mystic-gold/50"}`}>
+                              <span className={`text-[10px] ${c.isReversed ? "text-mystic-rose/65" : "text-mystic-gold/50"}`}>
                                 {c.isReversed ? "逆" : "正"}
                               </span>
-                              <span className="text-[9px] text-mystic-rose/45 text-center max-w-[4rem] leading-tight">
+                              <span className="text-[10px] text-mystic-rose/45 text-center max-w-[4rem] leading-tight">
                                 {c.position}
                               </span>
                             </div>

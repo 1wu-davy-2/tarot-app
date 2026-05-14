@@ -142,7 +142,7 @@ export default function MonthlyReport({ month, monthLabel, entryCount, entries }
                         </ResponsiveContainer>
                         <div className="flex justify-center gap-3 mt-1">
                           {elementChartData.map((d) => (
-                            <span key={d.name} className="text-[9px] text-foreground/55" style={{ color: ELEMENT_COLORS[d.name] }}>
+                            <span key={d.name} className="text-[10px] text-foreground/55" style={{ color: ELEMENT_COLORS[d.name] }}>
                               {d.name} {d.value}
                             </span>
                           ))}

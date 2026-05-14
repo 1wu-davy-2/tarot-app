@@ -67,15 +67,15 @@ function LearningStats() {
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div className="text-center p-2 rounded-lg bg-mystic-purple/10">
           <p className="text-lg font-bold text-mystic-gold">{totalLearned}/78</p>
-          <p className="text-[9px] text-mystic-rose/55">已掌握</p>
+          <p className="text-[10px] text-mystic-rose/55">已掌握</p>
         </div>
         <div className="text-center p-2 rounded-lg bg-mystic-purple/10">
           <p className="text-lg font-bold text-mystic-gold">{stats.avgScore}%</p>
-          <p className="text-[9px] text-mystic-rose/55">均分</p>
+          <p className="text-[10px] text-mystic-rose/55">均分</p>
         </div>
         <div className="text-center p-2 rounded-lg bg-mystic-purple/10">
           <p className="text-lg font-bold text-mystic-gold">{stats.bestScore}%</p>
-          <p className="text-[9px] text-mystic-rose/55">最佳</p>
+          <p className="text-[10px] text-mystic-rose/55">最佳</p>
         </div>
       </div>
 
@@ -451,7 +451,7 @@ export default function LibraryPage() {
                   <p className="text-[10px] text-mystic-rose/55 mt-0.5">{card.name}</p>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {card.keywords.slice(0, 2).map((kw, i) => (
-                      <span key={i} className="px-1.5 py-0.5 rounded-md bg-mystic-purple/20 text-mystic-rose/65 text-[9px]">
+                      <span key={i} className="px-1.5 py-0.5 rounded-md bg-mystic-purple/20 text-mystic-rose/65 text-[10px]">
                         {kw}
                       </span>
                     ))}

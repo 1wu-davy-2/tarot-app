@@ -210,7 +210,7 @@ export default function JournalEntrySheet({
                         onChange={(e) => setNote(e.target.value)}
                         placeholder="这天适合..."
                         maxLength={100}
-                        className="flex-1 bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-3 py-2 text-sm text-foreground/80 placeholder:text-foreground/35 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                        className="flex-1 bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-3 py-2 text-sm text-foreground/80 placeholder:text-foreground/45 focus:outline-none focus:border-mystic-gold/40 transition-colors"
                       />
                       <button
                         onClick={() => {
@@ -239,7 +239,7 @@ export default function JournalEntrySheet({
                       placeholder="记录一句话..."
                       maxLength={200}
                       rows={2}
-                      className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl p-3 text-sm text-foreground/80 placeholder:text-foreground/35 focus:outline-none focus:border-mystic-gold/40 transition-colors resize-none"
+                      className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl p-3 text-sm text-foreground/80 placeholder:text-foreground/45 focus:outline-none focus:border-mystic-gold/40 transition-colors resize-none"
                     />
                     <p className="text-[10px] text-mystic-rose/35 text-right mt-1">
                       {note.length}/200

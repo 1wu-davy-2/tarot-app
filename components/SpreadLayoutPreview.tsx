@@ -188,7 +188,7 @@ export function LayoutSelector({ selected, onSelect }: LayoutSelectorProps) {
           >
             <span className="text-lg">{meta.icon}</span>
             <span className="text-[10px]">{meta.name}</span>
-            <span className="text-[9px] opacity-45">{meta.cardCount}张</span>
+            <span className="text-[10px] opacity-45">{meta.cardCount}张</span>
           </button>
         );
       })}

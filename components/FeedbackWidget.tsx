@@ -84,7 +84,7 @@ export function FeedbackWidget() {
                   placeholder="反馈意见或功能建议..."
                   maxLength={2000}
                   rows={4}
-                  className="w-full bg-transparent px-4 py-3 text-sm text-foreground/80 placeholder:text-foreground/35 outline-none resize-none"
+                  className="w-full bg-transparent px-4 py-3 text-sm text-foreground/80 placeholder:text-foreground/45 outline-none resize-none"
                 />
                 <p className="px-4 text-[10px] text-mystic-rose/55">作者收到消息后会第一时间进行优化处理</p>
                 {error && <p className="px-4 text-xs text-red-400/80">{error}</p>}

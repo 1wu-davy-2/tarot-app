@@ -94,7 +94,7 @@ export function DailyLearning() {
         <div className="grid grid-cols-5 gap-1">
           {Object.entries(stats).map(([key, count]) => (
             <div key={key} className="text-center">
-              <span className="text-[9px] text-mystic-rose/45">{SUIT_LABELS[key]?.slice(0, 2)}</span>
+              <span className="text-[10px] text-mystic-rose/45">{SUIT_LABELS[key]?.slice(0, 2)}</span>
               <p className="text-[10px] text-foreground/55">{count}/{SUIT_TOTALS[key]}</p>
             </div>
           ))}
