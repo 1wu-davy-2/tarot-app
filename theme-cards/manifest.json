@@ -1,0 +1,12 @@
+{
+  "marseille": {
+    "name": "马赛风格",
+    "description": "法式经典 Marseille 风格牌面",
+    "icon": "🎴"
+  },
+  "modern-minimal": {
+    "name": "现代极简",
+    "description": "简约几何现代风格牌面",
+    "icon": "✨"
+  }
+}

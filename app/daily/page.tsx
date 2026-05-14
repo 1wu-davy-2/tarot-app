@@ -3,10 +3,11 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Loader2, ArrowLeft, Sparkles } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, BookOpen } from "lucide-react";
 import { TarotCard } from "@/components/TarotCard";
 import { CardInterpretation } from "@/components/CardInterpretation";
 import { ShareButton } from "@/components/ShareButton";
+import { DailyLearning } from "@/components/DailyLearning";
 import type { TarotCard as TarotCardType } from "@/lib/tarot-data";
 import { tarotCards } from "@/lib/tarot-data";
 import { getDailyCard } from "@/lib/daily-seed";
@@ -14,6 +15,8 @@ import { saveReading, updateReading } from "@/lib/reading-history";
 import { isLoggedIn, apiSaveReading } from "@/lib/api-client";
 
 const IS_APK = process.env.NEXT_PUBLIC_BUILD_TARGET === "apk";
+
+type DailyTab = "reading" | "learning";
 
 interface DailyData {
   card: TarotCardType;
@@ -34,6 +37,7 @@ export default function DailyPage() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showInterpretation, setShowInterpretation] = useState(false);
   const [aiText, setAiText] = useState("");
+  const [tab, setTab] = useState<DailyTab>("reading");
 
   useEffect(() => {
     if (IS_APK) {
@@ -142,6 +146,38 @@ export default function DailyPage() {
           </Link>
           <div className="w-[60px]" />
         </div>
+
+        {/* Tab switcher */}
+        <div className="flex border-b border-mystic-purple/20 mb-6">
+          <button
+            onClick={() => setTab("reading")}
+            className={`flex items-center gap-2 px-5 py-3 text-sm transition-colors border-b-2 -mb-[1px] ${
+              tab === "reading"
+                ? "border-mystic-gold text-mystic-gold"
+                : "border-transparent text-foreground/55 hover:text-foreground/75"
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            今日占卜
+          </button>
+          <button
+            onClick={() => setTab("learning")}
+            className={`flex items-center gap-2 px-5 py-3 text-sm transition-colors border-b-2 -mb-[1px] ${
+              tab === "learning"
+                ? "border-mystic-gold text-mystic-gold"
+                : "border-transparent text-foreground/55 hover:text-foreground/75"
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            今日学习
+          </button>
+        </div>
+
+        {/* Learning tab content */}
+        {tab === "learning" && <DailyLearning />}
+
+        {/* Reading tab content */}
+        {tab === "reading" ? (<div>
 
         {error && (
           <div className="text-center py-20">
@@ -261,6 +297,9 @@ export default function DailyPage() {
             )}
           </div>
         )}
+
+        </div>) : null}
+
       </div>
     </div>
   );

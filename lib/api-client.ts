@@ -389,6 +389,40 @@ export async function apiGenerateWeeklyReport(
 
 // ── Profile Update ──
 
+// ── Spread Templates ──
+
+export async function apiUploadSpreadTemplate(data: {
+  name: string;
+  description: string;
+  card_count: number;
+  layout_json: string;
+  icon?: string;
+}) {
+  return api<{ ok: boolean; id: number; name: string }>("/api/spread-templates", {
+    method: "POST",
+    body: data,
+  });
+}
+
+export async function apiGetSpreadTemplates(sort: "popular" | "newest" = "popular") {
+  return api<Array<{
+    id: number;
+    name: string;
+    description: string;
+    card_count: number;
+    layout_json: string;
+    icon: string;
+    use_count: number;
+    created_at: string;
+  }>>(`/api/spread-templates?sort=${sort}`);
+}
+
+export async function apiUseSpreadTemplate(id: number) {
+  return api<{ ok: boolean; use_count: number }>(`/api/spread-templates/${id}/use`, {
+    method: "POST",
+  });
+}
+
 export async function apiUpdateProfile(data: {
   birth_date?: string;
   birth_time?: string;

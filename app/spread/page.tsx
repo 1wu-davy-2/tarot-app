@@ -3,14 +3,19 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Shuffle, Sparkles, Clock, Layers, ChevronDown, ChevronUp, Plus, X } from "lucide-react";
+import { ArrowLeft, Shuffle, Sparkles, Clock, Layers, ChevronDown, ChevronUp, Plus, X, Globe, Download } from "lucide-react";
 import { ShareButton } from "@/components/ShareButton";
 import { TarotCard } from "@/components/TarotCard";
 import { CardDrawAnimation } from "@/components/CardDrawAnimation";
 import { CardInterpretation } from "@/components/CardInterpretation";
 import { tarotCards, type TarotCard as TarotCardType } from "@/lib/tarot-data";
 import { saveReading, updateReading } from "@/lib/reading-history";
-import { isLoggedIn, apiSaveReading } from "@/lib/api-client";
+import { isLoggedIn, apiSaveReading, apiGetSpreadTemplates, apiUploadSpreadTemplate, apiUseSpreadTemplate } from "@/lib/api-client";
+import {
+  SpreadLayoutPreview, LayoutSelector,
+  SPREAD_LAYOUTS, LAYOUT_LABELS,
+  type LayoutType, type LayoutNode, type PositionLabel,
+} from "@/components/SpreadLayoutPreview";
 
 type SpreadType = "three-card" | "celtic-cross" | "relationship" | "yes-no" | "horseshoe" | "zodiac" | "custom";
 
@@ -152,6 +157,8 @@ interface CustomSpreadEntry {
   time: string;
   bestFor: string;
   positions: { label: string; sublabel: string; desc: string }[];
+  layoutType: LayoutType;
+  layoutNodes: LayoutNode[];
 }
 
 const CUSTOM_SPREADS_KEY = "tarot-custom-spreads";
@@ -185,49 +192,95 @@ export default function SpreadPage() {
   // Custom spread builder state
   const [customSpreads, setCustomSpreads] = useState<Record<string, CustomSpreadEntry>>({});
   const [showBuilder, setShowBuilder] = useState(false);
+  const [builderStep, setBuilderStep] = useState(1); // 1=info, 2=layout, 3=edit labels
   const [builderName, setBuilderName] = useState("");
-  const [builderCardCount, setBuilderCardCount] = useState(3);
-  const [builderPositionLabels, setBuilderPositionLabels] = useState<string[]>(Array(3).fill(""));
+  const [builderLayout, setBuilderLayout] = useState<LayoutType>("linear");
+  const [builderNodes, setBuilderNodes] = useState<LayoutNode[]>([]);
+  const [builderLabels, setBuilderLabels] = useState<PositionLabel[]>([]);
+  const [editingNode, setEditingNode] = useState<number | null>(null);
+
+  // Community templates
+  const [communityTemplates, setCommunityTemplates] = useState<Array<{
+    id: number; name: string; description: string; card_count: number;
+    layout_json: string; icon: string; use_count: number; created_at: string;
+  }>>([]);
+  const [communityLoading, setCommunityLoading] = useState(false);
+  const [activeTemplatesTab, setActiveTemplatesTab] = useState<"builtin" | "custom" | "community">("builtin");
 
   // Load custom spreads on mount
   useEffect(() => { setCustomSpreads(loadCustomSpreads()); }, []);
 
-  // Update position labels count when card count changes
-  const updateBuilderCardCount = (count: number) => {
-    setBuilderCardCount(count);
-    setBuilderPositionLabels((prev) => {
-      const next = [...prev];
-      while (next.length < count) next.push("");
-      return next.slice(0, count);
-    });
+  const loadCommunityTemplates = async () => {
+    setCommunityLoading(true);
+    try {
+      const data = await apiGetSpreadTemplates("popular");
+      setCommunityTemplates(data || []);
+    } catch {}
+    setCommunityLoading(false);
   };
 
-  // Create a custom spread
+  // Init builder with layout
+  const startBuilder = () => {
+    setBuilderName("");
+    setBuilderLayout("linear");
+    setBuilderNodes([...SPREAD_LAYOUTS.linear]);
+    setBuilderLabels([]);
+    setBuilderStep(1);
+    setEditingNode(null);
+    setShowBuilder(true);
+  };
+
+  // When layout changes, update nodes
+  const handleLayoutChange = (type: LayoutType) => {
+    setBuilderLayout(type);
+    const nodes = [...SPREAD_LAYOUTS[type]];
+    setBuilderNodes(nodes);
+    // Reset labels
+    setBuilderLabels([]);
+    setEditingNode(null);
+  };
+
+  // Open node editor
+  const handleEditNode = (index: number) => {
+    setEditingNode(index);
+  };
+
+  // Update label for a node
+  const handleUpdateLabel = (index: number, label: PositionLabel) => {
+    const newLabels = [...builderLabels];
+    while (newLabels.length <= index) newLabels.push({ label: "", sublabel: "", desc: "" });
+    newLabels[index] = label;
+    setBuilderLabels(newLabels);
+  };
+
+  // Create a custom spread with layout data
   const handleCreateCustom = () => {
     const name = builderName.trim() || "自定义牌阵";
-    const positions = builderPositionLabels.map((label, i) => ({
-      label: label.trim() || `位置 ${i + 1}`,
-      sublabel: `Pos ${i + 1}`,
-      desc: label.trim() ? `${label}的能量状态` : `第 ${i + 1} 个牌位的能量状态`,
+    const positions: PositionLabel[] = builderNodes.map((_, i) => ({
+      label: builderLabels[i]?.label || `位置 ${i + 1}`,
+      sublabel: builderLabels[i]?.sublabel || `Pos ${i + 1}`,
+      desc: builderLabels[i]?.desc || `第 ${i + 1} 个牌位的能量状态`,
     }));
 
     const entry: CustomSpreadEntry = {
       name,
       subtitle: "Custom Spread",
-      description: `${builderCardCount}张牌的自定义牌阵`,
+      description: `${builderNodes.length}张牌的自定义牌阵`,
       icon: "✨",
-      cardCount: builderCardCount,
+      cardCount: builderNodes.length,
       difficulty: "自定义",
-      time: `${builderCardCount * 2}分钟`,
+      time: `${builderNodes.length * 2}分钟`,
       bestFor: "自由探索",
       positions,
+      layoutType: builderLayout,
+      layoutNodes: builderNodes,
     };
 
     const id = `custom-${Date.now()}`;
     const updated = { ...customSpreads, [id]: entry };
     setCustomSpreads(updated);
     saveCustomSpreads(updated);
-    setSpreadType("custom" as SpreadType);
+    setSpreadType(id as SpreadType);
     setShowBuilder(false);
   };
 
@@ -395,6 +448,33 @@ export default function SpreadPage() {
               {/* Spread selection */}
               {!showBuilder && (
                 <div className="w-full max-w-2xl flex flex-col gap-8">
+                  {/* ── Template tabs ── */}
+                  <div className="flex border-b border-mystic-purple/20">
+                    {([
+                      ["builtin", "基础牌阵"],
+                      ["custom", "我的模板"],
+                      ["community", "🌐 社区"],
+                    ] as const).map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => {
+                          setActiveTemplatesTab(key);
+                          setSpreadType(null);
+                          if (key === "community") loadCommunityTemplates();
+                        }}
+                        className={`flex-1 py-3 text-sm transition-colors border-b-2 -mb-[1px] ${
+                          activeTemplatesTab === key
+                            ? "border-mystic-gold text-mystic-gold"
+                            : "border-transparent text-foreground/55 hover:text-foreground/75"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* ── Builtin tab ── */}
+                  {activeTemplatesTab === "builtin" ? (<div>
                   {/* ── Basic spreads (always visible) ── */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {basicKeys.map((key) => {
@@ -484,61 +564,115 @@ export default function SpreadPage() {
                               );
                             })}
 
-                            {/* Custom spreads — compact cards */}
-                            {customKeys.map((key) => {
-                              const s = customSpreads[key];
-                              const isSelected = spreadType === key;
-                              return (
-                                <motion.button
-                                  key={key}
-                                  onClick={() => setSpreadType(key as SpreadType)}
-                                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300 group ${
-                                    isSelected
-                                      ? "border-mystic-gold/60 bg-mystic-gold/5"
-                                      : "border-mystic-purple/20 bg-mystic-dark/30 hover:border-mystic-gold/30"
-                                  }`}
-                                  whileHover={{ y: -1 }}
-                                >
-                                  <span className="text-2xl group-hover:scale-110 transition-transform shrink-0">{s.icon}</span>
-                                  <div className="text-left min-w-0 flex-1">
-                                    <p className="text-sm font-cinzel text-mystic-gold/90 truncate">{s.name}</p>
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                      <span className="text-[10px] text-mystic-rose/55">{s.cardCount}张</span>
-                                    </div>
-                                  </div>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleDeleteCustom(key); }}
-                                    className="text-mystic-rose/35 hover:text-mystic-rose/75 transition-colors shrink-0"
-                                    title="删除"
-                                  >
-                                    <X className="w-3.5 h-3.5" />
-                                  </button>
-                                  {isSelected && (
-                                    <div className="w-2 h-2 rounded-full bg-mystic-gold animate-pulse shrink-0" />
-                                  )}
-                                </motion.button>
-                              );
-                            })}
-
-                            {/* Create custom spread — compact */}
-                            <motion.button
-                              onClick={() => {
-                                setShowBuilder(true);
-                                setSpreadType(null);
-                              }}
-                              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-mystic-rose/20 hover:border-mystic-rose/50 transition-all duration-300 group bg-mystic-dark/20"
-                              whileHover={{ y: -1 }}
-                            >
-                              <Plus className="w-5 h-5 text-mystic-rose/45 group-hover:text-mystic-rose/75 transition-colors" />
-                              <span className="text-xs text-mystic-rose/55 group-hover:text-mystic-rose/70 transition-colors">
-                                自定义
-                              </span>
-                            </motion.button>
                           </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
                   </div>
+                  </div>) : null}
+
+                  {/* ── Custom templates tab ── */}
+                  {activeTemplatesTab === "custom" && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {customKeys.map((key) => {
+                          const s = customSpreads[key];
+                          const isSelected = spreadType === key;
+                          return (
+                            <motion.button
+                              key={key}
+                              onClick={() => setSpreadType(key as SpreadType)}
+                              className={`glass-card p-4 text-left transition-all group ${
+                                isSelected ? "border-mystic-gold/60" : "hover:border-mystic-gold/30"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-2xl">{s.icon}</span>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteCustom(key); }}
+                                  className="text-mystic-rose/35 hover:text-mystic-rose/75"
+                                ><X className="w-3.5 h-3.5" /></button>
+                              </div>
+                              <p className="text-sm font-cinzel text-mystic-gold/90">{s.name}</p>
+                              <p className="text-[10px] text-mystic-rose/55 mt-1">{s.cardCount}张 · {s.layoutType ? LAYOUT_LABELS[s.layoutType]?.name : "线性"}</p>
+                            </motion.button>
+                          );
+                        })}
+                        {/* Create new */}
+                        <motion.button
+                          onClick={startBuilder}
+                          className="glass-card p-4 flex flex-col items-center justify-center gap-2 border-dashed border-mystic-rose/20 hover:border-mystic-rose/50 transition-all min-h-[100px]"
+                        >
+                          <Plus className="w-6 h-6 text-mystic-rose/45" />
+                          <span className="text-xs text-mystic-rose/55">创建新牌阵</span>
+                        </motion.button>
+                      </div>
+                      {customKeys.length === 0 && (
+                        <p className="text-center text-xs text-mystic-rose/55 py-8">暂无自定义牌阵，点击上方创建</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── Community tab ── */}
+                  {activeTemplatesTab === "community" && (
+                    <div className="space-y-4">
+                      {communityLoading ? (
+                        <div className="flex justify-center py-8">
+                          <motion.div className="w-6 h-6 rounded-full border-2 border-mystic-gold border-t-transparent" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
+                        </div>
+                      ) : communityTemplates.length === 0 ? (
+                        <p className="text-center text-xs text-mystic-rose/55 py-8">暂无社区模板</p>
+                      ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {communityTemplates.map((t) => (
+                            <motion.div
+                              key={t.id}
+                              className="glass-card p-4 flex flex-col gap-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl">{t.icon}</span>
+                                <span className="text-sm font-cinzel text-mystic-gold/90 truncate">{t.name}</span>
+                              </div>
+                              <p className="text-[10px] text-mystic-rose/55">{t.card_count}张 · {t.description}</p>
+                              <p className="text-[10px] text-mystic-rose/45">⬇ {t.use_count} 次使用</p>
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const layout = JSON.parse(t.layout_json);
+                                    const entry: CustomSpreadEntry = {
+                                      name: t.name,
+                                      subtitle: "Community",
+                                      description: t.description,
+                                      icon: t.icon,
+                                      cardCount: t.card_count,
+                                      difficulty: "自定义",
+                                      time: `${t.card_count * 2}分钟`,
+                                      bestFor: "社区模板",
+                                      positions: layout.positions || layout.nodes?.map((_: any, i: number) => ({ label: `位置${i + 1}`, sublabel: `Pos${i+1}`, desc: "" })) || [],
+                                      layoutType: layout.type || "linear",
+                                      layoutNodes: layout.nodes || [],
+                                    };
+                                    const id = `custom-${Date.now()}`;
+                                    const updated = { ...customSpreads, [id]: entry };
+                                    setCustomSpreads(updated);
+                                    saveCustomSpreads(updated);
+                                    apiUseSpreadTemplate(t.id).catch(() => {});
+                                    setActiveTemplatesTab("custom");
+                                    setSpreadType(id as SpreadType);
+                                  } catch {}
+                                }}
+                                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-mystic-gold/20 text-mystic-gold/70 text-xs hover:bg-mystic-gold/10 transition-all mt-auto"
+                              >
+                                <Download className="w-3 h-3" />
+                                导入
+                              </button>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                 </div>
               )}
 
@@ -547,84 +681,127 @@ export default function SpreadPage() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="glass-card p-6 w-full max-w-md flex flex-col gap-5"
+                  className="glass-card p-6 w-full max-w-lg flex flex-col gap-5"
                 >
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-cinzel text-mystic-gold">创建自定义牌阵</h3>
-                    <button
-                      onClick={() => setShowBuilder(false)}
-                      className="text-mystic-rose/55 hover:text-mystic-rose transition-colors"
-                    >
+                    <h3 className="text-lg font-cinzel text-mystic-gold">
+                      创建自定义牌阵 · 步骤 {builderStep}/3
+                    </h3>
+                    <button onClick={() => setShowBuilder(false)} className="text-mystic-rose/55 hover:text-mystic-rose">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
 
-                  {/* Spread name */}
-                  <div>
-                    <label className="text-xs text-mystic-rose/65 mb-2 block">牌阵名称</label>
-                    <input
-                      value={builderName}
-                      onChange={(e) => setBuilderName(e.target.value)}
-                      placeholder="给你的牌阵取个名字"
-                      className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
-                    />
-                  </div>
-
-                  {/* Card count */}
-                  <div>
-                    <label className="text-xs text-mystic-rose/65 mb-2 block">
-                      牌数：<span className="text-mystic-gold">{builderCardCount}</span> 张
-                    </label>
-                    <input
-                      type="range"
-                      min={1}
-                      max={12}
-                      value={builderCardCount}
-                      onChange={(e) => updateBuilderCardCount(Number(e.target.value))}
-                      className="w-full accent-mystic-gold"
-                    />
-                    <div className="flex justify-between text-[10px] text-mystic-rose/45 mt-1">
-                      <span>1</span><span>3</span><span>6</span><span>9</span><span>12</span>
+                  {/* Step 1: Name + Description */}
+                  {builderStep === 1 && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-xs text-mystic-rose/65 mb-1.5 block">牌阵名称</label>
+                        <input
+                          value={builderName}
+                          onChange={(e) => setBuilderName(e.target.value)}
+                          placeholder="给你的牌阵取个名字"
+                          className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50"
+                        />
+                      </div>
+                      <LayoutSelector selected={builderLayout} onSelect={handleLayoutChange} />
+                      <button
+                        onClick={() => setBuilderStep(2)}
+                        className="w-full py-3 rounded-full bg-gradient-to-r from-mystic-purple to-mystic-dark border border-mystic-gold/40 text-mystic-gold hover:border-mystic-gold transition-all font-cinzel text-sm"
+                      >
+                        下一步：预览布局
+                      </button>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Position labels */}
-                  <div>
-                    <label className="text-xs text-mystic-rose/65 mb-2 block">各牌位名称（可选，留空使用默认名）</label>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {builderPositionLabels.map((label, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <span className="text-[10px] text-mystic-rose/55 min-w-[2rem]">#{i + 1}</span>
+                  {/* Step 2: Layout Preview + Node Editing */}
+                  {builderStep === 2 && (
+                    <div className="space-y-4">
+                      <p className="text-xs text-mystic-rose/55 text-center">点击节点编辑牌位名称</p>
+                      <SpreadLayoutPreview
+                        layoutType={builderLayout}
+                        nodes={builderNodes}
+                        labels={builderLabels}
+                        editingNode={editingNode}
+                        onEditNode={handleEditNode}
+                        onUpdateLabel={handleUpdateLabel}
+                      />
+                      {/* Node editing panel */}
+                      {editingNode !== null && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="border border-mystic-gold/20 rounded-xl p-4 bg-mystic-gold/5"
+                        >
+                          <p className="text-xs text-mystic-gold/80 mb-3 font-cinzel">
+                            编辑牌位 #{editingNode + 1}
+                          </p>
                           <input
-                            value={label}
-                            onChange={(e) => {
-                              const next = [...builderPositionLabels];
-                              next[i] = e.target.value;
-                              setBuilderPositionLabels(next);
-                            }}
-                            placeholder={`牌位 ${i + 1}`}
-                            className="flex-1 bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-3 py-2 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                            value={builderLabels[editingNode]?.label || ""}
+                            onChange={(e) => handleUpdateLabel(editingNode, {
+                              label: e.target.value,
+                              sublabel: builderLabels[editingNode]?.sublabel || `Pos ${editingNode + 1}`,
+                              desc: builderLabels[editingNode]?.desc || "",
+                            })}
+                            placeholder="位置名称，如：过去"
+                            className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 mb-2"
                           />
-                        </div>
-                      ))}
+                          <input
+                            value={builderLabels[editingNode]?.desc || ""}
+                            onChange={(e) => handleUpdateLabel(editingNode, {
+                              label: builderLabels[editingNode]?.label || "",
+                              sublabel: builderLabels[editingNode]?.sublabel || `Pos ${editingNode + 1}`,
+                              desc: e.target.value,
+                            })}
+                            placeholder="含义描述，如：过去对当下的影响"
+                            className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-foreground/80 placeholder:text-mystic-rose/45 text-xs focus:outline-none focus:border-mystic-gold/50"
+                          />
+                          <button
+                            onClick={() => setEditingNode(null)}
+                            className="mt-2 text-xs text-mystic-gold/70 hover:text-mystic-gold"
+                          >
+                            完成编辑
+                          </button>
+                        </motion.div>
+                      )}
+                      <div className="flex gap-3">
+                        <button onClick={() => setBuilderStep(1)} className="px-6 py-3 rounded-full border border-mystic-rose/30 text-mystic-rose/65 hover:text-mystic-rose text-sm">
+                          上一步
+                        </button>
+                        <button onClick={() => setBuilderStep(3)} className="flex-1 py-3 rounded-full bg-gradient-to-r from-mystic-purple to-mystic-dark border border-mystic-gold/40 text-mystic-gold hover:border-mystic-gold text-sm">
+                          下一步：保存
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Create & Cancel buttons */}
-                  <div className="flex gap-3 pt-2">
-                    <button
-                      onClick={handleCreateCustom}
-                      className="flex-1 py-3 rounded-full bg-gradient-to-r from-mystic-purple to-mystic-dark border border-mystic-gold/50 text-mystic-gold hover:border-mystic-gold transition-all font-cinzel text-sm"
-                    >
-                      创建牌阵
-                    </button>
-                    <button
-                      onClick={() => setShowBuilder(false)}
-                      className="px-6 py-3 rounded-full border border-mystic-rose/30 text-mystic-rose/65 hover:text-mystic-rose hover:border-mystic-rose/50 transition-all text-sm"
-                    >
-                      取消
-                    </button>
-                  </div>
+                  {/* Step 3: Confirm + Save */}
+                  {builderStep === 3 && (
+                    <div className="space-y-4">
+                      <div className="text-center">
+                        <p className="text-sm text-mystic-gold font-cinzel">{builderName || "自定义牌阵"}</p>
+                        <p className="text-xs text-mystic-rose/55 mt-1">
+                          {builderNodes.length} 张牌 · {LAYOUT_LABELS[builderLayout]?.name}
+                        </p>
+                      </div>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {builderNodes.map((_, i) => (
+                          <div key={i} className="flex items-center gap-2 text-xs text-foreground/70">
+                            <span className="text-mystic-gold min-w-[1.5rem]">#{i + 1}</span>
+                            <span>{builderLabels[i]?.label || `位置 ${i + 1}`}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex gap-3">
+                        <button onClick={() => setBuilderStep(2)} className="px-6 py-3 rounded-full border border-mystic-rose/30 text-mystic-rose/65 text-sm">
+                          上一步
+                        </button>
+                        <button onClick={handleCreateCustom} className="flex-1 py-3 rounded-full bg-gradient-to-r from-mystic-purple to-mystic-dark border border-mystic-gold/50 text-mystic-gold hover:border-mystic-gold font-cinzel text-sm">
+                          保存牌阵
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               )}
 
@@ -762,33 +939,12 @@ export default function SpreadPage() {
                 )}
 
                 {/* Expanded: full card grid */}
-                {!cardsCollapsed && (
-                  <div className="flex flex-wrap gap-6 justify-center py-4">
-                    {cards.map((c, i) => (
-                      <div key={i} className="flex flex-col items-center gap-2">
-                        <TarotCard
-                          card={c.card}
-                          isReversed={c.isReversed}
-                          isFlipped={c.flipped}
-                          onClick={() => handleFlipCard(i)}
-                          size="md"
-                        />
-                        <span className="text-xs text-mystic-rose/65 font-cinzel tracking-wider">{c.position}</span>
-                        {c.flipped && (
-                          <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-sm font-cinzel text-mystic-gold"
-                          >
-                            {c.card.nameCN}
-                            <span className="text-mystic-rose/75 text-xs ml-1">
-                              {c.isReversed ? "逆" : "正"}
-                            </span>
-                          </motion.span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                {!cardsCollapsed && spread && (
+                  <SpreadCardGrid
+                    cards={cards}
+                    spread={spread}
+                    onFlipCard={handleFlipCard}
+                  />
                 )}
               </div>
 
@@ -866,6 +1022,96 @@ export default function SpreadPage() {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+// ── Layout-based card grid for custom/non-Celtic spreads ──
+
+function SpreadCardGrid({
+  cards,
+  spread,
+  onFlipCard,
+}: {
+  cards: CardState[];
+  spread: SpreadEntry | CustomSpreadEntry;
+  onFlipCard: (i: number) => void;
+}) {
+  // Determine layout type
+  const isCustom = "layoutType" in spread;
+  const layoutType: LayoutType = (isCustom && spread.layoutType) ? spread.layoutType : "linear";
+  const nodes: LayoutNode[] = (isCustom && spread.layoutNodes?.length === cards.length)
+    ? spread.layoutNodes
+    : cards.map((_, i) => ({ x: 50, y: 5 + (i * (90 / (cards.length - 1 || 1))) })); // fallback: vertical
+
+  const useLayout = layoutType !== "linear" && nodes.length === cards.length;
+
+  if (!useLayout) {
+    // Simple flex-wrap grid (existing behavior)
+    return (
+      <div className="flex flex-wrap gap-6 justify-center py-4">
+        {cards.map((c, i) => (
+          <div key={i} className="flex flex-col items-center gap-2">
+            <TarotCard
+              card={c.card}
+              isReversed={c.isReversed}
+              isFlipped={c.flipped}
+              onClick={() => onFlipCard(i)}
+              size="md"
+            />
+            <span className="text-xs text-mystic-rose/65 font-cinzel tracking-wider">{c.position}</span>
+            {c.flipped && (
+              <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm font-cinzel text-mystic-gold">
+                {c.card.nameCN}
+                <span className="text-mystic-rose/75 text-xs ml-1">{c.isReversed ? "逆" : "正"}</span>
+              </motion.span>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Layout-based absolute positioning
+  return (
+    <div className="relative w-full max-w-lg mx-auto" style={{ paddingBottom: "90%" }}>
+      <div className="absolute inset-0">
+        {cards.map((c, i) => {
+          const node = nodes[i];
+          return (
+            <div
+              key={i}
+              className="absolute flex flex-col items-center gap-1.5"
+              style={{
+                left: `${node.x}%`,
+                top: `${node.y}%`,
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <TarotCard
+                card={c.card}
+                isReversed={c.isReversed}
+                isFlipped={c.flipped}
+                onClick={() => onFlipCard(i)}
+                size="sm"
+              />
+              <span className="text-[10px] text-mystic-rose/65 font-cinzel tracking-wider text-center leading-tight">
+                {c.position}
+              </span>
+              {c.flipped && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-[10px] font-cinzel text-mystic-gold text-center leading-tight"
+                >
+                  {c.card.nameCN}
+                  <span className="text-mystic-rose/75 ml-0.5">{c.isReversed ? "逆" : "正"}</span>
+                </motion.span>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

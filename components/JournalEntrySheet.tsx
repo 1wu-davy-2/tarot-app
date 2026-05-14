@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Trash2, Sparkles, AlertTriangle } from "lucide-react";
 import MoodSelector from "./MoodSelector";
 import { type TarotCard } from "@/lib/tarot-data";
+import { getCardImageUrl } from "@/lib/deck-themes";
 import { getAstroEventsForDate, getMoonPhaseEmoji, ELECTIONAL_TEMPLATES, type AstroEvent } from "@/lib/astro-events";
 
 interface JournalEntryData {
@@ -157,7 +158,7 @@ export default function JournalEntrySheet({
               <div className="glass-card p-3 mb-3 flex items-center gap-3">
                 <div className="w-10 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-mystic-dark/60 border border-mystic-purple/20">
                   <img
-                    src={card.imageUrl}
+                    src={getCardImageUrl(card.imageUrl)}
                     alt={card.nameCN}
                     className={`w-full h-full object-cover ${isReversed ? "rotate-180" : ""}`}
                   />

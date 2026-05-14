@@ -3,8 +3,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, X, Search, ChevronDown } from "lucide-react";
+import { ArrowLeft, X, Search, ChevronDown, Brain } from "lucide-react";
 import { tarotCards, getMajorArcana, getCardsBySuit, type TarotCard } from "@/lib/tarot-data";
+import { getCollectedCount, getCollectedMajorCount } from "@/lib/achievements";
+import { getQuizStats, getLearnedCards, SUIT_LABELS, SUIT_TOTALS } from "@/lib/quiz-generator";
+import { QuizModal } from "@/components/QuizModal";
+import { getCardImageUrl } from "@/lib/deck-themes";
 
 const filters = [
   { key: "all", label: "全部", icon: "🃏" },
@@ -35,6 +39,118 @@ const dimensionLabels: Record<string, { label: string; icon: string }> = {
   finance: { label: "财运分析", icon: "💰" },
   advice: { label: "行动建议", icon: "💡" },
 };
+
+function LearningStats() {
+  const stats = getQuizStats();
+  const learned = getLearnedCards();
+
+  const suitCounts: Record<string, number> = { major: 0, wands: 0, cups: 0, swords: 0, pentacles: 0 };
+  for (const id of learned) {
+    const card = tarotCards.find((c) => c.id === id);
+    if (!card) continue;
+    if (card.arcana === "major") suitCounts.major++;
+    else if (card.suit) suitCounts[card.suit] = (suitCounts[card.suit] || 0) + 1;
+  }
+  const totalLearned = learned.size;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="glass-card p-4"
+    >
+      <p className="text-xs font-cinzel text-mystic-gold mb-3 text-center">
+        📊 学习统计
+      </p>
+
+      {/* Summary row */}
+      <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="text-center p-2 rounded-lg bg-mystic-purple/10">
+          <p className="text-lg font-bold text-mystic-gold">{totalLearned}/78</p>
+          <p className="text-[9px] text-mystic-rose/55">已掌握</p>
+        </div>
+        <div className="text-center p-2 rounded-lg bg-mystic-purple/10">
+          <p className="text-lg font-bold text-mystic-gold">{stats.avgScore}%</p>
+          <p className="text-[9px] text-mystic-rose/55">均分</p>
+        </div>
+        <div className="text-center p-2 rounded-lg bg-mystic-purple/10">
+          <p className="text-lg font-bold text-mystic-gold">{stats.bestScore}%</p>
+          <p className="text-[9px] text-mystic-rose/55">最佳</p>
+        </div>
+      </div>
+
+      {/* Per-suit progress */}
+      <div className="space-y-1.5">
+        {Object.entries(suitCounts).map(([key, count]) => {
+          const pct = Math.round((count / (SUIT_TOTALS[key] || 1)) * 100);
+          return (
+            <div key={key} className="flex items-center gap-2">
+              <span className="text-[10px] text-mystic-rose/55 w-12 shrink-0">{SUIT_LABELS[key]}</span>
+              <div className="flex-1 h-1.5 rounded-full bg-mystic-purple/15 overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-mystic-purple via-mystic-gold to-mystic-rose"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+              <span className="text-[10px] text-mystic-rose/45 w-8 text-right">{count}/{SUIT_TOTALS[key]}</span>
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
+function CollectionProgress() {
+  const total = getCollectedCount();
+  const major = getCollectedMajorCount();
+  const totalPct = Math.round((total / 78) * 100);
+  const majorPct = Math.round((major / 22) * 100);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="glass-card p-4 mb-6 max-w-md mx-auto"
+    >
+      <p className="text-xs font-cinzel text-mystic-gold mb-2 text-center">
+        🃏 牌库收集进度
+      </p>
+      <div className="space-y-2">
+        <div>
+          <div className="flex justify-between text-[10px] text-mystic-rose/55 mb-0.5">
+            <span>全部 78 张</span>
+            <span>{total}/78 ({totalPct}%)</span>
+          </div>
+          <div className="h-1.5 rounded-full bg-mystic-purple/15 overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-mystic-purple via-mystic-gold to-mystic-rose"
+              initial={{ width: 0 }}
+              animate={{ width: `${totalPct}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            />
+          </div>
+        </div>
+        <div>
+          <div className="flex justify-between text-[10px] text-mystic-rose/55 mb-0.5">
+            <span>大阿卡纳</span>
+            <span>{major}/22 ({majorPct}%)</span>
+          </div>
+          <div className="h-1.5 rounded-full bg-mystic-purple/15 overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-mystic-gold to-mystic-rose"
+              initial={{ width: 0 }}
+              animate={{ width: `${majorPct}%` }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+            />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 function CardDetailModal({ card, onClose }: { card: TarotCard; onClose: () => void }) {
   const [openSection, setOpenSection] = useState<string>("general");
@@ -69,7 +185,7 @@ function CardDetailModal({ card, onClose }: { card: TarotCard; onClose: () => vo
         <div className="flex flex-col items-center gap-3 mb-5">
           <div className="w-32 h-48 rounded-xl overflow-hidden border-2 border-mystic-gold/30">
             <img
-              src={card.imageUrl}
+              src={getCardImageUrl(card.imageUrl)}
               alt={card.nameCN}
               className="w-full h-full object-cover"
             />
@@ -198,6 +314,7 @@ export default function LibraryPage() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
   const [selectedCard, setSelectedCard] = useState<TarotCard | null>(null);
+  const [quizOpen, setQuizOpen] = useState(false);
 
   const cards = getCards(filter).filter((c) => {
     if (!search.trim()) return true;
@@ -269,9 +386,24 @@ export default function LibraryPage() {
         </div>
 
         {/* Card count */}
-        <p className="text-center text-xs text-mystic-rose/45 mb-6">
+        <p className="text-center text-xs text-mystic-rose/45 mb-4">
           {cards.length} 张牌
         </p>
+
+        {/* Collection progress */}
+        <CollectionProgress />
+
+        {/* Quiz button + Learning stats */}
+        <div className="max-w-md mx-auto mb-6 space-y-3">
+          <button
+            onClick={() => setQuizOpen(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-mystic-gold/30 bg-mystic-gold/10 text-mystic-gold hover:bg-mystic-gold/15 transition-all text-sm"
+          >
+            <Brain className="w-4 h-4" />
+            牌意测验
+          </button>
+          <LearningStats />
+        </div>
 
         {/* Card grid */}
         <motion.div
@@ -293,7 +425,7 @@ export default function LibraryPage() {
                 {/* Card image */}
                 <div className="aspect-[3/4] overflow-hidden">
                   <img
-                    src={card.imageUrl}
+                    src={getCardImageUrl(card.imageUrl)}
                     alt={card.nameCN}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
@@ -332,6 +464,9 @@ export default function LibraryPage() {
             />
           )}
         </AnimatePresence>
+
+        {/* Quiz modal */}
+        <QuizModal open={quizOpen} onClose={() => setQuizOpen(false)} />
       </div>
     </div>
   );

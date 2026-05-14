@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, Trash2, ChevronDown, X, Clock, Layers } from "lucide-react";
 import { getReadings, deleteReading, clearReadings, type ReadingRecord } from "@/lib/reading-history";
+import { getCardImageUrl } from "@/lib/deck-themes";
 
 export default function HistoryPage() {
   const [readings, setReadings] = useState<ReadingRecord[]>([]);
@@ -166,7 +167,7 @@ export default function HistoryPage() {
                             >
                               <div className="relative w-16 h-24 rounded-lg overflow-hidden border border-mystic-purple/20">
                                 <img
-                                  src={c.imageUrl}
+                                  src={getCardImageUrl(c.imageUrl)}
                                   alt={c.nameCN}
                                   className="w-full h-full object-cover"
                                 />

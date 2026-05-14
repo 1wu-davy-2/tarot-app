@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import type { TarotCard as TarotCardType } from "@/lib/tarot-data";
+import { getCardImageUrl } from "@/lib/deck-themes";
 
 interface TarotCardProps {
   card: TarotCardType;
@@ -147,7 +148,7 @@ export function TarotCard({
           {/* Card image */}
           {!imgError && (
             <img
-              src={card.imageUrl}
+              src={getCardImageUrl(card.imageUrl)}
               alt={card.nameCN}
               className="absolute inset-0 w-full h-full object-cover rounded-xl"
               onError={() => setImgError(true)}

@@ -19,6 +19,7 @@ import {
 import { getDailyCard, type DailyCard } from "@/lib/daily-seed";
 import { tarotCards, type TarotCard } from "@/lib/tarot-data";
 import { getAstroEventsForMonth, type AstroEvent } from "@/lib/astro-events";
+import { trackDiaryEntry, trackCollectedCard, checkAchievements } from "@/lib/achievements";
 import JournalCalendar from "@/components/JournalCalendar";
 import JournalEntrySheet from "@/components/JournalEntrySheet";
 import WeeklyReport from "@/components/WeeklyReport";
@@ -152,6 +153,11 @@ export default function JournalPage() {
     } catch {
       // Local save is sufficient
     }
+    // Track achievements
+    trackDiaryEntry();
+    trackCollectedCard(dailyCard.card.id);
+    setTimeout(() => checkAchievements(), 1000);
+
     setEntrySaving(false);
   };
 

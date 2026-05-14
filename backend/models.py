@@ -72,6 +72,19 @@ class DailyJournal(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class SpreadTemplate(Base):
+    __tablename__ = "spread_templates"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(30), nullable=False)
+    description = Column(String(200), default="")
+    card_count = Column(Integer, nullable=False)
+    layout_json = Column(Text, nullable=False)  # JSON: { type, nodes: [{x,y}], positions: [{label,sublabel,desc}] }
+    icon = Column(String(10), default="✨")
+    use_count = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class Feedback(Base):
     __tablename__ = "feedbacks"
 

@@ -6,6 +6,9 @@ import { Sparkles, BookOpen, ChevronDown, Send, Wand2, Heart, Briefcase, Target 
 import type { TarotCard } from "@/lib/tarot-data";
 import { LoginModal } from "@/components/LoginModal";
 import { isLoggedIn, isAdmin, getStoredUser, apiGetQuota, apiConsumeQuota } from "@/lib/api-client";
+import {
+  trackReading, trackCollectedCard, trackSpreadType, trackAllReversed, checkAchievements,
+} from "@/lib/achievements";
 
 const IS_APK = process.env.NEXT_PUBLIC_BUILD_TARGET === "apk";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
@@ -417,6 +420,15 @@ function AIInterpretationTab({
         return;
       }
     }
+    // Achievement tracking
+    trackReading();
+    trackSpreadType(spreadType || "自定义牌阵");
+    trackAllReversed(isReversed);
+    // Track collected cards
+    for (const c of cards) trackCollectedCard(c.id);
+    // Check for new unlocks
+    setTimeout(() => checkAchievements(), 2000);
+
     fetchInterpretation();
   };
 

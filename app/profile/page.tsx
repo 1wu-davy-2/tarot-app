@@ -5,12 +5,30 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, LogOut, Gift, Sparkles, Loader2, ChevronDown, Save, Crown, ChevronUp,
+  ArrowLeft, LogOut, Gift, Sparkles, Loader2, ChevronDown, Save, Crown, ChevronUp, Bell, Download, FileText, ScrollText, BarChart3,
 } from "lucide-react";
 import {
   isLoggedIn, logout, apiGetMe, apiGetQuota, apiCheckIn,
-  apiGetReadings, getStoredUser, apiUpdateProfile,
+  apiGetReadings, getStoredUser, apiUpdateProfile, apiGetMonthJournal,
 } from "@/lib/api-client";
+import {
+  getNotifySettings, saveNotifySettings,
+  type NotifySettings,
+} from "@/lib/notification-scheduler";
+import {
+  getAllAchievementProgress, checkAchievements, trackCheckin,
+  TIER_COLORS as ACH_TIER_COLORS, TIER_LABELS,
+} from "@/lib/achievements";
+import type { AchievementTier } from "@/lib/achievements";
+import {
+  generateDiaryHTML, generateReadingsHTML, generateAnnualReportHTML,
+  downloadHTML,
+} from "@/lib/export-utils";
+import {
+  getCurrentTheme, setCurrentTheme, canAccessPremiumThemes,
+  getThemePreviewUrl,
+  THEMES, type DeckTheme,
+} from "@/lib/deck-themes";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -31,6 +49,18 @@ export default function ProfilePage() {
   const [birthSaving, setBirthSaving] = useState(false);
   const [birthMsg, setBirthMsg] = useState("");
   const [showMemberModal, setShowMemberModal] = useState(false);
+
+  // Tab system: "info" | "achievements"
+  const [activeTab, setActiveTab] = useState<"info" | "achievements">("info");
+  const [achievements, setAchievements] = useState<ReturnType<typeof getAllAchievementProgress>>([]);
+
+  // Notification settings
+  const [notifySettings, setNotifySettings] = useState<NotifySettings>(getNotifySettings());
+
+  // Export states
+  const [exportingDiary, setExportingDiary] = useState(false);
+  const [exportingReadings, setExportingReadings] = useState(false);
+  const [exportingReport, setExportingReport] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn()) { router.push("/login"); return; }
@@ -58,6 +88,8 @@ export default function ProfilePage() {
         logout(); router.push("/login"); return;
       }
     } finally { setLoading(false); }
+    // Load achievements after data
+    setAchievements(getAllAchievementProgress());
   };
 
   const handleCheckIn = async () => {
@@ -68,6 +100,16 @@ export default function ProfilePage() {
       setCheckinMsg(result.already_checked_in ? "今日已签到" : `签到成功！+${result.bonus_awarded} 次`);
       const quotaData = await apiGetQuota();
       setQuota(quotaData);
+
+      // Track check-in for achievements
+      trackCheckin();
+      const newUnlocks = checkAchievements();
+      if (newUnlocks.length > 0) setAchievements(getAllAchievementProgress());
+
+      // Mark today as checked in for notification reminder
+      if (typeof window !== "undefined") {
+        localStorage.setItem("tarot_checked_in_today", new Date().toISOString().slice(0, 10));
+      }
     } catch (err: any) {
       setCheckinMsg(err.message);
     } finally { setCheckinLoading(false); }
@@ -112,6 +154,104 @@ export default function ProfilePage() {
     router.push("/");
   };
 
+  // Notification toggle
+  const toggleNotify = (key: keyof NotifySettings) => {
+    const updated = { ...notifySettings };
+    if (key === "moonPhase" || key === "membershipExpiry") {
+      (updated[key] as { enabled: boolean }).enabled = !(updated[key] as { enabled: boolean }).enabled;
+    } else {
+      const item = updated[key] as { enabled: boolean; time: string };
+      item.enabled = !item.enabled;
+    }
+    setNotifySettings(updated);
+    saveNotifySettings(updated);
+  };
+
+  const updateNotifyTime = (key: "dailyCard" | "checkIn", time: string) => {
+    const updated = { ...notifySettings };
+    (updated[key] as { enabled: boolean; time: string }).time = time;
+    setNotifySettings(updated);
+    saveNotifySettings(updated);
+  };
+
+  // Export handlers
+  const handleExportDiary = async () => {
+    setExportingDiary(true);
+    try {
+      const month = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+      const data = await apiGetMonthJournal(month);
+      const entries = data?.entries?.map((e: any) => ({
+        date: e.date,
+        cardId: e.card_id,
+        isReversed: e.is_reversed,
+        mood: e.mood,
+        note: e.note,
+      })) || [];
+      const html = generateDiaryHTML(entries, month);
+      downloadHTML(`tarot-journal-${month}.html`, html);
+    } catch { /* silent */ }
+    setExportingDiary(false);
+  };
+
+  const handleExportReadings = async () => {
+    setExportingReadings(true);
+    try {
+      const readings = await apiGetReadings(200);
+      const html = generateReadingsHTML(readings || []);
+      const today = new Date().toISOString().slice(0, 10);
+      downloadHTML(`tarot-readings-${today}.html`, html);
+    } catch { /* silent */ }
+    setExportingReadings(false);
+  };
+
+  const handleExportReport = async () => {
+    setExportingReport(true);
+    try {
+      const year = new Date().getFullYear();
+      const readings = await apiGetReadings(500);
+      // Aggregate stats
+      const monthlyCounts: Record<string, number> = {};
+      const cardCounts: Record<string, number> = {};
+      let totalReadings = 0;
+      for (const r of (readings || [])) {
+        totalReadings++;
+        const m = r.created_at?.slice(0, 7) || "";
+        if (m) monthlyCounts[m] = (monthlyCounts[m] || 0) + 1;
+        try {
+          const cards = typeof r.cards_json === "string" ? JSON.parse(r.cards_json) : (r.cards || []);
+          for (const c of cards) {
+            const name = c.nameCN || c.name || "";
+            if (name) cardCounts[name] = (cardCounts[name] || 0) + 1;
+          }
+        } catch {}
+      }
+
+      const topCards = Object.entries(cardCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([nameCN, count]) => ({ nameCN, count }));
+
+      // Monthly readings for current year
+      const monthlyReadings: Record<string, number> = {};
+      for (let i = 1; i <= 12; i++) {
+        const key = `${year}-${String(i).padStart(2, "0")}`;
+        monthlyReadings[String(i)] = monthlyCounts[key] || 0;
+      }
+
+      const html = generateAnnualReportHTML(year, {
+        totalReadings,
+        totalDiary: 0, // Will be populated from journal API
+        maxStreak: 0,
+        totalCheckins: 0,
+        topCards,
+        elements: { fire: 25, water: 25, air: 25, earth: 25 },
+        monthlyReadings,
+        keywords: "探索、成长、内省",
+      });
+      downloadHTML(`tarot-annual-report-${year}.html`, html);
+    } catch { /* silent */ }
+    setExportingReport(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -123,7 +263,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
@@ -133,6 +273,40 @@ export default function ProfilePage() {
           </Link>
           <div className="w-[60px]" />
         </div>
+
+        {/* Tab switcher */}
+        <div className="flex border-b border-mystic-purple/20 mb-6">
+          <button
+            onClick={() => {
+              setActiveTab("info");
+              if (activeTab === "achievements") setAchievements(getAllAchievementProgress());
+            }}
+            className={`flex items-center gap-2 px-5 py-3 text-sm transition-colors border-b-2 -mb-[1px] ${
+              activeTab === "info"
+                ? "border-mystic-gold text-mystic-gold"
+                : "border-transparent text-foreground/55 hover:text-foreground/75"
+            }`}
+          >
+            📋 资料
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("info");
+              setAchievements(getAllAchievementProgress());
+              setActiveTab("achievements");
+            }}
+            className={`flex items-center gap-2 px-5 py-3 text-sm transition-colors border-b-2 -mb-[1px] ${
+              activeTab === "achievements"
+                ? "border-mystic-gold text-mystic-gold"
+                : "border-transparent text-foreground/55 hover:text-foreground/75"
+            }`}
+          >
+            🏆 成就
+          </button>
+        </div>
+
+        {/* ═══════ INFO TAB ═══════ */}
+        {activeTab === "info" ? (<>
 
         {/* User info */}
         <motion.div
@@ -397,6 +571,140 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
+        {/* Notification Settings */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="glass-card p-6 mb-6"
+        >
+          <h2 className="text-sm font-cinzel text-mystic-gold mb-4 flex items-center gap-2">
+            <Bell className="w-4 h-4" />
+            通知设置
+          </h2>
+
+          <div className="space-y-4">
+            {/* Daily card */}
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <span className="text-sm text-foreground/80">每日塔罗提醒</span>
+                <p className="text-[10px] text-mystic-rose/55">每天准时推送今日运势牌</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={notifySettings.dailyCard.time}
+                  onChange={(e) => updateNotifyTime("dailyCard", e.target.value)}
+                  className="w-20 bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-2 py-1 text-xs text-foreground/70 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                  style={{ colorScheme: "dark" }}
+                />
+                <Toggle checked={notifySettings.dailyCard.enabled} onChange={() => toggleNotify("dailyCard")} />
+              </div>
+            </div>
+
+            {/* Moon phase */}
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-sm text-foreground/80">新月/满月提醒</span>
+                <p className="text-[10px] text-mystic-rose/55">月相能量节点提醒冥想与占卜</p>
+              </div>
+              <Toggle checked={notifySettings.moonPhase.enabled} onChange={() => toggleNotify("moonPhase")} />
+            </div>
+
+            {/* Check-in */}
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <span className="text-sm text-foreground/80">签到提醒</span>
+                <p className="text-[10px] text-mystic-rose/55">每日提醒签到获取 AI 解读次数</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={notifySettings.checkIn.time}
+                  onChange={(e) => updateNotifyTime("checkIn", e.target.value)}
+                  className="w-20 bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-2 py-1 text-xs text-foreground/70 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                  style={{ colorScheme: "dark" }}
+                />
+                <Toggle checked={notifySettings.checkIn.enabled} onChange={() => toggleNotify("checkIn")} />
+              </div>
+            </div>
+
+            {/* Membership expiry */}
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-sm text-foreground/80">会员到期提醒</span>
+                <p className="text-[10px] text-mystic-rose/55">到期前 3 天提醒续费</p>
+              </div>
+              <Toggle checked={notifySettings.membershipExpiry.enabled} onChange={() => toggleNotify("membershipExpiry")} />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Deck Theme Switcher (premium gated) */}
+        <DeckThemeSection userMembership={user?.membership_tier} isAdmin={user?.is_admin} />
+
+        {/* Data Export */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+          className="glass-card p-6 mb-6"
+        >
+          <h2 className="text-sm font-cinzel text-mystic-gold mb-4 flex items-center gap-2">
+            <Download className="w-4 h-4" />
+            数据导出
+          </h2>
+          <div className="space-y-3">
+            <button
+              onClick={handleExportDiary}
+              disabled={exportingDiary}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-mystic-purple/20 hover:border-mystic-gold/30 bg-mystic-purple/5 hover:bg-mystic-gold/5 transition-all text-left disabled:opacity-50"
+            >
+              {exportingDiary ? (
+                <Loader2 className="w-4 h-4 text-mystic-gold animate-spin shrink-0" />
+              ) : (
+                <FileText className="w-4 h-4 text-mystic-gold/70 shrink-0" />
+              )}
+              <div>
+                <span className="text-sm text-foreground/80">导出塔罗日记</span>
+                <p className="text-[10px] text-mystic-rose/55">生成当月日记 HTML 文件，浏览器直接打开查看</p>
+              </div>
+            </button>
+
+            <button
+              onClick={handleExportReadings}
+              disabled={exportingReadings}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-mystic-purple/20 hover:border-mystic-gold/30 bg-mystic-purple/5 hover:bg-mystic-gold/5 transition-all text-left disabled:opacity-50"
+            >
+              {exportingReadings ? (
+                <Loader2 className="w-4 h-4 text-mystic-gold animate-spin shrink-0" />
+              ) : (
+                <ScrollText className="w-4 h-4 text-mystic-gold/70 shrink-0" />
+              )}
+              <div>
+                <span className="text-sm text-foreground/80">导出解读历史</span>
+                <p className="text-[10px] text-mystic-rose/55">生成解读记录 HTML 文件，浏览器直接打开查看</p>
+              </div>
+            </button>
+
+            <button
+              onClick={handleExportReport}
+              disabled={exportingReport}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-mystic-gold/20 hover:border-mystic-gold/40 bg-mystic-gold/5 hover:bg-mystic-gold/10 transition-all text-left disabled:opacity-50"
+            >
+              {exportingReport ? (
+                <Loader2 className="w-4 h-4 text-mystic-gold animate-spin shrink-0" />
+              ) : (
+                <BarChart3 className="w-4 h-4 text-mystic-gold shrink-0" />
+              )}
+              <div>
+                <span className="text-sm text-mystic-gold/90">生成年度报告</span>
+                <p className="text-[10px] text-mystic-rose/55">统计分析 + 图表，精美排版年度总结</p>
+              </div>
+            </button>
+          </div>
+        </motion.div>
+
         {/* CTA — 开启塔罗世界 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -459,8 +767,122 @@ export default function ProfilePage() {
             ))}
           </div>
         </motion.div>
+
+        </>) : null}
+
+        {/* ═══════ ACHIEVEMENTS TAB ═══════ */}
+        {activeTab === "achievements" && (
+          <AchievementGrid achievements={achievements} />
+        )}
+
       </div>
     </div>
+  );
+}
+
+// ── Toggle Switch ──
+
+function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${
+        checked ? "bg-mystic-gold/60" : "bg-mystic-purple/20"
+      }`}
+    >
+      <motion.div
+        className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow"
+        animate={{ x: checked ? 18 : 0 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+      />
+    </button>
+  );
+}
+
+// ── Achievement Grid ──
+
+function AchievementGrid({ achievements }: { achievements: ReturnType<typeof getAllAchievementProgress> }) {
+  const unlocked = achievements.filter((a) => a.unlocked);
+  const visible = achievements.filter((a) => !a.secret || a.unlocked);
+  const totalUnlocked = unlocked.length;
+  const totalVisible = visible.length;
+
+  return (
+    <>
+      {/* Total progress */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card p-5 mb-6"
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-cinzel text-mystic-gold">成就进度</span>
+          <span className="text-xs text-mystic-gold/70 font-cormorant">
+            {totalUnlocked}/{totalVisible}
+          </span>
+        </div>
+        <div className="h-2 rounded-full bg-mystic-purple/15 overflow-hidden">
+          <motion.div
+            className="h-full rounded-full bg-gradient-to-r from-mystic-purple via-mystic-gold to-mystic-rose"
+            initial={{ width: 0 }}
+            animate={{ width: `${totalVisible > 0 ? (totalUnlocked / totalVisible) * 100 : 0}%` }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          />
+        </div>
+      </motion.div>
+
+      {/* Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {visible.map((a, i) => {
+          const isUnlocked = a.unlocked;
+          const pct = a.target > 0 ? Math.round((a.current / a.target) * 100) : 0;
+
+          return (
+            <motion.div
+              key={a.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className={`rounded-xl p-4 border text-center ${
+                isUnlocked
+                  ? `${ACH_TIER_COLORS[a.tier]} border`
+                  : "border-mystic-purple/15 bg-mystic-purple/5 opacity-60"
+              }`}
+            >
+              <div className="text-2xl mb-1.5">
+                {isUnlocked ? a.icon : (a.secret ? "🔒" : a.icon)}
+              </div>
+              <h3 className={`text-xs font-cinzel mb-0.5 ${isUnlocked ? "text-mystic-gold" : "text-foreground/45"}`}>
+                {isUnlocked ? a.title : (a.secret ? "???" : a.title)}
+              </h3>
+              <p className="text-[9px] text-mystic-rose/45 mb-2">
+                {isUnlocked ? a.description : (a.secret ? "隐藏成就" : a.description)}
+              </p>
+              {/* Progress bar */}
+              <div className="h-1 rounded-full bg-mystic-purple/15 overflow-hidden">
+                <motion.div
+                  className={`h-full rounded-full ${isUnlocked ? "bg-mystic-gold" : "bg-mystic-purple/30"}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, pct)}%` }}
+                  transition={{ duration: 0.4, delay: 0.2 + i * 0.03 }}
+                />
+              </div>
+              <p className="text-[9px] text-mystic-rose/35 mt-1">
+                {a.current}/{a.target}
+              </p>
+              {isUnlocked && (
+                <span className="inline-block mt-2 text-[9px] text-mystic-gold/60">✓ 已解锁</span>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {visible.length === 0 && (
+        <p className="text-center text-xs text-mystic-rose/55 py-12">暂无成就数据</p>
+      )}
+    </>
   );
 }
 
@@ -499,6 +921,82 @@ const PLANS = [
     textColor: "text-mystic-gold",
   },
 ];
+
+function DeckThemeSection({ userMembership, isAdmin }: { userMembership?: string; isAdmin?: boolean }) {
+  const [theme, setTheme] = useState<DeckTheme>(getCurrentTheme());
+  const hasAccess = canAccessPremiumThemes() || isAdmin;
+
+  const handleSelect = (t: DeckTheme) => {
+    if (THEMES.find((th) => th.id === t)?.premiumOnly && !hasAccess) return;
+    setCurrentTheme(t);
+    setTheme(t);
+    // Force re-render of card images
+    window.dispatchEvent(new Event("theme-change"));
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.11 }}
+      className="glass-card p-6 mb-6"
+    >
+      <h2 className="text-sm font-cinzel text-mystic-gold mb-4 flex items-center gap-2">
+        🎨 牌面主题
+        {!hasAccess && (
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-mystic-gold/10 border border-mystic-gold/20 text-mystic-gold/70">
+            高级会员专享
+          </span>
+        )}
+      </h2>
+      <div className="grid grid-cols-3 gap-3">
+        {THEMES.map((t) => {
+          const isActive = theme === t.id;
+          const locked = t.premiumOnly && !hasAccess;
+          return (
+            <button
+              key={t.id}
+              onClick={() => handleSelect(t.id)}
+              disabled={locked}
+              className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all text-center ${
+                isActive
+                  ? "border-mystic-gold/40 bg-mystic-gold/10"
+                  : locked
+                  ? "border-mystic-purple/10 bg-mystic-dark/20 opacity-40 cursor-not-allowed"
+                  : "border-mystic-purple/20 bg-mystic-dark/30 hover:border-mystic-rose/30"
+              }`}
+            >
+              <div className="w-full aspect-[3/4] rounded-lg overflow-hidden bg-mystic-dark/50 flex items-center justify-center">
+                {t.id === "rider-waite" ? (
+                  <img
+                    src="/cards/00-fool.webp"
+                    alt=""
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
+                ) : (
+                  <img
+                    src={getThemePreviewUrl(t.id)}
+                    alt=""
+                    className="w-full h-full object-contain p-1"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
+                )}
+              </div>
+              <div>
+                <p className={`text-xs ${isActive ? "text-mystic-gold" : "text-foreground/70"}`}>
+                  {t.icon} {t.name}
+                </p>
+                {locked && <p className="text-[9px] text-mystic-rose/45 mt-0.5">🔒 需升级</p>}
+                {isActive && <p className="text-[9px] text-mystic-gold/60 mt-0.5">使用中</p>}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
 
 function MembershipModal({ open, onClose, userMembership }: { open: boolean; onClose: () => void; userMembership?: string }) {
   if (!open) return null;

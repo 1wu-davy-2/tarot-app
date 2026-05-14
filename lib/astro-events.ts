@@ -16,7 +16,7 @@ export interface AstroEvent {
 const NEW_MOON_REF = new Date(Date.UTC(2000, 0, 6, 18, 14, 0)).getTime();
 const SYNODIC_MONTH = 29.53058867; // days
 
-function getMoonPhase(date: Date): number {
+export function getMoonPhase(date: Date): number {
   // Returns phase from 0 (new moon) to 1 (next new moon)
   const msPerDay = 86400000;
   const elapsed = (date.getTime() - NEW_MOON_REF) / msPerDay;

@@ -332,7 +332,7 @@
     <div class="reveal" style="text-align:center;">
       <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;padding:1rem 0;">
         <img v-for="card in previewCards" :key="card.id"
-             :src="card.src" :alt="card.name"
+             :src="baseUrl + card.file" :alt="card.name"
              loading="lazy"
              style="width:100px;height:156px;object-fit:cover;border-radius:8px;border:1px solid rgba(212,168,83,0.2);animation:cardFloat 5s ease-in-out infinite;transition:all 0.3s;cursor:pointer;"
              :style="{animationDelay: card.delay + 's'}"
@@ -421,13 +421,22 @@
           <li>✦ AI周报/月报生成</li>
           <li>✦ 个人星盘档案</li>
         </ul>
+        <div style="margin-top:1rem;padding:0.75rem;background:rgba(212,168,83,0.08);border-radius:8px;border:1px dashed rgba(212,168,83,0.25);">
+          <p style="color:var(--gold);font-size:0.85rem;line-height:1.5;">
+            ⏳ 2026年7月1日前注册<br /><strong>永久保留基础会员资格</strong>
+          </p>
+        </div>
       </div>
 
       <!-- Premium -->
       <div class="reveal glass-card" style="padding:2.5rem 2rem;text-align:center;display:flex;flex-direction:column;">
         <h3 class="font-cinzel" style="color:var(--rose);font-size:1.2rem;margin-bottom:1rem;">Premium</h3>
-        <div style="font-size:2.5rem;color:var(--rose);margin-bottom:0.25rem;">¥49<span style="font-size:1rem;opacity:0.6;">/月</span></div>
-        <p style="color:var(--rose);opacity:0.4;font-size:0.8rem;margin-bottom:1.5rem;">完整体验</p>
+        <div style="font-size:2.5rem;color:var(--rose);margin-bottom:0.25rem;">¥1.9<span style="font-size:1rem;opacity:0.6;">/月</span></div>
+        <div style="display:flex;gap:0.5rem;justify-content:center;align-items:center;margin-bottom:0.25rem;">
+          <span style="text-decoration:line-through;color:var(--fg);opacity:0.3;font-size:0.9rem;">¥49</span>
+          <span style="background:rgba(192,132,252,0.15);color:var(--rose);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;font-weight:700;">0.4折</span>
+        </div>
+        <p style="color:var(--fg);opacity:0.35;font-size:0.8rem;margin-bottom:1.5rem;">年付 ¥19.9 · 日均不到6分钱</p>
         <ul style="list-style:none;text-align:left;color:var(--fg);opacity:0.6;font-size:0.9rem;line-height:2.2;flex:1;">
           <li>✦ 所有Basic功能</li>
           <li>✦ AI解读无限制</li>
@@ -492,15 +501,16 @@ const { createApp } = Vue;
 createApp({
   data() {
     return {
+      baseUrl: window.location.origin,
       previewCards: [
-        { id: 0,  name: '愚者',   src: '/cards/00-fool.webp',           delay: 0 },
-        { id: 1,  name: '魔术师', src: '/cards/01-magician.webp',       delay: 0.5 },
-        { id: 2,  name: '女祭司', src: '/cards/02-high-priestess.webp', delay: 1 },
-        { id: 3,  name: '女皇',   src: '/cards/03-empress.webp',        delay: 1.5 },
-        { id: 6,  name: '恋人',   src: '/cards/06-lovers.webp',         delay: 2 },
-        { id: 7,  name: '战车',   src: '/cards/07-chariot.webp',        delay: 2.5 },
-        { id: 17, name: '星星',   src: '/cards/17-star.webp',           delay: 3 },
-        { id: 19, name: '太阳',   src: '/cards/19-sun.webp',            delay: 3.5 },
+        { id: 0,  name: '愚者',   file: '/cards/00-fool.webp',           delay: 0 },
+        { id: 1,  name: '魔术师', file: '/cards/01-magician.webp',       delay: 0.5 },
+        { id: 2,  name: '女祭司', file: '/cards/02-high-priestess.webp', delay: 1 },
+        { id: 3,  name: '女皇',   file: '/cards/03-empress.webp',        delay: 1.5 },
+        { id: 6,  name: '恋人',   file: '/cards/06-lovers.webp',         delay: 2 },
+        { id: 7,  name: '战车',   file: '/cards/07-chariot.webp',        delay: 2.5 },
+        { id: 17, name: '星星',   file: '/cards/17-star.webp',           delay: 3 },
+        { id: 19, name: '太阳',   file: '/cards/19-sun.webp',            delay: 3.5 },
       ],
     };
   },

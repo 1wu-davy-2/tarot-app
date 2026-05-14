@@ -7,6 +7,8 @@ import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { OnboardingGuide } from "@/components/OnboardingGuide";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { NotifyToast } from "@/components/NotifyToast";
+import { AppInit } from "@/components/AppInit";
 
 export const metadata: Metadata = {
   title: "命运之镜 · Mirror of Fate",
@@ -38,6 +40,8 @@ export default function RootLayout({
         <MobileBottomNav />
         <OnboardingGuide />
         <FeedbackWidget />
+        <NotifyToast />
+        <AppInit />
       </body>
     </html>
   );
