@@ -27,10 +27,15 @@ export function AppUpdateBanner() {
     const check = async () => {
       try {
         const url = API_BASE ? `${API_BASE}/api/app-version` : "/api/app-version";
+        console.log("[update] checking:", url, "local:", APP_VERSION);
         const res = await fetch(url);
+        if (!res.ok) {
+          console.log("[update] fetch failed:", res.status);
+          return;
+        }
         const data = await res.json();
+        console.log("[update] server version:", data.version, "local:", APP_VERSION);
         if (data.version && data.version !== APP_VERSION) {
-          // Build absolute download URL
           let dlUrl: string = data.download_url || "";
           if (dlUrl && dlUrl.startsWith("/") && API_BASE) {
             dlUrl = API_BASE + dlUrl;
@@ -39,7 +44,9 @@ export function AppUpdateBanner() {
           setReleaseNotes(data.release_notes || "新版本可用，建议更新");
           setVisible(true);
         }
-      } catch {}
+      } catch (e: any) {
+        console.log("[update] error:", e?.message || e);
+      }
     };
 
     const t = setTimeout(check, 3000);
