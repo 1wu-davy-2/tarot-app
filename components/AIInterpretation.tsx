@@ -139,7 +139,7 @@ export function AIInterpretation({ cards, isReversed, spreadType, question, onCo
     return (
       <div className="glass-card p-6 text-center">
         <h3 className="text-lg font-cinzel text-mystic-gold mb-4">🔮 AI 塔罗解读</h3>
-        <p className="text-foreground/75 text-sm mb-2">{error || getLimitMessage()}</p>
+        <p className="text-text-secondary text-sm mb-2">{error || getLimitMessage()}</p>
         <button
           onClick={() => setShowLogin(true)}
           className="flex items-center gap-2 mx-auto px-6 py-3 rounded-full border border-mystic-gold/50 text-mystic-gold hover:bg-mystic-gold/10 transition-all mt-4"
@@ -169,7 +169,7 @@ export function AIInterpretation({ cards, isReversed, spreadType, question, onCo
       {loading && !text && (
         <div className="flex flex-col items-center gap-3 py-8">
           <Loader2 className="w-8 h-8 text-mystic-gold animate-spin" />
-          <p className="text-mystic-rose/75 text-sm">正在连接宇宙智慧...</p>
+          <p className="text-text-secondary text-sm">正在连接宇宙智慧...</p>
         </div>
       )}
 
@@ -187,7 +187,7 @@ export function AIInterpretation({ cards, isReversed, spreadType, question, onCo
 
       {text && (
         <div className="prose prose-invert prose-sm max-w-none">
-          <div className="whitespace-pre-wrap text-cormorant leading-relaxed text-foreground/90">
+          <div className="whitespace-pre-wrap text-cormorant leading-relaxed text-text-primary">
             {renderMarkdown(text)}
           </div>
           {loading && (
@@ -212,10 +212,10 @@ function renderMarkdown(text: string): React.ReactNode {
       return <h2 key={i} className="text-mystic-gold font-cinzel text-xl mt-4 mb-2">{line.slice(2)}</h2>;
     }
     if (line.startsWith("- ") || line.startsWith("* ")) {
-      return <li key={i} className="text-foreground/80 ml-4">{renderBold(line.slice(2))}</li>;
+      return <li key={i} className="text-text-primary ml-4">{renderBold(line.slice(2))}</li>;
     }
     if (line.match(/^\d+\./)) {
-      return <li key={i} className="text-foreground/80 ml-4 list-decimal">{renderBold(line.replace(/^\d+\.\s*/, ""))}</li>;
+      return <li key={i} className="text-text-primary ml-4 list-decimal">{renderBold(line.replace(/^\d+\.\s*/, ""))}</li>;
     }
     if (line.trim() === "") {
       return <br key={i} />;

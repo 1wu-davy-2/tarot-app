@@ -67,15 +67,15 @@ function LearningStats() {
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div className="text-center p-2 rounded-lg bg-mystic-purple/10">
           <p className="text-lg font-bold text-mystic-gold">{totalLearned}/78</p>
-          <p className="text-[10px] text-mystic-rose/55">已掌握</p>
+          <p className="text-[10px] text-text-secondary">已掌握</p>
         </div>
         <div className="text-center p-2 rounded-lg bg-mystic-purple/10">
           <p className="text-lg font-bold text-mystic-gold">{stats.avgScore}%</p>
-          <p className="text-[10px] text-mystic-rose/55">均分</p>
+          <p className="text-[10px] text-text-secondary">均分</p>
         </div>
         <div className="text-center p-2 rounded-lg bg-mystic-purple/10">
           <p className="text-lg font-bold text-mystic-gold">{stats.bestScore}%</p>
-          <p className="text-[10px] text-mystic-rose/55">最佳</p>
+          <p className="text-[10px] text-text-secondary">最佳</p>
         </div>
       </div>
 
@@ -85,7 +85,7 @@ function LearningStats() {
           const pct = Math.round((count / (SUIT_TOTALS[key] || 1)) * 100);
           return (
             <div key={key} className="flex items-center gap-2">
-              <span className="text-[10px] text-mystic-rose/55 w-12 shrink-0">{SUIT_LABELS[key]}</span>
+              <span className="text-[10px] text-text-secondary w-12 shrink-0">{SUIT_LABELS[key]}</span>
               <div className="flex-1 h-1.5 rounded-full bg-mystic-purple/15 overflow-hidden">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-mystic-purple via-mystic-gold to-mystic-rose"
@@ -94,7 +94,7 @@ function LearningStats() {
                   transition={{ duration: 0.5 }}
                 />
               </div>
-              <span className="text-[10px] text-mystic-rose/45 w-8 text-right">{count}/{SUIT_TOTALS[key]}</span>
+              <span className="text-[10px] text-text-tertiary w-8 text-right">{count}/{SUIT_TOTALS[key]}</span>
             </div>
           );
         })}
@@ -120,7 +120,7 @@ function CollectionProgress() {
       </p>
       <div className="space-y-2">
         <div>
-          <div className="flex justify-between text-[10px] text-mystic-rose/55 mb-0.5">
+          <div className="flex justify-between text-[10px] text-text-secondary mb-0.5">
             <span>全部 78 张</span>
             <span>{total}/78 ({totalPct}%)</span>
           </div>
@@ -134,7 +134,7 @@ function CollectionProgress() {
           </div>
         </div>
         <div>
-          <div className="flex justify-between text-[10px] text-mystic-rose/55 mb-0.5">
+          <div className="flex justify-between text-[10px] text-text-secondary mb-0.5">
             <span>大阿卡纳</span>
             <span>{major}/22 ({majorPct}%)</span>
           </div>
@@ -182,7 +182,7 @@ function CardDetailModal({ card, onClose }: { card: TarotCard; onClose: () => vo
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1 rounded-full bg-mystic-dark/80 text-mystic-rose/65 hover:text-mystic-rose transition-colors z-10"
+          className="absolute top-4 right-4 p-1 rounded-full bg-mystic-dark/80 text-text-secondary hover:text-mystic-rose transition-colors z-10"
         >
           <X className="w-5 h-5" />
         </button>
@@ -198,26 +198,26 @@ function CardDetailModal({ card, onClose }: { card: TarotCard; onClose: () => vo
           </div>
           <div className="text-center">
             <h2 className="text-xl font-cinzel text-mystic-gold">{card.nameCN}</h2>
-            <p className="text-xs text-mystic-rose/65">{card.name}</p>
+            <p className="text-xs text-text-secondary">{card.name}</p>
           </div>
 
           {/* Meta badges */}
           <div className="flex flex-wrap justify-center gap-2 text-[10px]">
-            <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-mystic-rose/70">
+            <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-text-secondary">
               {card.arcana === "major" ? "大阿卡纳" : "小阿卡纳"}
             </span>
             {card.suit && (
-              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-mystic-rose/70">
+              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-text-secondary">
                 {card.suit === "wands" ? "权杖" : card.suit === "cups" ? "圣杯" : card.suit === "swords" ? "宝剑" : "星币"}
               </span>
             )}
             {card.element && (
-              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-mystic-rose/70">
+              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-text-secondary">
                 {card.element}元素
               </span>
             )}
             {card.planet && (
-              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-mystic-rose/70">
+              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-text-secondary">
                 {card.planet}
               </span>
             )}
@@ -240,7 +240,7 @@ function CardDetailModal({ card, onClose }: { card: TarotCard; onClose: () => vo
             className={`px-4 py-2 text-xs transition-colors border-b-2 -mb-[1px] ${
               orientation === "upright"
                 ? "border-mystic-gold text-mystic-gold"
-                : "border-transparent text-foreground/55 hover:text-foreground/75"
+                : "border-transparent text-text-secondary hover:text-text-primary"
             }`}
           >
             正位 Upright
@@ -250,7 +250,7 @@ function CardDetailModal({ card, onClose }: { card: TarotCard; onClose: () => vo
             className={`px-4 py-2 text-xs transition-colors border-b-2 -mb-[1px] ${
               orientation === "reversed"
                 ? "border-mystic-gold text-mystic-gold"
-                : "border-transparent text-foreground/55 hover:text-foreground/75"
+                : "border-transparent text-text-secondary hover:text-text-primary"
             }`}
           >
             逆位 Reversed
@@ -258,7 +258,7 @@ function CardDetailModal({ card, onClose }: { card: TarotCard; onClose: () => vo
         </div>
 
         {/* One-line meaning */}
-        <p className="text-xs text-foreground/75 italic text-center mb-4">
+        <p className="text-xs text-text-secondary italic text-center mb-4">
           {orientation === "upright" ? card.uprightMeaning : card.reversedMeaning}
         </p>
 
@@ -279,7 +279,7 @@ function CardDetailModal({ card, onClose }: { card: TarotCard; onClose: () => vo
                     {dim.label}
                   </span>
                   <ChevronDown
-                    className={`w-3 h-3 text-mystic-rose/55 transition-transform duration-200 ${
+                    className={`w-3 h-3 text-text-secondary transition-transform duration-200 ${
                       isOpen ? "rotate-180" : ""
                     }`}
                   />
@@ -293,7 +293,7 @@ function CardDetailModal({ card, onClose }: { card: TarotCard; onClose: () => vo
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-3 pb-3 text-xs text-foreground/80 leading-relaxed border-t border-mystic-purple/10 pt-2">
+                      <div className="px-3 pb-3 text-xs text-text-primary leading-relaxed border-t border-mystic-purple/10 pt-2">
                         {interp[key]}
                       </div>
                     </motion.div>
@@ -307,8 +307,8 @@ function CardDetailModal({ card, onClose }: { card: TarotCard; onClose: () => vo
         {/* Symbolism */}
         {card.symbolism && (
           <div className="mt-4 pt-4 border-t border-mystic-purple/20">
-            <p className="text-[10px] text-mystic-rose/55 mb-1">牌面象征</p>
-            <p className="text-[10px] text-foreground/45 italic">{card.symbolism}</p>
+            <p className="text-[10px] text-text-secondary mb-1">牌面象征</p>
+            <p className="text-[10px] text-text-tertiary italic">{card.symbolism}</p>
           </div>
         )}
       </motion.div>
@@ -346,7 +346,7 @@ export default function LibraryPage() {
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
+            className="inline-flex items-center gap-1.5 text-text-secondary hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">返回首页</span>
@@ -360,21 +360,21 @@ export default function LibraryPage() {
           </motion.div>
           <div className="w-[60px]" />
         </div>
-        <p className="text-mystic-rose/65 text-xs text-center -mt-4 mb-6">探索全部 78 张 Rider-Waite 塔罗牌</p>
+        <p className="text-text-secondary text-xs text-center -mt-4 mb-6">探索全部 78 张 Rider-Waite 塔罗牌</p>
 
         {/* Search */}
         <div className="relative max-w-md mx-auto mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="搜索牌名或关键词..."
-            className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-2.5 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+            className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-2.5 text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
           />
           {search && (
             <button
               onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-mystic-rose/45 hover:text-mystic-rose/75"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
             >
               <X className="w-4 h-4" />
             </button>
@@ -390,7 +390,7 @@ export default function LibraryPage() {
               className={`px-4 py-2 rounded-full text-xs transition-all duration-300 ${
                 filter === f.key
                   ? "bg-mystic-gold/15 border border-mystic-gold/40 text-mystic-gold"
-                  : "border border-mystic-purple/20 text-mystic-rose/65 hover:border-mystic-rose/30 hover:text-mystic-rose/70"
+                  : "border border-mystic-purple/20 text-text-secondary hover:border-mystic-rose/30 hover:text-text-primary"
               }`}
             >
               <span className="mr-1.5">{f.icon}</span>
@@ -400,7 +400,7 @@ export default function LibraryPage() {
         </div>
 
         {/* Card count */}
-        <p className="text-center text-xs text-mystic-rose/45 mb-4">
+        <p className="text-center text-xs text-text-tertiary mb-4">
           {cards.length} 张牌
         </p>
 
@@ -448,10 +448,10 @@ export default function LibraryPage() {
                 {/* Card info */}
                 <div className="p-3">
                   <h3 className="text-sm font-cinzel text-mystic-gold/90 truncate">{card.nameCN}</h3>
-                  <p className="text-[10px] text-mystic-rose/55 mt-0.5">{card.name}</p>
+                  <p className="text-[10px] text-text-secondary mt-0.5">{card.name}</p>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {card.keywords.slice(0, 2).map((kw, i) => (
-                      <span key={i} className="px-1.5 py-0.5 rounded-md bg-mystic-purple/20 text-mystic-rose/65 text-[10px]">
+                      <span key={i} className="px-1.5 py-0.5 rounded-md bg-mystic-purple/20 text-text-secondary text-[10px]">
                         {kw}
                       </span>
                     ))}
@@ -465,7 +465,7 @@ export default function LibraryPage() {
         {/* No results */}
         {cards.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-mystic-rose/55 text-sm">没有找到匹配的牌</p>
+            <p className="text-text-secondary text-sm">没有找到匹配的牌</p>
           </div>
         )}
 

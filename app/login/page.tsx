@@ -116,7 +116,7 @@ export default function LoginPage() {
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
+            className="inline-flex items-center gap-1.5 text-text-secondary hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">返回首页</span>
@@ -130,7 +130,7 @@ export default function LoginPage() {
           </motion.div>
           <div className="w-[60px]" />
         </div>
-        <p className="text-mystic-rose/65 text-xs text-center -mt-4 mb-6">登录以解锁更多解读</p>
+        <p className="text-text-secondary text-xs text-center -mt-4 mb-6">登录以解锁更多解读</p>
 
         {/* Tab switcher */}
         <div className="flex border-b border-mystic-purple/20 mb-6">
@@ -141,7 +141,7 @@ export default function LoginPage() {
               className={`flex-1 py-3 text-sm transition-colors border-b-2 -mb-[1px] ${
                 tab === t.key
                   ? "border-mystic-gold text-mystic-gold"
-                  : "border-transparent text-foreground/55 hover:text-foreground/75"
+                  : "border-transparent text-text-secondary hover:text-text-primary"
               }`}
             >
               {t.label}
@@ -170,27 +170,27 @@ export default function LoginPage() {
             className="glass-card p-6 space-y-4"
           >
             <div>
-              <label className="text-xs text-mystic-rose/65 mb-2 block">邮箱 / 用户名</label>
+              <label className="text-xs text-text-secondary mb-2 block">邮箱 / 用户名</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
                 <input
                   value={loginAccount}
                   onChange={(e) => setLoginAccount(e.target.value)}
                   placeholder="输入邮箱或用户名"
-                  className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                  className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-3 text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
                 />
               </div>
             </div>
             <div>
-              <label className="text-xs text-mystic-rose/65 mb-2 block">密码</label>
+              <label className="text-xs text-text-secondary mb-2 block">密码</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
                 <input
                   type="password"
                   value={loginPwd}
                   onChange={(e) => setLoginPwd(e.target.value)}
                   placeholder="输入密码"
-                  className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                  className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-3 text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
                 />
               </div>
             </div>
@@ -214,61 +214,61 @@ export default function LoginPage() {
             className="glass-card p-6 space-y-4"
           >
             <div>
-              <label className="text-xs text-mystic-rose/65 mb-2 block">用户名 *</label>
+              <label className="text-xs text-text-secondary mb-2 block">用户名 *</label>
               <input
                 value={regUser}
                 onChange={(e) => setRegUser(e.target.value)}
                 placeholder="2-50位字符"
-                className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
               />
             </div>
             <div>
-              <label className="text-xs text-mystic-rose/65 mb-2 block">邮箱 *</label>
+              <label className="text-xs text-text-secondary mb-2 block">邮箱 *</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
                 <input
                   type="email"
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
                   placeholder="用于验证和找回密码"
-                  className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                  className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-3 text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
                 />
               </div>
             </div>
             <div>
-              <label className="text-xs text-mystic-rose/65 mb-2 block">手机号 *</label>
+              <label className="text-xs text-text-secondary mb-2 block">手机号 *</label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
                 <input
                   value={regPhone}
                   onChange={(e) => setRegPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
                   placeholder="11位中国大陆手机号"
                   maxLength={11}
-                  className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                  className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-3 text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
                 />
               </div>
             </div>
             <div>
-              <label className="text-xs text-mystic-rose/65 mb-2 block">密码 *</label>
+              <label className="text-xs text-text-secondary mb-2 block">密码 *</label>
               <input
                 type="password"
                 value={regPwd}
                 onChange={(e) => setRegPwd(e.target.value)}
                 placeholder="至少6位"
-                className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
               />
             </div>
 
             {/* Verification code */}
             <div>
-              <label className="text-xs text-mystic-rose/65 mb-2 block">验证码 *</label>
+              <label className="text-xs text-text-secondary mb-2 block">验证码 *</label>
               <div className="flex gap-3">
                 <input
                   value={regCode}
                   onChange={(e) => setRegCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="6位数字验证码"
                   maxLength={6}
-                  className="flex-1 bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm text-center tracking-widest focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                  className="flex-1 bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-text-primary placeholder:text-text-tertiary text-sm text-center tracking-widest focus:outline-none focus:border-mystic-gold/50 transition-colors"
                 />
                 <button
                   type="button"
@@ -302,15 +302,15 @@ export default function LoginPage() {
             {resetStep === "email" && (
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div>
-                  <label className="text-xs text-mystic-rose/65 mb-2 block">注册邮箱</label>
+                  <label className="text-xs text-text-secondary mb-2 block">注册邮箱</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mystic-rose/45" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
                     <input
                       type="email"
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
                       placeholder="输入注册时使用的邮箱"
-                      className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                      className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg pl-10 pr-4 py-3 text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
                     />
                   </div>
                 </div>
@@ -328,23 +328,23 @@ export default function LoginPage() {
             {resetStep === "code" && (
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs text-mystic-rose/65 mb-2 block">验证码</label>
+                  <label className="text-xs text-text-secondary mb-2 block">验证码</label>
                   <input
                     value={resetCode}
                     onChange={(e) => setResetCode(e.target.value)}
                     placeholder="6位数字验证码"
                     maxLength={6}
-                    className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm text-center tracking-widest focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                    className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-text-primary placeholder:text-text-tertiary text-sm text-center tracking-widest focus:outline-none focus:border-mystic-gold/50 transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-mystic-rose/65 mb-2 block">新密码</label>
+                  <label className="text-xs text-text-secondary mb-2 block">新密码</label>
                   <input
                     type="password"
                     value={resetPwd}
                     onChange={(e) => setResetPwd(e.target.value)}
                     placeholder="至少6位"
-                    className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                    className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-mystic-gold/50 transition-colors"
                   />
                 </div>
                 <button
@@ -363,7 +363,7 @@ export default function LoginPage() {
                 <p className="text-mystic-gold text-sm">密码重置成功！</p>
                 <button
                   onClick={() => setTab("login")}
-                  className="mt-4 text-mystic-rose/65 hover:text-mystic-rose text-sm underline transition-colors"
+                  className="mt-4 text-text-secondary hover:text-mystic-rose text-sm underline transition-colors"
                 >
                   返回登录
                 </button>

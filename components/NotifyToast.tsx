@@ -90,7 +90,7 @@ export function NotifyToast() {
               <Bell className="w-4 h-4 text-mystic-gold shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-cinzel text-mystic-gold">{r.title}</p>
-                <p className="text-xs text-foreground/70 mt-1">{r.body}</p>
+                <p className="text-xs text-text-secondary mt-1">{r.body}</p>
                 {r.action && (
                   <span className="inline-block mt-2 text-[10px] text-mystic-gold/70 group-hover:text-mystic-gold transition-colors">
                     {r.action.label} →
@@ -99,7 +99,7 @@ export function NotifyToast() {
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); dismiss(r.id); }}
-                className="p-0.5 text-mystic-rose/45 hover:text-mystic-rose/75 transition-colors"
+                className="p-0.5 text-text-tertiary hover:text-text-primary transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

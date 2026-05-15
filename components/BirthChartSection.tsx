@@ -34,7 +34,7 @@ export function BirthChartSection({
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-sm font-cinzel text-mystic-gold whitespace-nowrap">出生星盘</span>
           {filled && !effectiveExpanded && (
-            <span className="text-[11px] text-foreground/65 truncate">
+            <span className="text-[11px] text-text-secondary truncate">
               {zodiacSign || (derivedZodiac ? `♓ ${derivedZodiac}` : "")}
               {birthDate ? ` · ${birthDate}` : ""}
               {birthTime ? ` · ${birthTime}` : ""}
@@ -43,7 +43,7 @@ export function BirthChartSection({
           )}
         </div>
         {filled && (
-          <ChevronDown className={`w-4 h-4 text-mystic-rose/45 transition-transform duration-300 ${effectiveExpanded ? "rotate-180" : ""}`} />
+          <ChevronDown className={`w-4 h-4 text-text-tertiary transition-transform duration-300 ${effectiveExpanded ? "rotate-180" : ""}`} />
         )}
       </button>
 
@@ -51,28 +51,28 @@ export function BirthChartSection({
         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="overflow-hidden">
           <div className="space-y-4 mt-4 pt-4 border-t border-mystic-purple/10">
             <div>
-              <label className="block text-[11px] text-mystic-rose/55 mb-1.5 ml-1">出生日期</label>
+              <label className="block text-[11px] text-text-secondary mb-1.5 ml-1">出生日期</label>
               <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)}
-                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-mystic-gold/40 transition-colors"
                 style={{ colorScheme: "dark" }} />
             </div>
             <div>
-              <label className="block text-[11px] text-mystic-rose/55 mb-1.5 ml-1">出生时间</label>
+              <label className="block text-[11px] text-text-secondary mb-1.5 ml-1">出生时间</label>
               <input type="time" value={birthTime} onChange={(e) => setBirthTime(e.target.value)}
-                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-mystic-gold/40 transition-colors"
                 style={{ colorScheme: "dark" }} />
             </div>
             <div>
-              <label className="block text-[11px] text-mystic-rose/55 mb-1.5 ml-1">出生地点</label>
+              <label className="block text-[11px] text-text-secondary mb-1.5 ml-1">出生地点</label>
               <input type="text" value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)}
                 placeholder="输入城市名称，如'北京'" maxLength={100}
-                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 placeholder:text-foreground/40 focus:outline-none focus:border-mystic-gold/40 transition-colors" />
+                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-mystic-gold/40 transition-colors" />
             </div>
             {!derivedZodiac && (
               <div>
-                <label className="block text-[11px] text-mystic-rose/55 mb-1.5 ml-1">星座</label>
+                <label className="block text-[11px] text-text-secondary mb-1.5 ml-1">星座</label>
                 <select value={zodiacSign} onChange={(e) => setZodiacSign(e.target.value)}
-                  className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                  className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-mystic-gold/40 transition-colors"
                   style={{ colorScheme: "dark" }}>
                   <option value="">选择星座（可选）</option>
                   {ZODIAC_OPTIONS.map(z => <option key={z} value={z}>{z}</option>)}
@@ -85,7 +85,7 @@ export function BirthChartSection({
                 {birthSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 保存星盘信息
               </button>
-              {birthMsg && <span className={`text-xs ${birthMsg.includes("失败") ? "text-red-400/60" : "text-mystic-rose/65"}`}>{birthMsg}</span>}
+              {birthMsg && <span className={`text-xs ${birthMsg.includes("失败") ? "text-red-400/60" : "text-text-secondary"}`}>{birthMsg}</span>}
             </div>
           </div>
         </motion.div>

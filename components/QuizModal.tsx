@@ -88,7 +88,7 @@ export function QuizModal({ open, onClose, count = 10 }: Props) {
         className="relative w-full max-w-md max-h-[85vh] overflow-y-auto bg-[#0f0a1a] border border-mystic-purple/30 rounded-2xl shadow-2xl p-6"
       >
         {/* Close */}
-        <button onClick={onClose} className="absolute top-4 right-4 text-mystic-rose/55 hover:text-mystic-rose z-10">
+        <button onClick={onClose} className="absolute top-4 right-4 text-text-secondary hover:text-mystic-rose z-10">
           <X className="w-5 h-5" />
         </button>
 
@@ -108,12 +108,12 @@ export function QuizModal({ open, onClose, count = 10 }: Props) {
                 transition={{ duration: 0.3 }}
               />
             </div>
-            <p className="text-[10px] text-mystic-rose/55 mb-4">
+            <p className="text-[10px] text-text-secondary mb-4">
               第 {currentIdx + 1}/{questions.length} 题
             </p>
 
             {/* Question */}
-            <p className="text-sm text-foreground/90 mb-5 leading-relaxed">
+            <p className="text-sm text-text-primary mb-5 leading-relaxed">
               {currentQ.question}
             </p>
 
@@ -140,10 +140,10 @@ export function QuizModal({ open, onClose, count = 10 }: Props) {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-full border border-mystic-purple/20 flex items-center justify-center text-[10px] text-mystic-rose/65 shrink-0">
+                      <span className="w-6 h-6 rounded-full border border-mystic-purple/20 flex items-center justify-center text-[10px] text-text-secondary shrink-0">
                         {String.fromCharCode(65 + i)}
                       </span>
-                      <span className="text-foreground/80">{opt}</span>
+                      <span className="text-text-primary">{opt}</span>
                       {answered && isCorrect && <Check className="w-4 h-4 text-emerald-400 ml-auto shrink-0" />}
                       {answered && isSelected && !isCorrect && <XCircle className="w-4 h-4 text-red-400 ml-auto shrink-0" />}
                     </div>
@@ -155,7 +155,7 @@ export function QuizModal({ open, onClose, count = 10 }: Props) {
             {/* Feedback + Next */}
             {answered && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4">
-                <p className="text-xs text-mystic-rose/65 bg-mystic-purple/10 rounded-lg p-3">
+                <p className="text-xs text-text-secondary bg-mystic-purple/10 rounded-lg p-3">
                   {currentQ.correctFeedback}
                 </p>
                 <button
@@ -179,7 +179,7 @@ export function QuizModal({ open, onClose, count = 10 }: Props) {
               <p className="text-2xl font-cinzel text-mystic-gold">
                 {result.score}/{result.total}
               </p>
-              <p className="text-sm text-mystic-rose/65 mt-1">
+              <p className="text-sm text-text-secondary mt-1">
                 正确率 {result.pct}%
               </p>
             </div>
@@ -187,14 +187,14 @@ export function QuizModal({ open, onClose, count = 10 }: Props) {
             {/* Wrong answers review */}
             {result.wrong.length > 0 && (
               <div className="mb-5">
-                <p className="text-xs font-cinzel text-mystic-rose/75 mb-3">
+                <p className="text-xs font-cinzel text-text-secondary mb-3">
                   错题回顾 ({result.wrong.length} 题)
                 </p>
                 <div className="space-y-2">
                   {result.wrong.map((q) => (
                     <div key={q.id} className="p-3 rounded-lg bg-red-400/5 border border-red-400/15">
-                      <p className="text-[11px] text-foreground/75">{q.question}</p>
-                      <p className="text-[10px] text-mystic-rose/65 mt-1">{q.correctFeedback}</p>
+                      <p className="text-[11px] text-text-secondary">{q.question}</p>
+                      <p className="text-[10px] text-text-secondary mt-1">{q.correctFeedback}</p>
                     </div>
                   ))}
                 </div>
@@ -215,7 +215,7 @@ export function QuizModal({ open, onClose, count = 10 }: Props) {
               </button>
               <button
                 onClick={onClose}
-                className="flex-1 py-2.5 rounded-xl border border-mystic-purple/20 text-mystic-rose/65 text-sm hover:bg-mystic-purple/10 transition-all"
+                className="flex-1 py-2.5 rounded-xl border border-mystic-purple/20 text-text-secondary text-sm hover:bg-mystic-purple/10 transition-all"
               >
                 关闭
               </button>

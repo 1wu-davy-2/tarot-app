@@ -274,7 +274,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between mb-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
+            className="inline-flex items-center gap-1.5 text-text-secondary hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">返回首页</span>
@@ -282,13 +282,13 @@ export default function ProfilePage() {
           <div className="flex border-b border-mystic-purple/20">
             <button
               onClick={() => setActiveTab("info")}
-              className={`flex items-center gap-1.5 px-3 py-2 text-sm sm:text-base font-cinzel transition-colors border-b-2 -mb-[1px] ${activeTab==="info"?"border-mystic-gold text-mystic-gold":"border-transparent text-foreground/55 hover:text-foreground/75"}`}
+              className={`flex items-center gap-1.5 px-3 py-2 text-sm sm:text-base font-cinzel transition-colors border-b-2 -mb-[1px] ${activeTab==="info"?"border-mystic-gold text-mystic-gold":"border-transparent text-text-secondary hover:text-text-primary"}`}
             >
               资料
             </button>
             <button
               onClick={() => { setActiveTab("achievements"); setAchievements(getAllAchievementProgress()); }}
-              className={`flex items-center gap-1.5 px-3 py-2 text-sm sm:text-base font-cinzel transition-colors border-b-2 -mb-[1px] ${activeTab==="achievements"?"border-mystic-gold text-mystic-gold":"border-transparent text-foreground/55 hover:text-foreground/75"}`}
+              className={`flex items-center gap-1.5 px-3 py-2 text-sm sm:text-base font-cinzel transition-colors border-b-2 -mb-[1px] ${activeTab==="achievements"?"border-mystic-gold text-mystic-gold":"border-transparent text-text-secondary hover:text-text-primary"}`}
             >
               成就
             </button>
@@ -308,8 +308,8 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-cinzel text-mystic-gold">{user?.username}</h1>
-              <p className="text-xs text-mystic-rose/55 mt-1">{user?.email}</p>
-              {user?.phone && <p className="text-xs text-mystic-rose/45">{user?.phone}</p>}
+              <p className="text-xs text-text-secondary mt-1">{user?.email}</p>
+              {user?.phone && <p className="text-xs text-text-tertiary">{user?.phone}</p>}
               {user?.is_admin && (
                 <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-mystic-gold/15 border border-mystic-gold/30 text-mystic-gold text-[10px]">
                   管理员
@@ -321,7 +321,7 @@ export default function ProfilePage() {
                   {user.membership_expiry && ` · 至${user.membership_expiry.slice(0, 10)}`}
                 </span>
               ) : (
-                <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-mystic-purple/10 border border-mystic-purple/20 text-mystic-rose/55 text-[10px]">
+                <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-mystic-purple/10 border border-mystic-purple/20 text-text-secondary text-[10px]">
                   未订阅
                 </span>
               )}
@@ -334,7 +334,7 @@ export default function ProfilePage() {
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1 text-mystic-rose/55 hover:text-mystic-rose text-xs transition-colors"
+              className="flex items-center gap-1 text-text-secondary hover:text-mystic-rose text-xs transition-colors"
             >
               <LogOut className="w-4 h-4" />
               退出
@@ -354,20 +354,20 @@ export default function ProfilePage() {
             {/* Quota grid — 4 cards in one row */}
             <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-4">
               <div className="text-center p-2 sm:p-3 rounded-xl bg-mystic-purple/10 border border-mystic-purple/15">
-                <p className="text-[10px] text-mystic-rose/65 mb-1">基础</p>
-                <p className="text-lg sm:text-xl font-bold text-foreground/85">{quota.base_quota}</p>
+                <p className="text-[10px] text-text-secondary mb-1">基础</p>
+                <p className="text-lg sm:text-xl font-bold text-text-primary">{quota.base_quota}</p>
               </div>
               <div className="text-center p-2 sm:p-3 rounded-xl bg-mystic-gold/5 border border-mystic-gold/15">
-                <p className="text-[10px] text-mystic-rose/65 mb-1">签到</p>
+                <p className="text-[10px] text-text-secondary mb-1">签到</p>
                 <p className="text-lg sm:text-xl font-bold text-mystic-gold">+{quota.bonus_quota}</p>
               </div>
               <div className="text-center p-2 sm:p-3 rounded-xl bg-mystic-purple/10 border border-mystic-purple/15">
-                <p className="text-[10px] text-mystic-rose/65 mb-1">已用</p>
-                <p className="text-lg sm:text-xl font-bold text-foreground/85">{quota.used_count}</p>
+                <p className="text-[10px] text-text-secondary mb-1">已用</p>
+                <p className="text-lg sm:text-xl font-bold text-text-primary">{quota.used_count}</p>
               </div>
               <div className="text-center p-2 sm:p-3 rounded-xl bg-mystic-gold/10 border border-mystic-gold/20">
-                <p className="text-[10px] text-mystic-rose/65 mb-1">剩余</p>
-                <p className={`text-lg sm:text-2xl font-cinzel font-bold ${quota.remaining > 0 ? "text-mystic-gold" : "text-mystic-rose/75"}`}>
+                <p className="text-[10px] text-text-secondary mb-1">剩余</p>
+                <p className={`text-lg sm:text-2xl font-cinzel font-bold ${quota.remaining > 0 ? "text-mystic-gold" : "text-text-secondary"}`}>
                   {quota.remaining}
                 </p>
               </div>
@@ -397,7 +397,7 @@ export default function ProfilePage() {
                 每日签到
               </button>
               {checkinMsg && (
-                <span className="text-xs text-mystic-rose/65 ml-3">{checkinMsg}</span>
+                <span className="text-xs text-text-secondary ml-3">{checkinMsg}</span>
               )}
             </div>
           </motion.div>
@@ -422,9 +422,9 @@ export default function ProfilePage() {
             {horoLoading ? (
               <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 text-mystic-gold animate-spin" /></div>
             ) : horoscope ? (
-              <p className="text-sm text-foreground/85 leading-relaxed whitespace-pre-wrap">{horoscope.text}</p>
+              <p className="text-sm text-text-primary leading-relaxed whitespace-pre-wrap">{horoscope.text}</p>
             ) : (
-              <p className="text-xs text-mystic-rose/55">暂无法获取运势</p>
+              <p className="text-xs text-text-secondary">暂无法获取运势</p>
             )}
           </motion.div>
         )}
@@ -439,18 +439,18 @@ export default function ProfilePage() {
           <button onClick={() => setBirthExpanded(!birthExpanded)} className="w-full flex items-center justify-between mb-3">
             <h2 className="text-sm font-cinzel text-mystic-gold">出生星盘</h2>
             {birthDate && (
-              <span className="text-[11px] text-foreground/60 truncate max-w-[60%]">
+              <span className="text-[11px] text-text-secondary truncate max-w-[60%]">
                 {zodiacSign} · {birthDate}{birthTime ? ` · ${birthTime}` : ""}{birthPlace ? ` · ${birthPlace}` : ""}
               </span>
             )}
-            <ChevronDown className={`w-4 h-4 text-mystic-rose/45 transition-transform ${birthExpanded ? "rotate-180" : ""}`} />
+            <ChevronDown className={`w-4 h-4 text-text-tertiary transition-transform ${birthExpanded ? "rotate-180" : ""}`} />
           </button>
           {(birthExpanded || !birthDate) && (<>
 
           {/* Progress */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] text-mystic-rose/55">星盘完成度</span>
+              <span className="text-[10px] text-text-secondary">星盘完成度</span>
               <span className="text-xs text-mystic-gold/70 font-cormorant">{getCompletionPercent()}%</span>
             </div>
             <div className="h-1.5 rounded-full bg-mystic-purple/15 overflow-hidden">
@@ -513,30 +513,30 @@ export default function ProfilePage() {
           {/* Form */}
           <div className="space-y-4">
             <div>
-              <label className="block text-[10px] text-mystic-rose/55 mb-1.5 ml-1">出生日期</label>
+              <label className="block text-[10px] text-text-secondary mb-1.5 ml-1">出生日期</label>
               <input
                 type="date"
                 value={birthDate}
                 onChange={(e) => setBirthDate(e.target.value)}
-                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-mystic-gold/40 transition-colors"
                 style={{ colorScheme: "dark" }}
               />
             </div>
             <div>
-              <label className="block text-[10px] text-mystic-rose/55 mb-1.5 ml-1">
-                出生时间 <span className="text-mystic-rose/35">(可选，默认正午12:00)</span>
+              <label className="block text-[10px] text-text-secondary mb-1.5 ml-1">
+                出生时间 <span className="text-text-tertiary">(可选，默认正午12:00)</span>
               </label>
               <input
                 type="time"
                 value={birthTime}
                 onChange={(e) => setBirthTime(e.target.value)}
-                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-mystic-gold/40 transition-colors"
                 style={{ colorScheme: "dark" }}
               />
             </div>
             <div>
-              <label className="block text-[10px] text-mystic-rose/55 mb-1.5 ml-1">
-                出生地点 <span className="text-mystic-rose/35">(可选)</span>
+              <label className="block text-[10px] text-text-secondary mb-1.5 ml-1">
+                出生地点 <span className="text-text-tertiary">(可选)</span>
               </label>
               <input
                 type="text"
@@ -544,17 +544,17 @@ export default function ProfilePage() {
                 onChange={(e) => setBirthPlace(e.target.value)}
                 placeholder="输入城市名称，如'北京'"
                 maxLength={100}
-                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 placeholder:text-foreground/40 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-mystic-gold/40 transition-colors"
               />
             </div>
             <div>
-              <label className="block text-[10px] text-mystic-rose/55 mb-1.5 ml-1">
-                星座 <span className="text-mystic-rose/35">(选取对应的星座)</span>
+              <label className="block text-[10px] text-text-secondary mb-1.5 ml-1">
+                星座 <span className="text-text-tertiary">(选取对应的星座)</span>
               </label>
               <select
                 value={zodiacSign}
                 onChange={(e) => setZodiacSign(e.target.value)}
-                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-foreground/80 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-mystic-gold/40 transition-colors"
                 style={{ colorScheme: "dark" }}
               >
                 <option value="">选择星座（可选）</option>
@@ -589,7 +589,7 @@ export default function ProfilePage() {
               保存星盘信息
             </button>
             {birthMsg && (
-              <span className={`text-xs ${birthMsg.includes("失败") ? "text-red-400/60" : "text-mystic-rose/65"}`}>
+              <span className={`text-xs ${birthMsg.includes("失败") ? "text-red-400/60" : "text-text-secondary"}`}>
                 {birthMsg}
               </span>
             )}
@@ -609,27 +609,27 @@ export default function ProfilePage() {
               <Bell className="w-4 h-4 text-mystic-gold/70" />
               <h2 className="text-sm font-cinzel text-mystic-gold">通知设置</h2>
             </span>
-            <span className="text-[11px] text-foreground/55">
+            <span className="text-[11px] text-text-secondary">
               {notifySettings.dailyCard.enabled ? "每日塔罗" : ""}
               {notifySettings.checkIn.enabled ? (notifySettings.dailyCard.enabled ? " + 签到" : "签到") : ""}
               {!notifySettings.dailyCard.enabled && !notifySettings.checkIn.enabled ? "已关闭" : ""}
             </span>
-            <ChevronDown className={`w-4 h-4 text-mystic-rose/45 transition-transform ${notifyExpanded ? "rotate-180" : ""}`} />
+            <ChevronDown className={`w-4 h-4 text-text-tertiary transition-transform ${notifyExpanded ? "rotate-180" : ""}`} />
           </button>
           {notifyExpanded && (
           <div className="space-y-4">
             {/* Daily card */}
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <span className="text-sm text-foreground/80">每日塔罗提醒</span>
-                <p className="text-[10px] text-mystic-rose/55">每天准时推送今日运势牌</p>
+                <span className="text-sm text-text-primary">每日塔罗提醒</span>
+                <p className="text-[10px] text-text-secondary">每天准时推送今日运势牌</p>
               </div>
               <div className="flex items-center gap-2">
                 <input
                   type="time"
                   value={notifySettings.dailyCard.time}
                   onChange={(e) => updateNotifyTime("dailyCard", e.target.value)}
-                  className="w-24 sm:w-28 bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-2 py-1 text-xs text-foreground/70 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                  className="w-24 sm:w-28 bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-2 py-1 text-xs text-text-secondary focus:outline-none focus:border-mystic-gold/40 transition-colors"
                   style={{ colorScheme: "dark" }}
                 />
                 <Toggle checked={notifySettings.dailyCard.enabled} onChange={() => toggleNotify("dailyCard")} />
@@ -639,8 +639,8 @@ export default function ProfilePage() {
             {/* Moon phase */}
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-sm text-foreground/80">新月/满月提醒</span>
-                <p className="text-[10px] text-mystic-rose/55">月相能量节点提醒冥想与占卜</p>
+                <span className="text-sm text-text-primary">新月/满月提醒</span>
+                <p className="text-[10px] text-text-secondary">月相能量节点提醒冥想与占卜</p>
               </div>
               <Toggle checked={notifySettings.moonPhase.enabled} onChange={() => toggleNotify("moonPhase")} />
             </div>
@@ -648,15 +648,15 @@ export default function ProfilePage() {
             {/* Check-in */}
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <span className="text-sm text-foreground/80">签到提醒</span>
-                <p className="text-[10px] text-mystic-rose/55">每日提醒签到获取 AI 解读次数</p>
+                <span className="text-sm text-text-primary">签到提醒</span>
+                <p className="text-[10px] text-text-secondary">每日提醒签到获取 AI 解读次数</p>
               </div>
               <div className="flex items-center gap-2">
                 <input
                   type="time"
                   value={notifySettings.checkIn.time}
                   onChange={(e) => updateNotifyTime("checkIn", e.target.value)}
-                  className="w-24 sm:w-28 bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-2 py-1 text-xs text-foreground/70 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                  className="w-24 sm:w-28 bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-2 py-1 text-xs text-text-secondary focus:outline-none focus:border-mystic-gold/40 transition-colors"
                   style={{ colorScheme: "dark" }}
                 />
                 <Toggle checked={notifySettings.checkIn.enabled} onChange={() => toggleNotify("checkIn")} />
@@ -666,8 +666,8 @@ export default function ProfilePage() {
             {/* Membership expiry */}
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-sm text-foreground/80">会员到期提醒</span>
-                <p className="text-[10px] text-mystic-rose/55">到期前 3 天提醒续费</p>
+                <span className="text-sm text-text-primary">会员到期提醒</span>
+                <p className="text-[10px] text-text-secondary">到期前 3 天提醒续费</p>
               </div>
               <Toggle checked={notifySettings.membershipExpiry.enabled} onChange={() => toggleNotify("membershipExpiry")} />
             </div>
@@ -701,8 +701,8 @@ export default function ProfilePage() {
                 <FileText className="w-4 h-4 text-mystic-gold/70 shrink-0" />
               )}
               <div>
-                <span className="text-sm text-foreground/80">导出塔罗日记</span>
-                <p className="text-[10px] text-mystic-rose/55">生成当月日记 HTML 文件，浏览器直接打开查看</p>
+                <span className="text-sm text-text-primary">导出塔罗日记</span>
+                <p className="text-[10px] text-text-secondary">生成当月日记 HTML 文件，浏览器直接打开查看</p>
               </div>
             </button>
 
@@ -717,8 +717,8 @@ export default function ProfilePage() {
                 <ScrollText className="w-4 h-4 text-mystic-gold/70 shrink-0" />
               )}
               <div>
-                <span className="text-sm text-foreground/80">导出解读历史</span>
-                <p className="text-[10px] text-mystic-rose/55">生成解读记录 HTML 文件，浏览器直接打开查看</p>
+                <span className="text-sm text-text-primary">导出解读历史</span>
+                <p className="text-[10px] text-text-secondary">生成解读记录 HTML 文件，浏览器直接打开查看</p>
               </div>
             </button>
 
@@ -734,7 +734,7 @@ export default function ProfilePage() {
               )}
               <div>
                 <span className="text-sm text-mystic-gold/90">生成年度报告</span>
-                <p className="text-[10px] text-mystic-rose/55">统计分析 + 图表，精美排版年度总结</p>
+                <p className="text-[10px] text-text-secondary">统计分析 + 图表，精美排版年度总结</p>
               </div>
             </button>
           </div>
@@ -765,7 +765,7 @@ export default function ProfilePage() {
         >
           <h2 className="text-sm font-cinzel text-mystic-gold/60 mb-4">解读记录</h2>
           {readings.length === 0 && (
-            <p className="text-xs text-mystic-rose/55 text-center py-8">暂无解读记录</p>
+            <p className="text-xs text-text-secondary text-center py-8">暂无解读记录</p>
           )}
           <div className="space-y-3">
             {readings.map((r) => (
@@ -777,15 +777,15 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-sm font-cinzel text-mystic-gold/90">{r.spread_type || "占卜"}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-mystic-rose/55">
+                      <span className="text-[10px] text-text-secondary">
                         {new Date(r.created_at).toLocaleDateString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </span>
                       {r.question && (
-                        <span className="text-[10px] text-foreground/55 italic truncate max-w-[200px]">"{r.question}"</span>
+                        <span className="text-[10px] text-text-secondary italic truncate max-w-[200px]">"{r.question}"</span>
                       )}
                     </div>
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-mystic-rose/45 transition-transform ${expandedId === r.id ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`w-4 h-4 text-text-tertiary transition-transform ${expandedId === r.id ? "rotate-180" : ""}`} />
                 </button>
                 {expandedId === r.id && (
                   <motion.div
@@ -793,7 +793,7 @@ export default function ProfilePage() {
                     animate={{ height: "auto", opacity: 1 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-4 pb-4 border-t border-mystic-purple/10 text-xs text-foreground/85 leading-relaxed whitespace-pre-wrap">
+                    <div className="px-4 pb-4 border-t border-mystic-purple/10 text-xs text-text-primary leading-relaxed whitespace-pre-wrap">
                       {r.ai_response || r.question}
                     </div>
                   </motion.div>
@@ -888,10 +888,10 @@ function AchievementGrid({ achievements }: { achievements: ReturnType<typeof get
               <div className="text-2xl mb-1.5">
                 {isUnlocked ? a.icon : (a.secret ? "🔒" : a.icon)}
               </div>
-              <h3 className={`text-xs font-cinzel mb-0.5 ${isUnlocked ? "text-mystic-gold" : "text-foreground/45"}`}>
+              <h3 className={`text-xs font-cinzel mb-0.5 ${isUnlocked ? "text-mystic-gold" : "text-text-tertiary"}`}>
                 {isUnlocked ? a.title : (a.secret ? "???" : a.title)}
               </h3>
-              <p className="text-[10px] text-mystic-rose/45 mb-2">
+              <p className="text-[10px] text-text-tertiary mb-2">
                 {isUnlocked ? a.description : (a.secret ? "隐藏成就" : a.description)}
               </p>
               {/* Progress bar */}
@@ -903,7 +903,7 @@ function AchievementGrid({ achievements }: { achievements: ReturnType<typeof get
                   transition={{ duration: 0.4, delay: 0.2 + i * 0.03 }}
                 />
               </div>
-              <p className="text-[10px] text-mystic-rose/35 mt-1">
+              <p className="text-[10px] text-text-tertiary mt-1">
                 {a.current}/{a.target}
               </p>
               {isUnlocked && (
@@ -915,7 +915,7 @@ function AchievementGrid({ achievements }: { achievements: ReturnType<typeof get
       </div>
 
       {visible.length === 0 && (
-        <p className="text-center text-xs text-mystic-rose/55 py-12">暂无成就数据</p>
+        <p className="text-center text-xs text-text-secondary py-12">暂无成就数据</p>
       )}
     </>
   );
@@ -931,7 +931,7 @@ const PLANS = [
     features: ["每日单牌抽取", "标准解读（本地）", "3种基础牌阵", "本地历史记录"],
     color: "border-mystic-purple/30",
     bg: "bg-mystic-purple/5",
-    textColor: "text-mystic-rose/65",
+    textColor: "text-text-secondary",
   },
   {
     tier: "basic",
@@ -1026,10 +1026,10 @@ function DeckThemeSection({ user }: { user: any }) {
                 )}
               </div>
               <div>
-                <p className={`text-xs ${isActive ? "text-mystic-gold" : "text-foreground/70"}`}>
+                <p className={`text-xs ${isActive ? "text-mystic-gold" : "text-text-secondary"}`}>
                   {t.icon} {t.name}
                 </p>
-                {locked && <p className="text-[10px] text-mystic-rose/45 mt-0.5">🔒 需升级</p>}
+                {locked && <p className="text-[10px] text-text-tertiary mt-0.5">🔒 需升级</p>}
                 {isActive && <p className="text-[10px] text-mystic-gold/60 mt-0.5">使用中</p>}
               </div>
             </button>
@@ -1054,12 +1054,12 @@ function MembershipModal({ open, onClose, userMembership }: { open: boolean; onC
         initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
         className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto bg-[#0f0a1a] border border-mystic-purple/30 rounded-2xl shadow-2xl p-6"
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-mystic-rose/55 hover:text-mystic-rose">
+        <button onClick={onClose} className="absolute top-4 right-4 text-text-secondary hover:text-mystic-rose">
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
 
         <h3 className="text-lg font-cinzel text-mystic-gold text-center mb-1">会员方案对比</h3>
-        <p className="text-xs text-mystic-rose/55 text-center mb-5">选择适合你的方案</p>
+        <p className="text-xs text-text-secondary text-center mb-5">选择适合你的方案</p>
 
         <div className="grid grid-cols-3 gap-3">
           {PLANS.map((plan) => {
@@ -1072,14 +1072,14 @@ function MembershipModal({ open, onClose, userMembership }: { open: boolean; onC
                 <div className="text-center mb-2">
                   <span className="text-xl">{plan.icon}</span>
                   <h4 className={`text-xs font-cinzel mt-1 ${plan.textColor}`}>{plan.name}</h4>
-                  <p className="text-[10px] text-mystic-rose/55">{plan.price}</p>
+                  <p className="text-[10px] text-text-secondary">{plan.price}</p>
                 </div>
                 <div className="text-center mb-2">
                   <span className={`text-[10px] font-cinzel ${plan.textColor}`}>{plan.quota}</span>
                 </div>
                 <ul className="space-y-0.5">
                   {plan.features.map((f, i) => (
-                    <li key={i} className="text-[10px] text-foreground/75 flex items-start gap-1">
+                    <li key={i} className="text-[10px] text-text-secondary flex items-start gap-1">
                       <span className="text-mystic-gold/60 shrink-0 mt-0.5">•</span>
                       {f}
                     </li>

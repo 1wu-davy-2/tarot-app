@@ -101,12 +101,12 @@ export default function JournalEntrySheet({
                   className="bg-mystic-deep border border-red-500/20 rounded-2xl p-6 w-full max-w-xs text-center"
                 >
                   <AlertTriangle className="w-8 h-8 text-red-400/80 mx-auto mb-3" />
-                  <p className="text-sm text-foreground/80 mb-1">确定删除 {displayDate} 的日记吗？</p>
-                  <p className="text-xs text-mystic-rose/55 mb-5">删除后无法恢复</p>
+                  <p className="text-sm text-text-primary mb-1">确定删除 {displayDate} 的日记吗？</p>
+                  <p className="text-xs text-text-secondary mb-5">删除后无法恢复</p>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setShowDeleteConfirm(false)}
-                      className="flex-1 py-2.5 rounded-full border border-mystic-purple/20 text-mystic-rose/65 hover:text-mystic-rose text-sm transition-colors"
+                      className="flex-1 py-2.5 rounded-full border border-mystic-purple/20 text-text-secondary hover:text-mystic-rose text-sm transition-colors"
                     >
                       取消
                     </button>
@@ -150,7 +150,7 @@ export default function JournalEntrySheet({
                   )}
                   <button
                     onClick={onClose}
-                    className="p-2 rounded-full hover:bg-mystic-purple/10 text-mystic-rose/55 hover:text-mystic-rose transition-colors"
+                    className="p-2 rounded-full hover:bg-mystic-purple/10 text-text-secondary hover:text-mystic-rose transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -171,10 +171,10 @@ export default function JournalEntrySheet({
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-cinzel text-mystic-gold truncate">{card.nameCN}</p>
-                  <p className="text-[10px] text-mystic-rose/55 mt-0.5">
+                  <p className="text-[10px] text-text-secondary mt-0.5">
                     {isReversed ? "逆位" : "正位"} · {card.element || card.suit}
                   </p>
-                  <p className="text-[10px] text-foreground/65 mt-0.5 line-clamp-1">
+                  <p className="text-[10px] text-text-secondary mt-0.5 line-clamp-1">
                     {isReversed ? card.reversedMeaning : card.uprightMeaning}
                   </p>
                 </div>
@@ -186,13 +186,13 @@ export default function JournalEntrySheet({
                   <ElectionalInfo date={date} />
 
                   <div>
-                    <p className="text-[10px] text-mystic-rose/55 mb-2 ml-1">择日占卜</p>
+                    <p className="text-[10px] text-text-secondary mb-2 ml-1">择日占卜</p>
                     <div className="space-y-1.5">
                       {ELECTIONAL_TEMPLATES.map((t, j) => (
                         <button
                           key={j}
                           onClick={() => onDivination?.(t.question)}
-                          className="w-full text-left p-2.5 rounded-xl bg-mystic-dark/60 border border-mystic-purple/15 hover:border-mystic-gold/30 transition-colors text-xs text-foreground/85 hover:text-foreground/90 flex items-center gap-2"
+                          className="w-full text-left p-2.5 rounded-xl bg-mystic-dark/60 border border-mystic-purple/15 hover:border-mystic-gold/30 transition-colors text-xs text-text-primary hover:text-text-primary flex items-center gap-2"
                         >
                           <Sparkles className="w-3 h-3 text-mystic-gold/60 flex-shrink-0" />
                           {t.label}
@@ -202,7 +202,7 @@ export default function JournalEntrySheet({
                   </div>
 
                   <div>
-                    <p className="text-[10px] text-mystic-rose/55 mb-2 ml-1">或输入你的问题</p>
+                    <p className="text-[10px] text-text-secondary mb-2 ml-1">或输入你的问题</p>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -210,7 +210,7 @@ export default function JournalEntrySheet({
                         onChange={(e) => setNote(e.target.value)}
                         placeholder="这天适合..."
                         maxLength={100}
-                        className="flex-1 bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-3 py-2 text-sm text-foreground/80 placeholder:text-foreground/45 focus:outline-none focus:border-mystic-gold/40 transition-colors"
+                        className="flex-1 bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-mystic-gold/40 transition-colors"
                       />
                       <button
                         onClick={() => {
@@ -229,7 +229,7 @@ export default function JournalEntrySheet({
                 </div>
               ) : (
                 <div className="pb-2">
-                  <p className="text-xs text-mystic-rose/55 mb-1 ml-1">今天的心情</p>
+                  <p className="text-xs text-text-secondary mb-1 ml-1">今天的心情</p>
                   <MoodSelector value={mood} onChange={setMood} />
 
                   <div className="mt-3">
@@ -239,9 +239,9 @@ export default function JournalEntrySheet({
                       placeholder="记录一句话..."
                       maxLength={200}
                       rows={2}
-                      className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl p-3 text-sm text-foreground/80 placeholder:text-foreground/45 focus:outline-none focus:border-mystic-gold/40 transition-colors resize-none"
+                      className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-xl p-3 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-mystic-gold/40 transition-colors resize-none"
                     />
-                    <p className="text-[10px] text-mystic-rose/35 text-right mt-1">
+                    <p className="text-[10px] text-text-tertiary text-right mt-1">
                       {note.length}/200
                     </p>
                   </div>
@@ -275,8 +275,8 @@ function ElectionalInfo({ date }: { date: string }) {
       <div className="glass-card p-4 flex items-center gap-3">
         <span className="text-xl">{getMoonPhaseEmoji(new Date(date + "T12:00:00"))}</span>
         <div>
-          <p className="text-xs text-foreground/75">当日无特殊天象</p>
-          <p className="text-[10px] text-mystic-rose/45 mt-0.5">可正常择日参考</p>
+          <p className="text-xs text-text-secondary">当日无特殊天象</p>
+          <p className="text-[10px] text-text-tertiary mt-0.5">可正常择日参考</p>
         </div>
       </div>
     );
@@ -284,14 +284,14 @@ function ElectionalInfo({ date }: { date: string }) {
 
   return (
     <div className="glass-card p-4">
-      <p className="text-[10px] text-mystic-rose/55 mb-2">当日天象</p>
+      <p className="text-[10px] text-text-secondary mb-2">当日天象</p>
       <div className="space-y-2">
         {events.map((ev, i) => (
           <div key={i} className="flex items-center gap-3">
             <span className="text-lg">{ev.icon}</span>
             <div>
-              <p className="text-sm text-foreground/80">{ev.label}</p>
-              <p className="text-[10px] text-mystic-rose/45">
+              <p className="text-sm text-text-primary">{ev.label}</p>
+              <p className="text-[10px] text-text-tertiary">
                 {ev.type === "new-moon" ? "适合开启新计划，设定意图" :
                  ev.type === "full-moon" ? "适合总结收尾，释放不再需要的事物" :
                  ev.type === "mercury-rx" ? "水逆期间，注意沟通细节，避免签约" :

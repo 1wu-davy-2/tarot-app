@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { TarotCard } from "./TarotCard";
@@ -45,7 +45,7 @@ export function CardSpread({ cards, spreadType, onFlipCard }: CardSpreadProps) {
                 onClick={() => onFlipCard(i)}
                 size="md"
               />
-              <span className="text-xs text-mystic-rose/75 font-cinzel tracking-wider">{c.position}</span>
+              <span className="text-xs text-text-secondary font-cinzel tracking-wider">{c.position}</span>
               {c.flipped && (
                 <span className="text-sm font-cinzel text-mystic-gold">{c.card.nameCN}</span>
               )}
@@ -77,7 +77,7 @@ export function CardSpread({ cards, spreadType, onFlipCard }: CardSpreadProps) {
             onClick={() => onFlipCard(0)}
             size="sm"
           />
-          <span className="text-[10px] text-mystic-rose/65">{celticPositions[0]}</span>
+          <span className="text-[10px] text-text-secondary">{celticPositions[0]}</span>
         </div>
         {/* Card 1 — Challenge (rotated 90°, crossing over Present) */}
         <div
@@ -95,7 +95,7 @@ export function CardSpread({ cards, spreadType, onFlipCard }: CardSpreadProps) {
             onClick={() => onFlipCard(1)}
             size="sm"
           />
-          <span className="text-[10px] text-mystic-rose/65">{celticPositions[1]}</span>
+          <span className="text-[10px] text-text-secondary">{celticPositions[1]}</span>
         </div>
       </div>
 
@@ -108,7 +108,7 @@ export function CardSpread({ cards, spreadType, onFlipCard }: CardSpreadProps) {
           onClick={() => onFlipCard(4)}
           size="sm"
         />
-        <span className="text-[10px] text-mystic-rose/65">{celticPositions[4]}</span>
+        <span className="text-[10px] text-text-secondary">{celticPositions[4]}</span>
       </div>
 
       {/* ── Bottom: Card 5 (Below / Subconscious) ── */}
@@ -120,7 +120,7 @@ export function CardSpread({ cards, spreadType, onFlipCard }: CardSpreadProps) {
           onClick={() => onFlipCard(5)}
           size="sm"
         />
-        <span className="text-[10px] text-mystic-rose/65">{celticPositions[5]}</span>
+        <span className="text-[10px] text-text-secondary">{celticPositions[5]}</span>
       </div>
 
       {/* ── Left Column: Cards 2 (Past), 3 (Future) ── */}
@@ -134,7 +134,7 @@ export function CardSpread({ cards, spreadType, onFlipCard }: CardSpreadProps) {
               onClick={() => onFlipCard(i)}
               size="sm"
             />
-            <span className="text-[10px] text-mystic-rose/65">{celticPositions[i]}</span>
+            <span className="text-[10px] text-text-secondary">{celticPositions[i]}</span>
           </div>
         ))}
       </div>
@@ -144,7 +144,7 @@ export function CardSpread({ cards, spreadType, onFlipCard }: CardSpreadProps) {
         <span className="text-[10px] text-mystic-gold/40 tracking-wider mb-1">权杖 Staff ↓</span>
         {[9, 8, 7, 6].map((i) => (
           <div key={i} className="flex items-center gap-2">
-            <span className="text-[10px] text-mystic-rose/65 w-20 text-right">{celticPositions[i]}</span>
+            <span className="text-[10px] text-text-secondary w-20 text-right">{celticPositions[i]}</span>
             <TarotCard
               card={cards[i].card}
               isReversed={cards[i].isReversed}

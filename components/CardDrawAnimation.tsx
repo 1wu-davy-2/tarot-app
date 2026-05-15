@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -175,7 +175,7 @@ export function CardDrawAnimation({ cards, count, onComplete }: CardDrawAnimatio
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-mystic-rose/75 text-sm"
+          className="text-text-secondary text-sm"
         >
           请从扇形牌阵中选择 {count} 张牌（已选 {selected.size}/{count}）
         </motion.p>

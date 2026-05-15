@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -171,10 +171,10 @@ export function TarotCard({
                 </span>
               )}
               <span className={`${cfg.text} font-cinzel text-mystic-gold text-center leading-tight`}>{card.nameCN}</span>
-              {suitCN && <span className="text-mystic-rose/65 text-xs mt-1">{suitCN}</span>}
+              {suitCN && <span className="text-text-secondary text-xs mt-1">{suitCN}</span>}
               <div className="flex flex-wrap justify-center gap-1 mt-2">
                 {card.keywords.slice(0, 2).map((kw) => (
-                  <span key={kw} className="text-[10px] text-mystic-rose/75 px-1.5 py-0.5 rounded-full border border-mystic-rose/20">{kw}</span>
+                  <span key={kw} className="text-[10px] text-text-secondary px-1.5 py-0.5 rounded-full border border-mystic-rose/20">{kw}</span>
                 ))}
               </div>
             </div>
@@ -187,14 +187,14 @@ export function TarotCard({
                 {card.nameCN}
               </span>
               {suitCN && (
-                <span className="text-mystic-rose/70 text-xs block mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{suitCN}</span>
+                <span className="text-text-secondary text-xs block mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{suitCN}</span>
               )}
             </div>
           )}
 
           {/* Reversed indicator */}
           {isReversed && (
-            <span className="absolute top-2 right-2 text-[10px] text-mystic-rose/80 border border-mystic-rose/30 rounded px-1 bg-mystic-dark/60">逆位</span>
+            <span className="absolute top-2 right-2 text-[10px] text-text-primary border border-mystic-rose/30 rounded px-1 bg-mystic-dark/60">逆位</span>
           )}
         </div>
       </motion.div>

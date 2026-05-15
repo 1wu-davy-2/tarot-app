@@ -82,7 +82,7 @@ function StandardInterpretation({
 
   return (
     <div className="space-y-4">
-      <p className="text-mystic-rose/65 text-xs text-center">
+      <p className="text-text-secondary text-xs text-center">
         本地标准解读，无需联网
       </p>
 
@@ -142,15 +142,15 @@ function MultiCardOverview({ entries }: { entries: CardEntry[] }) {
                       ? entry.card.interpretation.reversed
                       : entry.card.interpretation.upright;
                     return (
-                      <div key={i} className="text-xs text-foreground/75 leading-relaxed pl-3 border-l-2 border-mystic-purple/20">
-                        <span className="text-mystic-rose/75 font-cinzel text-[11px]">
+                      <div key={i} className="text-xs text-text-secondary leading-relaxed pl-3 border-l-2 border-mystic-purple/20">
+                        <span className="text-text-secondary font-cinzel text-[11px]">
                           【{entry.position}】{entry.card.nameCN}
-                          <span className={entry.isReversed ? "text-mystic-rose/65" : "text-mystic-gold/50"}>
+                          <span className={entry.isReversed ? "text-text-secondary" : "text-mystic-gold/50"}>
                             {entry.isReversed ? "逆" : "正"}
                           </span>
                           {' '}—
                         </span>
-                        <span className="text-foreground/85"> {interp[dim as keyof typeof interp]}</span>
+                        <span className="text-text-primary"> {interp[dim as keyof typeof interp]}</span>
                       </div>
                     );
                   })}
@@ -173,16 +173,16 @@ function MultiCardOverview({ entries }: { entries: CardEntry[] }) {
                 {entry.position}
               </span>
               <span className="text-sm font-cinzel text-mystic-gold truncate">{entry.card.nameCN}</span>
-              <span className={`text-xs ${entry.isReversed ? "text-mystic-rose/75" : "text-mystic-gold/60"}`}>
+              <span className={`text-xs ${entry.isReversed ? "text-text-secondary" : "text-mystic-gold/60"}`}>
                 {entry.isReversed ? "逆" : "正"}
               </span>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[10px] text-mystic-rose/55">
+              <span className="text-[10px] text-text-secondary">
                 {expandedCards.has(i) ? "收起" : "详细"}
               </span>
               <ChevronDown
-                className={`w-3.5 h-3.5 text-mystic-rose/55 transition-transform duration-200 ${
+                className={`w-3.5 h-3.5 text-text-secondary transition-transform duration-200 ${
                   expandedCards.has(i) ? "rotate-180" : ""
                 }`}
               />
@@ -217,7 +217,7 @@ function SingleCardDetail({ entry }: { entry: CardEntry }) {
 
   return (
     <div className="pt-3 space-y-2">
-      <p className="text-[11px] text-foreground/65 italic">
+      <p className="text-[11px] text-text-secondary italic">
         {entry.isReversed ? entry.card.reversedMeaning : entry.card.uprightMeaning}
       </p>
       {keys.map((key) => {
@@ -235,7 +235,7 @@ function SingleCardDetail({ entry }: { entry: CardEntry }) {
                 {dim.label}
               </span>
               <ChevronDown
-                className={`w-3 h-3 text-mystic-rose/55 transition-transform duration-200 ${
+                className={`w-3 h-3 text-text-secondary transition-transform duration-200 ${
                   isOpen ? "rotate-180" : ""
                 }`}
               />
@@ -249,7 +249,7 @@ function SingleCardDetail({ entry }: { entry: CardEntry }) {
                   transition={{ duration: 0.3 }}
                   className="overflow-hidden"
                 >
-                  <div className="px-3 pb-3 text-xs text-foreground/80 leading-relaxed border-t border-mystic-purple/10 pt-2">
+                  <div className="px-3 pb-3 text-xs text-text-primary leading-relaxed border-t border-mystic-purple/10 pt-2">
                     {interp[key]}
                   </div>
                 </motion.div>
@@ -260,8 +260,8 @@ function SingleCardDetail({ entry }: { entry: CardEntry }) {
       })}
       {entry.card.symbolism && (
         <div className="pt-2 border-t border-mystic-purple/15">
-          <p className="text-[10px] text-mystic-rose/55 mb-0.5">象征</p>
-          <p className="text-[10px] text-foreground/45 italic">{entry.card.symbolism}</p>
+          <p className="text-[10px] text-text-secondary mb-0.5">象征</p>
+          <p className="text-[10px] text-text-tertiary italic">{entry.card.symbolism}</p>
         </div>
       )}
     </div>
@@ -291,11 +291,11 @@ function SingleCardInterpretation({
         )}
         <div className="flex-1 min-w-0">
           <span className="text-sm font-cinzel text-mystic-gold">{entry.card.nameCN}</span>
-          <span className={`ml-2 text-xs ${entry.isReversed ? "text-mystic-rose/75" : "text-mystic-gold/60"}`}>
+          <span className={`ml-2 text-xs ${entry.isReversed ? "text-text-secondary" : "text-mystic-gold/60"}`}>
             {entry.isReversed ? "逆" : "正"}
           </span>
         </div>
-        <p className="text-[11px] text-foreground/65 italic truncate max-w-[50%]">
+        <p className="text-[11px] text-text-secondary italic truncate max-w-[50%]">
           {entry.isReversed ? entry.card.reversedMeaning : entry.card.uprightMeaning}
         </p>
       </div>
@@ -317,7 +317,7 @@ function SingleCardInterpretation({
                   {dim.label}
                 </span>
                 <ChevronDown
-                  className={`w-3 h-3 text-mystic-rose/55 transition-transform duration-200 ${
+                  className={`w-3 h-3 text-text-secondary transition-transform duration-200 ${
                     isOpen ? "rotate-180" : ""
                   }`}
                 />
@@ -331,7 +331,7 @@ function SingleCardInterpretation({
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-3 pb-3 text-xs text-foreground/80 leading-relaxed border-t border-mystic-purple/10 pt-2">
+                    <div className="px-3 pb-3 text-xs text-text-primary leading-relaxed border-t border-mystic-purple/10 pt-2">
                       {interp[key]}
                     </div>
                   </motion.div>
@@ -343,8 +343,8 @@ function SingleCardInterpretation({
 
         {entry.card.symbolism && (
           <div className="pt-2 border-t border-mystic-purple/15">
-            <p className="text-[10px] text-mystic-rose/55 mb-0.5">象征</p>
-            <p className="text-[10px] text-foreground/45 italic">{entry.card.symbolism}</p>
+            <p className="text-[10px] text-text-secondary mb-0.5">象征</p>
+            <p className="text-[10px] text-text-tertiary italic">{entry.card.symbolism}</p>
           </div>
         )}
       </div>
@@ -550,7 +550,7 @@ function AIInterpretationTab({
     <div>
       {!started && (
         <div className="text-center py-6">
-          <p className="text-foreground/75 text-sm mb-2">
+          <p className="text-text-secondary text-sm mb-2">
             获取 DeepSeek AI 为你深度解读牌面，融合东西方智慧
           </p>
 
@@ -565,7 +565,7 @@ function AIInterpretationTab({
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs transition-all duration-300 ${
                     persona === p.key
                       ? "bg-mystic-gold/15 border border-mystic-gold/40 text-mystic-gold"
-                      : "border border-mystic-purple/20 text-mystic-rose/65 hover:border-mystic-rose/30 hover:text-mystic-rose/70"
+                      : "border border-mystic-purple/20 text-text-secondary hover:border-mystic-rose/30 hover:text-text-primary"
                   }`}
                   title={p.desc}
                 >
@@ -576,7 +576,7 @@ function AIInterpretationTab({
             })}
           </div>
 
-          <p className="text-mystic-rose/55 text-xs mb-4">
+          <p className="text-text-secondary text-xs mb-4">
             {quotaLoaded
               ? isAdmin() ? "管理员 · 无限制"
               : isLoggedIn()
@@ -615,7 +615,7 @@ function AIInterpretationTab({
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           />
-          <p className="text-mystic-rose/75 text-sm">正在连接宇宙智慧...</p>
+          <p className="text-text-secondary text-sm">正在连接宇宙智慧...</p>
         </div>
       )}
 
@@ -638,11 +638,11 @@ function AIInterpretationTab({
           {conversation.length > 0 && conversation.map((msg, i) => (
             <div key={i} className={`mb-4 ${msg.role === "user" ? "text-right" : ""}`}>
               {msg.role === "user" ? (
-                <div className="inline-block px-3 py-2 rounded-xl bg-mystic-purple/20 text-foreground/80 text-sm max-w-[85%] text-left">
+                <div className="inline-block px-3 py-2 rounded-xl bg-mystic-purple/20 text-text-primary text-sm max-w-[85%] text-left">
                   {msg.content}
                 </div>
               ) : (
-                <div className="whitespace-pre-wrap text-cormorant leading-relaxed text-foreground/90">
+                <div className="whitespace-pre-wrap text-cormorant leading-relaxed text-text-primary">
                   {renderMarkdown(msg.content)}
                 </div>
               )}
@@ -654,7 +654,7 @@ function AIInterpretationTab({
 
           {/* Initial interpretation (if no conversation yet) */}
           {conversation.length === 0 && (
-            <div className="whitespace-pre-wrap text-cormorant leading-relaxed text-foreground/90">
+            <div className="whitespace-pre-wrap text-cormorant leading-relaxed text-text-primary">
               {renderMarkdown(text)}
             </div>
           )}
@@ -673,7 +673,7 @@ function AIInterpretationTab({
               onChange={(e) => setFollowUp(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleFollowUp()}
               placeholder="追问更多细节..."
-              className="flex-1 bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-sm text-foreground/80 placeholder:text-mystic-rose/45 focus:outline-none focus:border-mystic-gold/50 transition-colors"
+              className="flex-1 bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-mystic-gold/50 transition-colors"
             />
             <button
               onClick={handleFollowUp}
@@ -702,8 +702,8 @@ function renderMarkdown(text: string): React.ReactNode {
     if (line.startsWith("### ")) return <h4 key={i} className="text-mystic-gold font-cinzel text-base mt-4 mb-2">{line.slice(4)}</h4>;
     if (line.startsWith("## ")) return <h3 key={i} className="text-mystic-gold font-cinzel text-lg mt-4 mb-2">{line.slice(3)}</h3>;
     if (line.startsWith("# ")) return <h2 key={i} className="text-mystic-gold font-cinzel text-xl mt-4 mb-2">{line.slice(2)}</h2>;
-    if (line.startsWith("- ") || line.startsWith("* ")) return <li key={i} className="text-foreground/80 ml-4">{renderBold(line.slice(2))}</li>;
-    if (line.match(/^\d+\./)) return <li key={i} className="text-foreground/80 ml-4">{renderBold(line.replace(/^\d+\.\s*/, ""))}</li>;
+    if (line.startsWith("- ") || line.startsWith("* ")) return <li key={i} className="text-text-primary ml-4">{renderBold(line.slice(2))}</li>;
+    if (line.match(/^\d+\./)) return <li key={i} className="text-text-primary ml-4">{renderBold(line.replace(/^\d+\.\s*/, ""))}</li>;
     if (line.trim() === "") return <br key={i} />;
     return <p key={i} className="mb-1">{renderBold(line)}</p>;
   });
@@ -742,7 +742,7 @@ export function CardInterpretation({
           className={`flex items-center gap-2 px-4 py-3 text-sm transition-colors border-b-2 -mb-[1px] ${
             tab === "standard"
               ? "border-mystic-gold text-mystic-gold"
-              : "border-transparent text-foreground/55 hover:text-foreground/75"
+              : "border-transparent text-text-secondary hover:text-text-primary"
           }`}
         >
           <BookOpen className="w-4 h-4" />
@@ -753,7 +753,7 @@ export function CardInterpretation({
           className={`flex items-center gap-2 px-4 py-3 text-sm transition-colors border-b-2 -mb-[1px] ${
             tab === "ai"
               ? "border-mystic-gold text-mystic-gold"
-              : "border-transparent text-foreground/55 hover:text-foreground/75"
+              : "border-transparent text-text-secondary hover:text-text-primary"
           }`}
         >
           <Sparkles className="w-4 h-4" />

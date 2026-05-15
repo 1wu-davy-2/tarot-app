@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import type { AstroEvent } from "@/lib/astro-events";
@@ -50,7 +50,7 @@ export default function JournalCalendar({
         {WEEKDAYS.map((w) => (
           <div
             key={w}
-            className="text-center text-[10px] text-mystic-rose/45 font-cinzel py-1"
+            className="text-center text-[10px] text-text-tertiary font-cinzel py-1"
           >
             {w}
           </div>
@@ -92,7 +92,7 @@ export default function JournalCalendar({
               {/* Day number */}
               <span
                 className={`text-xs font-cormorant ${
-                  isToday ? "text-mystic-gold" : isFuture ? "text-foreground/45" : hasEntry ? "text-foreground/80" : "text-foreground/55"
+                  isToday ? "text-mystic-gold" : isFuture ? "text-text-tertiary" : hasEntry ? "text-text-primary" : "text-text-secondary"
                 }`}
               >
                 {day}
@@ -106,7 +106,7 @@ export default function JournalCalendar({
                       key={j}
                       title={ev.label}
                       className={`text-[10px] leading-none ${
-                        ev.type === "mercury-rx" ? "text-mystic-rose/75" : "text-mystic-gold/60"
+                        ev.type === "mercury-rx" ? "text-text-secondary" : "text-mystic-gold/60"
                       }`}
                     >
                       {ev.icon}
@@ -129,14 +129,14 @@ export default function JournalCalendar({
       {/* Astro legend */}
       {astroEvents && astroEvents.size > 0 && (
         <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-mystic-purple/10">
-          <div className="flex items-center gap-1 text-[10px] text-mystic-rose/45">
+          <div className="flex items-center gap-1 text-[10px] text-text-tertiary">
             <span>🌑</span><span>新月</span>
           </div>
-          <div className="flex items-center gap-1 text-[10px] text-mystic-rose/45">
+          <div className="flex items-center gap-1 text-[10px] text-text-tertiary">
             <span>🌕</span><span>满月</span>
           </div>
-          <div className="flex items-center gap-1 text-[10px] text-mystic-rose/45">
-            <span className="text-mystic-rose/75">☿</span><span>水逆</span>
+          <div className="flex items-center gap-1 text-[10px] text-text-tertiary">
+            <span className="text-text-secondary">☿</span><span>水逆</span>
           </div>
         </div>
       )}

@@ -1,11 +1,14 @@
-"""Daily fortune / zodiac horoscope with AI interpretation."""
+"""Daily fortune / zodiac horoscope with AI cache and scheduled generation."""
+import asyncio
 import json
+import threading
 import httpx
+from datetime import date, timedelta, datetime
 from fastapi import APIRouter, HTTPException, Query, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from database import get_db
-from models import User
+from database import get_db, SessionLocal
+from models import User, FortuneCache
 from routers.auth import get_current_user_optional
 from config import get_settings
 
@@ -18,52 +21,149 @@ ZODIAC_NAMES = [
 ]
 ZODIAC_EMOJI = ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"]
 
+PERIOD_LABELS = {"daily": "今日", "weekly": "本周", "monthly": "本月", "yearly": "本年"}
+PERIOD_HINTS = {
+    "daily": "请针对这一天给出运势",
+    "weekly": "请给出7天的整体趋势和每日要点",
+    "monthly": "请给出30天的月度趋势和关键节点",
+    "yearly": "请给出12个月的年度趋势和各月主题",
+}
 
-def _build_fortune_prompt(zodiac: str, gender_hint: str = "") -> str:
-    today = __import__("datetime").date.today().strftime("%Y年%m月%d日")
-    gender_line = f"用户性别参考：{gender_hint}" if gender_hint else ""
-    return f"""你是命运之镜的运势占卜师，请为一位{zodiac}用户生成今日运势解读。{gender_line}
+# ── Date key helpers ──
 
-请严格用以下JSON格式回复（不要markdown代码块，直接输出JSON）：
-{{
-  "summary": "一句话今日运势总结（15字以内，温暖治愈风）",
-  "interpretation": "今日运势详细解读（80-120字），结合星座特点给出个性化建议，语气温柔治愈",
-  "advice": "今日行动建议（40字以内），具体可行的小建议",
-  "warning": "今日避坑提醒（30字以内），提醒注意的地方",
-  "mood": "今日心情关键词（2-3个词）"
-}}
+def _monday_of_week(d: date) -> date:
+    return d - timedelta(days=d.weekday())
 
-今日日期：{today}"""
+def _period_date_key(period: str, ref_date: date | None = None) -> str:
+    """Return the canonical date_key for a period."""
+    d = ref_date or date.today()
+    if period == "daily":
+        return d.isoformat()
+    elif period == "weekly":
+        return _monday_of_week(d).isoformat()
+    elif period == "monthly":
+        return d.replace(day=1).isoformat()
+    elif period == "yearly":
+        return d.replace(month=1, day=1).isoformat()
+    return d.isoformat()
 
 
-@router.post("/daily")
-async def daily_fortune(
+# ── Cache-first SSE endpoint ──
+
+_CACHE_STREAM_DELAY = 1.0   # seconds between chunks (~30 chars each)
+_CACHE_CHUNK_SIZE = 30     # characters per chunk
+_INITIAL_PAUSE = 2.0       # initial "thinking" delay before streaming
+
+@router.post("/cached")
+async def cached_fortune(
     zodiac: str = Query(""),
+    period: str = Query("daily"),
     date: str = Query(""),
     gender: str = Query(""),
     user: User | None = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ):
-    """Generate AI-powered daily fortune for a zodiac sign (SSE stream)."""
+    """Get fortune from cache, stream via SSE. Falls back to live AI if no cache."""
+    import traceback
+    try:
+        return await _cached_fortune_impl(zodiac, period, date, db=db, user=user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        with open("fortune_error.log", "w") as f:
+            traceback.print_exc(file=f)
+        raise HTTPException(status_code=500, detail=f"Error: {e}")
+
+
+async def _cached_fortune_impl(
+    zodiac: str,
+    period: str,
+    date_str: str,
+    db: Session,
+    user: User | None = None,
+):
+    from datetime import date as date_cls
     if zodiac not in ZODIAC_NAMES:
         raise HTTPException(status_code=400, detail="无效的星座名称")
+    if period not in ("daily", "weekly", "monthly", "yearly"):
+        raise HTTPException(status_code=400, detail="无效的周期类型")
 
-    gender_hint = gender or ""
+    ref_date = date_cls.fromisoformat(date_str) if date_str else date_cls.today()
+    date_key = _period_date_key(period, ref_date)
+
+    # Consume quota for authenticated users (before streaming)
+    if user and hasattr(user, "id"):
+        _consume_fortune_quota(user.id, db)
+
+    # 1. Try cache first
+    cached = db.query(FortuneCache).filter(
+        FortuneCache.zodiac == zodiac,
+        FortuneCache.period == period,
+        FortuneCache.date_key == date_key,
+    ).first()
+
+    if cached:
+        try:
+            return _stream_cached_response(cached.response_json)
+        except Exception as e:
+            with open("fortune_error.log", "w") as f:
+                import traceback
+                traceback.print_exc(file=f)
+            raise HTTPException(status_code=500, detail=f"Cache stream error: {e}")
+
+    # 2. Fallback to live AI
+    try:
+        return await _stream_live_ai(zodiac, period, ref_date)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Live AI error: {e}")
+
+
+def _stream_cached_response(response_json: str):
+    """Stream stored JSON as SSE chunks mimicking real-time AI output."""
 
     async def event_stream():
-        # Build date-specific prompt
-        target_date = date or __import__("datetime").date.today().strftime("%Y年%m月%d日")
-        prompt = f"""你是命运之镜的运势占卜师，请为一位{zodiac}用户生成{target_date}的今日运势解读。
+        # Initial "thinking" pause
+        await asyncio.sleep(_INITIAL_PAUSE)
+        # Stream the AI response ~30 chars per second
+        text = response_json
+        i = 0
+        while i < len(text):
+            chunk = text[i:i + _CACHE_CHUNK_SIZE]
+            yield f"data: {json.dumps({'content': chunk}, ensure_ascii=False)}\n\n"
+            i += _CACHE_CHUNK_SIZE
+            await asyncio.sleep(_CACHE_STREAM_DELAY)
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+    )
+
+
+async def _stream_live_ai(zodiac: str, period: str, ref_date: date):
+    """Real-time AI call with SSE stream, then cache the result."""
+    target_date = ref_date.strftime("%Y年%m月%d日")
+    period_label = PERIOD_LABELS.get(period, "今日")
+    period_hint = PERIOD_HINTS.get(period, "")
+
+    prompt = f"""你是命运之镜的运势占卜师，请为一位{zodiac}用户生成{period_label}运势解读。
+日期：{target_date}
+{period_hint}
 
 请严格用以下JSON格式回复（不要markdown代码块，直接输出JSON）：
 {{
   "summary": "一句话运势总结（15字以内，温暖治愈风）",
-  "interpretation": "今日运势详细解读（80-120字），结合星座特点和{target_date}的日期能量给出个性化建议",
-  "advice": "今日行动建议（40字以内）",
-  "warning": "今日避坑提醒（30字以内）",
-  "mood": "今日心情关键词（2-3个词）"
+  "interpretation": "{period_label}运势详细解读（80-120字），结合星座特点给出个性化建议",
+  "advice": "行动建议（40字以内）",
+  "warning": "避坑提醒（30字以内）",
+  "mood": "运势关键词（2-3个词）"
 }}"""
 
+    async def event_stream():
+        accumulated = ""
         try:
             async with httpx.AsyncClient(timeout=60) as client:
                 response = await client.post(
@@ -97,14 +197,23 @@ async def daily_fortune(
                             parsed = json.loads(data)
                             content = parsed.get("choices", [{}])[0].get("delta", {}).get("content", "")
                             if content:
-                                yield f"data: {json.dumps({'content': content})}\n\n"
+                                accumulated += content
+                                yield f"data: {json.dumps({'content': content}, ensure_ascii=False)}\n\n"
                         except json.JSONDecodeError:
                             pass
 
         except httpx.ReadTimeout:
-            yield f"data: {json.dumps({'error': '运势生成超时，请稍后重试'})}\n\n"
+            yield f"data: {json.dumps({'error': '运势生成超时，请稍后重试'}, ensure_ascii=False)}\n\n"
         except Exception as e:
-            yield f"data: {json.dumps({'error': f'AI服务连接失败：{str(e)}'})}\n\n"
+            yield f"data: {json.dumps({'error': f'AI服务连接失败：{str(e)}'}, ensure_ascii=False)}\n\n"
+
+        # Cache the result for future requests
+        if accumulated:
+            try:
+                date_key = _period_date_key(period, ref_date)
+                _save_to_cache(zodiac, period, date_key, accumulated)
+            except Exception:
+                pass
 
     return StreamingResponse(
         event_stream(),
@@ -113,75 +222,298 @@ async def daily_fortune(
     )
 
 
+def _consume_fortune_quota(user_id: int, db: Session) -> bool:
+    """Deduct one quota for fortune AI reading. Returns True if consumed."""
+    try:
+        from database import SessionLocal
+        from models import DailyQuota
+        today_str = date.today().isoformat()
+        dq = db.query(DailyQuota).filter(
+            DailyQuota.user_id == user_id,
+            DailyQuota.date == today_str,
+        ).first()
+        if dq and dq.remaining > 0:
+            dq.used_count += 1
+            db.commit()
+            return True
+        elif dq and dq.remaining <= 0:
+            return False
+        # No quota row yet — create one with default base_quota
+        from config import get_settings
+        settings = get_settings()
+        dq = DailyQuota(
+            user_id=user_id,
+            date=today_str,
+            base_quota=settings.daily_base_quota,
+            bonus_quota=0,
+            gifted_quota=0,
+            used_count=1,
+        )
+        db.add(dq)
+        db.commit()
+        return True
+    except Exception as e:
+        print(f"[fortune_quota] Consume failed: {e}")
+        db.rollback()
+        return False
+
+
+def _save_to_cache(zodiac: str, period: str, date_key: str, response_json: str):
+    """Save fortune to DB cache (sync helper)."""
+    db = SessionLocal()
+    try:
+        # Upsert: replace existing cache for this key
+        existing = db.query(FortuneCache).filter(
+            FortuneCache.zodiac == zodiac,
+            FortuneCache.period == period,
+            FortuneCache.date_key == date_key,
+        ).first()
+        if existing:
+            existing.response_json = response_json
+        else:
+            db.add(FortuneCache(
+                zodiac=zodiac,
+                period=period,
+                date_key=date_key,
+                response_json=response_json,
+            ))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[fortune_cache] Save failed: {e}")
+    finally:
+        db.close()
+
+
+# ── Batch cache generation (one AI call per zodiac, generates all 4 periods) ──
+
+_GENERATE_LOCK = threading.Lock()
+
+def generate_all_cache(for_date: date | None = None):
+    """Generate fortune cache for all 12 zodiacs × 4 periods.
+
+    Each zodiac gets ONE AI call that returns all 4 periods at once.
+    This runs synchronously in a background thread.
+    """
+    ref_date = for_date or date.today()
+    print(f"[fortune_cache] Starting batch generation for {ref_date.isoformat()}")
+
+    for zodiac in ZODIAC_NAMES:
+        try:
+            _generate_one_zodiac(zodiac, ref_date)
+        except Exception as e:
+            print(f"[fortune_cache] Failed for {zodiac}: {e}")
+
+    print(f"[fortune_cache] Batch generation complete ({len(ZODIAC_NAMES)} zodiacs)")
+
+
+def _generate_one_zodiac(zodiac: str, ref_date: date):
+    """Call AI once to generate all 4 period fortunes for one zodiac."""
+    today_str = ref_date.strftime("%Y年%m月%d日")
+    week_start = _monday_of_week(ref_date).strftime("%Y年%m月%d日")
+    week_end = (_monday_of_week(ref_date) + timedelta(days=6)).strftime("%Y年%m月%d日")
+    month_start = ref_date.replace(day=1).strftime("%Y年%m月%d日")
+    month_end = (ref_date.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+    year_str = ref_date.strftime("%Y年")
+
+    prompt = f"""你是命运之镜的运势占卜师。请为一位{zodiac}用户生成运势解读。
+
+当前日期：{today_str}
+本周：{week_start} 至 {week_end}
+本月：{month_start} 至 {month_end.strftime("%Y年%m月%d日")}
+本年：{year_str}
+
+请一次性生成四个周期的运势，用以下JSON格式回复（不要markdown代码块，直接输出纯JSON）：
+
+{{
+  "daily": {{ "summary": "今日运势一句话（15字内）", "interpretation": "今日详细解读（80-120字）", "advice": "今日行动建议（40字内）", "warning": "今日避坑提醒（30字内）", "mood": "今日关键词（2-3个词）" }},
+  "weekly": {{ "summary": "本周运势一句话（15字内）", "interpretation": "本周详细解读（80-120字）", "advice": "本周行动建议（40字内）", "warning": "本周避坑提醒（30字内）", "mood": "本周关键词（2-3个词）" }},
+  "monthly": {{ "summary": "本月运势一句话（15字内）", "interpretation": "本月详细解读（80-120字）", "advice": "本月行动建议（40字内）", "warning": "本月避坑提醒（30字内）", "mood": "本月关键词（2-3个词）" }},
+  "yearly": {{ "summary": "本年运势一句话（15字内）", "interpretation": "本年详细解读（80-120字）", "advice": "本年行动建议（40字内）", "warning": "本年避坑提醒（30字内）", "mood": "本年关键词（2-3个词）" }}
+}}"""
+
+    print(f"[fortune_cache] Generating for {zodiac}...")
+
+    # Use httpx sync call (we're in a thread)
+    with httpx.Client(timeout=120) as client:
+        response = client.post(
+            "https://api.deepseek.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {settings.deepseek_api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "deepseek-chat",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.8,
+                "stream": False,
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+        content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+    if not content:
+        print(f"[fortune_cache] Empty response for {zodiac}")
+        return
+
+    # Clean markdown code block if present
+    content = content.strip()
+    if content.startswith("```"):
+        lines = content.split("\n")
+        content = "\n".join(lines[1:]) if len(lines) > 1 else content
+    if content.endswith("```"):
+        content = content[:-3].strip()
+
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError:
+        print(f"[fortune_cache] Failed to parse AI response for {zodiac}: {content[:100]}")
+        return
+
+    # Save each period
+    for period in ("daily", "weekly", "monthly", "yearly"):
+        period_data = parsed.get(period)
+        if not period_data:
+            continue
+        date_key = _period_date_key(period, ref_date)
+        _save_to_cache(zodiac, period, date_key, json.dumps(period_data, ensure_ascii=False))
+        print(f"[fortune_cache] Saved {zodiac}/{period}/{date_key}")
+
+    print(f"[fortune_cache] ✓ {zodiac} done")
+
+
+# ── Scheduler ──
+
+_scheduler_started = False
+
+def _scheduler_loop():
+    """Run cache generation every night shortly after midnight."""
+    import time as time_module
+    while True:
+        now = datetime.now()
+        # Next run: 00:05 tomorrow
+        next_run = now.replace(hour=0, minute=5, second=0, microsecond=0)
+        if now >= next_run:
+            next_run = next_run + timedelta(days=1)
+        wait_seconds = (next_run - now).total_seconds()
+        print(f"[fortune_scheduler] Next run at {next_run.isoformat()} (sleep {wait_seconds:.0f}s)")
+        time_module.sleep(wait_seconds)
+
+        try:
+            with _GENERATE_LOCK:
+                generate_all_cache()
+        except Exception as e:
+            print(f"[fortune_scheduler] Error: {e}")
+
+
+def start_fortune_scheduler():
+    global _scheduler_started
+    if _scheduler_started:
+        return
+    _scheduler_started = True
+    t = threading.Thread(target=_scheduler_loop, daemon=True)
+    t.start()
+    print("[fortune_scheduler] Started (daily at 00:05)")
+
+
+# ── Admin trigger endpoint ──
+
+@router.post("/generate-cache")
+def trigger_cache_generation(
+    user: User | None = Depends(get_current_user_optional),
+):
+    """Manually trigger cache generation for all zodiacs (admin or scheduled)."""
+    # Run in background thread so the request returns immediately
+    t = threading.Thread(target=lambda: generate_all_cache(), daemon=True)
+    t.start()
+    return {"ok": True, "message": "Cache generation started in background"}
+
+
+# ── Cache status endpoint ──
+
+@router.get("/cache-status")
+def cache_status(
+    date_str: str = Query(""),
+    db: Session = Depends(get_db),
+):
+    """Check which zodiacs/periods are cached for a given date."""
+    ref_date = date.fromisoformat(date_str) if date_str else date.today()
+    status = {}
+    for zodiac in ZODIAC_NAMES:
+        zodiac_status = {}
+        for period in ("daily", "weekly", "monthly", "yearly"):
+            date_key = _period_date_key(period, ref_date)
+            cached = db.query(FortuneCache).filter(
+                FortuneCache.zodiac == zodiac,
+                FortuneCache.period == period,
+                FortuneCache.date_key == date_key,
+            ).first()
+            zodiac_status[period] = bool(cached)
+        status[zodiac] = zodiac_status
+
+    total = sum(v for z in status.values() for v in z.values())
+    return {
+        "date": ref_date.isoformat(),
+        "total_cached": total,
+        "total_expected": len(ZODIAC_NAMES) * 4,
+        "zodiacs": status,
+    }
+
+
+# ── Legacy endpoints (kept for backward compat) ──
+
+@router.post("/daily")
+async def daily_fortune_legacy(
+    zodiac: str = Query(""),
+    date: str = Query(""),
+    gender: str = Query(""),
+    user: User | None = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+):
+    """Legacy daily endpoint — delegates to cached."""
+    return await cached_fortune(zodiac=zodiac, period="daily", date=date, gender=gender, user=user, db=db)
+
+
 @router.post("/period")
-async def period_fortune(
+async def period_fortune_legacy(
     zodiac: str = Query(""),
     period: str = Query("weekly"),
     gender: str = Query(""),
     user: User | None = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ):
-    """AI fortune for any period (weekly/monthly/yearly). SSE stream."""
-    if zodiac not in ZODIAC_NAMES:
-        raise HTTPException(status_code=400, detail="无效的星座名称")
-    if period not in ("weekly", "monthly", "yearly"):
-        raise HTTPException(status_code=400, detail="period must be weekly, monthly, or yearly")
+    """Legacy period endpoint — delegates to cached."""
+    return await cached_fortune(zodiac=zodiac, period=period, gender=gender, user=user, db=db)
 
-    period_names = {"weekly": "本周", "monthly": "本月", "yearly": "本年"}
-    period_hint = {"weekly": "请给出7天的整体趋势和每日要点", "monthly": "请给出30天的月度趋势和关键节点", "yearly": "请给出12个月的年度趋势和各月主题"}
 
-    async def event_stream():
-        today = __import__("datetime").date.today().strftime("%Y年%m月%d日")
-        prompt = f"""你是命运之镜的运势占卜师，请为一位{zodiac}用户生成{period_names[period]}运势解读。
-
-{period_hint[period]}
-当前日期：{today}
-
-请严格用以下JSON格式回复（不要markdown代码块）：
-{{
-  "summary": "一句话运势总结（15字以内，温暖治愈风）",
-  "interpretation": "运势详细解读（80-120字），结合星座特点给出个性化建议",
-  "advice": "行动建议（40字以内）",
-  "warning": "避坑提醒（30字以内）",
-  "mood": "运势关键词（2-3个词）"
-}}"""
-
-        try:
-            async with httpx.AsyncClient(timeout=60) as client:
-                response = await client.post(
-                    "https://api.deepseek.com/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {settings.deepseek_api_key}", "Content-Type": "application/json"},
-                    json={"model": "deepseek-chat", "messages": [{"role": "user", "content": prompt}], "temperature": 0.8, "stream": True},
-                )
-                response.raise_for_status()
-                buffer = ""
-                async for chunk in response.aiter_bytes():
-                    buffer += chunk.decode("utf-8")
-                    while "\n" in buffer:
-                        line, buffer = buffer.split("\n", 1)
-                        line = line.strip()
-                        if not line or not line.startswith("data: "): continue
-                        data = line[6:]
-                        if data == "[DONE]":
-                            yield "data: [DONE]\n\n"; continue
-                        try:
-                            parsed = json.loads(data)
-                            content = parsed.get("choices", [{}])[0].get("delta", {}).get("content", "")
-                            if content: yield f"data: {json.dumps({'content': content})}\n\n"
-                        except json.JSONDecodeError: pass
-        except httpx.ReadTimeout:
-            yield f"data: {json.dumps({'error': '运势生成超时'})}\n\n"
-        except Exception as e:
-            yield f"data: {json.dumps({'error': f'AI服务连接失败：{str(e)}'})}\n\n"
-
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
-    )
+@router.get("/quota-remaining")
+def fortune_quota_remaining(
+    user: User | None = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+):
+    """Check if user has remaining fortune quota for today."""
+    if not user or not hasattr(user, "id"):
+        return {"remaining": -1, "note": "guest — no quota tracking"}
+    from models import DailyQuota
+    today_str = date.today().isoformat()
+    dq = db.query(DailyQuota).filter(
+        DailyQuota.user_id == user.id,
+        DailyQuota.date == today_str,
+    ).first()
+    if not dq:
+        return {"remaining": 2, "used": 0, "note": "no record yet"}
+    return {
+        "remaining": dq.remaining,
+        "used": dq.used_count,
+        "base": dq.base_quota,
+        "bonus": dq.bonus_quota,
+        "gifted": dq.gifted_quota,
+    }
 
 
 @router.get("/zodiac-list")
 def zodiac_list():
     """Return list of zodiac signs with emojis."""
     return [{"name": n, "emoji": e, "index": i} for i, (n, e) in enumerate(zip(ZODIAC_NAMES, ZODIAC_EMOJI))]
+

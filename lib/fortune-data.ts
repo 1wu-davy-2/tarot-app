@@ -178,3 +178,95 @@ export const SCORE_LABELS: Record<string, { label: string; icon: string; color: 
   study: { label: "学习运势", icon: "📚", color: "#8b5cf6" },
   social: { label: "人际运势", icon: "🤝", color: "#f97316" },
 };
+
+// ── Suggest / Avoid badges (deterministic, not AI) ──
+
+const SUGGEST_TAGS = [
+  "造梦", "仪式感", "勇敢表达", "深度思考", "主动出击",
+  "耐心等待", "整理收纳", "社交破冰", "断舍离", "自我投资",
+  "早睡早起", "写日记", "户外散步", "学习新技能", "感恩练习",
+];
+
+const AVOID_TAGS = [
+  "思绪飘忽", "泼冷水", "冲动消费", "拖延症", "过度分析",
+  "熬夜透支", "情绪化决策", "盲目攀比", "多管闲事", "钻牛角尖",
+  "暴饮暴食", "口无遮拦", "三分钟热度", "自我否定", "急功近利",
+];
+
+export interface SuggestAvoid {
+  suggest: string[];
+  avoid: string[];
+}
+
+export function generateSuggestAvoid(zodiac: string, dateStr?: string): SuggestAvoid {
+  const today = dateStr || new Date().toISOString().slice(0, 10);
+  const seed = hashCode(`${today}-${zodiac}-badges`);
+  const seed2 = hashCode(`${zodiac}-${today}-badges2`);
+
+  const s1 = SUGGEST_TAGS[pickIndex(seed, SUGGEST_TAGS.length)];
+  let s2 = SUGGEST_TAGS[pickIndex(seed2, SUGGEST_TAGS.length, 3)];
+  if (s2 === s1) s2 = SUGGEST_TAGS[(SUGGEST_TAGS.indexOf(s1) + 1) % SUGGEST_TAGS.length];
+
+  const a1 = AVOID_TAGS[pickIndex(seed, AVOID_TAGS.length, 7)];
+  let a2 = AVOID_TAGS[pickIndex(seed2, AVOID_TAGS.length, 5)];
+  if (a2 === a1) a2 = AVOID_TAGS[(AVOID_TAGS.indexOf(a1) + 1) % AVOID_TAGS.length];
+
+  return { suggest: [s1, s2], avoid: [a1, a2] };
+}
+
+// ── Energy tasks with interactive state ──
+
+const TASKS_STORAGE_KEY = "tarot_energy_tasks";
+
+export interface EnergyTaskState {
+  date: string;
+  tasks: { id: number; icon: string; title: string; desc: string; done: boolean; tag: string }[];
+}
+
+const TASK_TAGS = ["突破", "人际", "仪式", "灵性", "健康", "创意", "内省", "行动"];
+
+export function getTodayEnergyTasks(zodiac: string, dateStr?: string): EnergyTaskState {
+  const today = dateStr || new Date().toISOString().slice(0, 10);
+
+  // Try loading saved state for today
+  try {
+    const raw = localStorage.getItem(TASKS_STORAGE_KEY);
+    if (raw) {
+      const saved: EnergyTaskState = JSON.parse(raw);
+      if (saved.date === today && saved.tasks.length > 0) return saved;
+    }
+  } catch {}
+
+  // Generate fresh tasks for today
+  const seed = hashCode(`${today}-${zodiac}-tasks`);
+  const seed2 = hashCode(`${zodiac}-${today}-tasks2`);
+  const indices = new Set<number>();
+  while (indices.size < 4) {
+    indices.add(pickIndex(indices.size === 0 ? seed : seed2 + indices.size, ENERGY_TASKS.length, indices.size * 3));
+  }
+
+  const tasks = Array.from(indices).map((idx, i) => ({
+    id: i,
+    icon: ENERGY_TASKS[idx].icon,
+    title: ENERGY_TASKS[idx].title,
+    desc: ENERGY_TASKS[idx].desc,
+    done: false,
+    tag: TASK_TAGS[pickIndex(seed + i, TASK_TAGS.length)],
+  }));
+
+  const state = { date: today, tasks };
+  try { localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(state)); } catch {}
+  return state;
+}
+
+export function toggleEnergyTask(taskId: number): EnergyTaskState | null {
+  try {
+    const raw = localStorage.getItem(TASKS_STORAGE_KEY);
+    if (!raw) return null;
+    const state: EnergyTaskState = JSON.parse(raw);
+    const task = state.tasks.find((t) => t.id === taskId);
+    if (task) task.done = !task.done;
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(state));
+    return state;
+  } catch { return null; }
+}

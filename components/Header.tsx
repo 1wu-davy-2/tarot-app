@@ -65,14 +65,14 @@ export function Header() {
               )}
               <button
                 onClick={() => router.push("/profile")}
-                className="flex items-center gap-1.5 text-xs text-mystic-rose/70 hover:text-mystic-rose transition-colors"
+                className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-mystic-rose transition-colors"
               >
                 <User className="w-3.5 h-3.5" />
                 <span className="max-w-[100px] truncate">{userName || "个人中心"}</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="text-[10px] text-mystic-rose/55 hover:text-mystic-rose/70 transition-colors"
+                className="text-[10px] text-text-secondary hover:text-text-primary transition-colors"
               >
                 退出
               </button>
@@ -80,7 +80,7 @@ export function Header() {
           ) : (
             <button
               onClick={() => setLoginOpen(true)}
-              className="flex items-center gap-1 text-xs text-mystic-rose/75 hover:text-mystic-rose transition-colors"
+              className="flex items-center gap-1 text-xs text-text-secondary hover:text-mystic-rose transition-colors"
             >
               <LogIn className="w-3.5 h-3.5" />
               登录 / 注册

@@ -91,7 +91,7 @@ export function MobileBottomNav() {
               <div className="relative">
                 <Icon
                   className={`w-5 h-5 transition-colors ${
-                    isActive ? "text-mystic-gold" : "text-mystic-rose/45"
+                    isActive ? "text-mystic-gold" : "text-text-tertiary"
                   }`}
                   strokeWidth={isActive ? 2 : 1.5}
                 />
@@ -101,7 +101,7 @@ export function MobileBottomNav() {
               </div>
               <span
                 className={`text-[10px] transition-colors ${
-                  isActive ? "text-mystic-gold" : "text-mystic-rose/25"
+                  isActive ? "text-mystic-gold" : "text-text-tertiary"
                 }`}
               >
                 {item.path === "/profile" && isMember ? "Pro" : item.label}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -64,7 +64,7 @@ export function AchievementToastContainer({
             <div>
               <p className="text-xs text-mystic-gold/70">🏆 成就解锁！</p>
               <p className="text-sm font-cinzel text-mystic-gold">{t.achievement.title}</p>
-              <p className="text-[10px] text-mystic-rose/55">{t.achievement.description}</p>
+              <p className="text-[10px] text-text-secondary">{t.achievement.description}</p>
             </div>
           </motion.div>
         ))}

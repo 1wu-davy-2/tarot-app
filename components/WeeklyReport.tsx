@@ -58,11 +58,11 @@ export default function WeeklyReport({
           </div>
           <div>
             <p className="text-sm font-cinzel text-mystic-gold">本周塔罗周报</p>
-            <p className="text-[10px] text-mystic-rose/55 mt-0.5">{weekLabel} · {entryCount} 天记录</p>
+            <p className="text-[10px] text-text-secondary mt-0.5">{weekLabel} · {entryCount} 天记录</p>
           </div>
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-mystic-rose/45 transition-transform ${expanded ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-text-tertiary transition-transform ${expanded ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -79,7 +79,7 @@ export default function WeeklyReport({
               {/* Generate button (when no report yet) */}
               {!report && !loading && !error && (
                 <div className="pt-5 text-center">
-                  <p className="text-xs text-foreground/65 mb-4">
+                  <p className="text-xs text-text-secondary mb-4">
                     AI 将综合分析你本周的日记记录与星盘信息，生成一份个性化的塔罗周报
                   </p>
                   <button
@@ -91,7 +91,7 @@ export default function WeeklyReport({
                     生成周报
                   </button>
                   {entryCount < 3 && (
-                    <p className="text-[10px] text-mystic-rose/45 mt-2">
+                    <p className="text-[10px] text-text-tertiary mt-2">
                       至少需要 3 天日记记录才能生成周报
                     </p>
                   )}
@@ -102,28 +102,28 @@ export default function WeeklyReport({
               {loading && (
                 <div className="pt-5 flex flex-col items-center gap-3">
                   <Loader2 className="w-6 h-6 text-mystic-gold animate-spin" />
-                  <p className="text-xs text-mystic-rose/55">AI 正在分析你的本周记录...</p>
+                  <p className="text-xs text-text-secondary">AI 正在分析你的本周记录...</p>
                 </div>
               )}
 
               {/* Report */}
               {report && (
                 <div className="pt-4">
-                  <div className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap markdown-body">
+                  <div className="text-sm text-text-primary leading-relaxed whitespace-pre-wrap markdown-body">
                     {renderMarkdown(report)}
                   </div>
                   <div className="flex items-center justify-between mt-5 pt-4 border-t border-mystic-purple/10">
                     <button
                       onClick={handleGenerate}
                       disabled={loading}
-                      className="flex items-center gap-1.5 text-[10px] text-mystic-rose/55 hover:text-mystic-rose transition-colors disabled:opacity-30"
+                      className="flex items-center gap-1.5 text-[10px] text-text-secondary hover:text-mystic-rose transition-colors disabled:opacity-30"
                     >
                       <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
                       重新生成
                     </button>
                     <button
                       onClick={() => setExpanded(false)}
-                      className="flex items-center gap-1 text-[10px] text-mystic-rose/45 hover:text-mystic-rose/65 transition-colors"
+                      className="flex items-center gap-1 text-[10px] text-text-tertiary hover:text-text-primary transition-colors"
                     >
                       <X className="w-3 h-3" />
                       收起
@@ -138,7 +138,7 @@ export default function WeeklyReport({
                   <p className="text-xs text-red-400/60 mb-3">{error}</p>
                   <button
                     onClick={handleGenerate}
-                    className="text-[10px] text-mystic-rose/55 hover:text-mystic-rose transition-colors"
+                    className="text-[10px] text-text-secondary hover:text-mystic-rose transition-colors"
                   >
                     重试
                   </button>
@@ -159,16 +159,16 @@ function renderMarkdown(text: string) {
     if (line.startsWith("### ")) return <h3 key={i} className="text-mystic-gold font-cinzel text-sm mt-4 mb-1">{line.slice(4)}</h3>;
     if (line.startsWith("## ")) return <h2 key={i} className="text-mystic-gold font-cinzel text-base mt-5 mb-2">{line.slice(3)}</h2>;
     if (line.startsWith("# ")) return <h1 key={i} className="text-mystic-gold font-cinzel text-lg mt-5 mb-2">{line.slice(2)}</h1>;
-    if (line.startsWith("- ")) return <li key={i} className="ml-4 text-foreground/85 text-sm">{line.slice(2)}</li>;
-    if (/^\d+\. /.test(line)) return <li key={i} className="ml-4 text-foreground/85 text-sm list-decimal">{line.replace(/^\d+\. /, "")}</li>;
+    if (line.startsWith("- ")) return <li key={i} className="ml-4 text-text-primary text-sm">{line.slice(2)}</li>;
+    if (/^\d+\. /.test(line)) return <li key={i} className="ml-4 text-text-primary text-sm list-decimal">{line.replace(/^\d+\. /, "")}</li>;
     if (line.trim() === "") return <br key={i} />;
     // Bold
     const parts = line.split(/(\*\*[^*]+\*\*)/g);
     if (parts.length > 1) {
-      return <p key={i} className="text-sm text-foreground/80 my-1">
+      return <p key={i} className="text-sm text-text-primary my-1">
         {parts.map((p, j) => p.startsWith("**") ? <strong key={j} className="text-mystic-gold">{p.slice(2, -2)}</strong> : p)}
       </p>;
     }
-    return <p key={i} className="text-sm text-foreground/80 my-1">{line}</p>;
+    return <p key={i} className="text-sm text-text-primary my-1">{line}</p>;
   });
 }

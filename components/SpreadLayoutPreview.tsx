@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -183,7 +183,7 @@ export function LayoutSelector({ selected, onSelect }: LayoutSelectorProps) {
             className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all text-center ${
               isSelected
                 ? "border-mystic-gold/40 bg-mystic-gold/10 text-mystic-gold"
-                : "border-mystic-purple/20 bg-mystic-purple/5 text-mystic-rose/65 hover:border-mystic-rose/30"
+                : "border-mystic-purple/20 bg-mystic-purple/5 text-text-secondary hover:border-mystic-rose/30"
             }`}
           >
             <span className="text-lg">{meta.icon}</span>

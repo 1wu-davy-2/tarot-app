@@ -72,7 +72,7 @@ export function OnboardingGuide() {
             {/* Close */}
             <button
               onClick={handleSkip}
-              className="absolute top-4 right-4 z-10 p-1 text-mystic-rose/45 hover:text-mystic-rose"
+              className="absolute top-4 right-4 z-10 p-1 text-text-tertiary hover:text-mystic-rose"
             >
               <X className="w-5 h-5" />
             </button>
@@ -85,7 +85,7 @@ export function OnboardingGuide() {
               <h3 className="text-xl font-cinzel text-mystic-gold mb-3">
                 {STEPS[step].title}
               </h3>
-              <p className="text-sm text-mystic-rose/75 leading-relaxed">
+              <p className="text-sm text-text-secondary leading-relaxed">
                 {STEPS[step].desc}
               </p>
             </div>
@@ -94,7 +94,7 @@ export function OnboardingGuide() {
             <div className="flex items-center justify-between px-8 pb-8">
               <button
                 onClick={handleSkip}
-                className="text-xs text-mystic-rose/45 hover:text-mystic-rose/75"
+                className="text-xs text-text-tertiary hover:text-text-primary"
               >
                 跳过
               </button>

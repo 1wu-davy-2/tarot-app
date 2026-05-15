@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
@@ -237,7 +237,7 @@ export default function JournalPage() {
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
+            className="inline-flex items-center gap-1.5 text-text-secondary hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">返回首页</span>
@@ -251,7 +251,7 @@ export default function JournalPage() {
           </motion.div>
           <div className="w-[60px]" />
         </div>
-        <p className="text-xs text-mystic-rose/55 text-center -mt-4 mb-6">Tarot Diary</p>
+        <p className="text-xs text-text-secondary text-center -mt-4 mb-6">Tarot Diary</p>
 
         {/* Weekly Report */}
         <motion.div
@@ -295,7 +295,7 @@ export default function JournalPage() {
         >
           <button
             onClick={handlePrevMonth}
-            className="p-2 rounded-full hover:bg-mystic-purple/10 text-mystic-rose/65 hover:text-mystic-rose transition-colors"
+            className="p-2 rounded-full hover:bg-mystic-purple/10 text-text-secondary hover:text-mystic-rose transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -304,7 +304,7 @@ export default function JournalPage() {
           </p>
           <button
             onClick={handleNextMonth}
-            className="p-2 rounded-full hover:bg-mystic-purple/10 text-mystic-rose/65 hover:text-mystic-rose transition-colors"
+            className="p-2 rounded-full hover:bg-mystic-purple/10 text-text-secondary hover:text-mystic-rose transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -338,7 +338,7 @@ export default function JournalPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.3 }}
           transition={{ delay: 0.4 }}
-          className="text-center text-[10px] text-foreground/45"
+          className="text-center text-[10px] text-text-tertiary"
         >
           每天写下一句话，让牌面见证你的成长轨迹
         </motion.p>

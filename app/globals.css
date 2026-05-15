@@ -8,6 +8,9 @@
   --color-mystic-gold: #d4a853;
   --color-mystic-rose: #deb8ff;
   --color-mystic-deep: #1a0f2e;
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
   --font-cinzel: 'Cinzel Decorative', serif;
   --font-cormorant: 'Cormorant Garamond', serif;
   --animate-card-flip: card-flip 0.8s ease-in-out;
@@ -21,12 +24,15 @@
 :root {
   --background: #0a0612;
   --foreground: #f2eef8;
+  --text-primary: #F5E8C8;
+  --text-secondary: rgba(245, 232, 200, 0.75);
+  --text-tertiary: rgba(245, 232, 200, 0.48);
 }
 
 /* Improved contrast for dim/low-brightness screens */
 @media (max-width: 768px) {
   .glass-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(18, 22, 40, 0.88);
   }
 }
 
@@ -96,9 +102,9 @@ body {
 
 /* Glass card utility */
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(18, 22, 40, 0.85);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(212, 168, 83, 0.15);
+  border: 1px solid rgba(212, 168, 83, 0.2);
   border-radius: 1rem;
 }
 

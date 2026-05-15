@@ -83,10 +83,10 @@ export default function HomePage() {
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-cinzel text-mystic-gold text-glow tracking-wider">
             命运之镜
           </h1>
-          <p className="text-mystic-rose/65 text-sm md:text-base mt-2 sm:mt-3 tracking-widest font-cormorant">
+          <p className="text-text-secondary text-sm md:text-base mt-2 sm:mt-3 tracking-widest font-cormorant">
             Mirror of Fate
           </p>
-          <p className="text-foreground/65 text-xs mt-3 sm:mt-4 max-w-xs mx-auto leading-relaxed">
+          <p className="text-text-secondary text-xs mt-3 sm:mt-4 max-w-xs mx-auto leading-relaxed">
             融合东西方古老智慧的塔罗指引，照见你内心深处的光
           </p>
         </motion.div>
@@ -104,7 +104,7 @@ export default function HomePage() {
         <motion.div variants={item}>
           <Link
             href={loggedIn ? "/profile" : "/login"}
-            className="inline-flex items-center gap-2 text-mystic-rose/55 hover:text-mystic-rose/70 transition-colors text-xs"
+            className="inline-flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors text-xs"
           >
             {loggedIn ? (
               <>
@@ -123,7 +123,7 @@ export default function HomePage() {
         {/* Footer hint — desktop only */}
         <motion.p
           variants={item}
-          className="hidden sm:block text-foreground/35 text-xs text-center mt-4 tracking-wider"
+          className="hidden sm:block text-text-tertiary text-xs text-center mt-4 tracking-wider"
         >
           &ldquo;答案不在牌中，而在你凝视牌面的眼中&rdquo;
         </motion.p>
@@ -142,8 +142,8 @@ function EntryCard({
       <div className="glass-card p-3 sm:p-7 text-center h-full hover:border-mystic-gold/40 transition-all duration-500 group-hover:-translate-y-1">
         <Icon className="w-6 h-6 sm:w-10 sm:h-10 text-mystic-gold mx-auto mb-2 sm:mb-4 group-hover:scale-110 transition-transform duration-500" />
         <h2 className="text-sm sm:text-xl font-cinzel text-mystic-gold mb-1 sm:mb-2">{title}</h2>
-        <p className="text-foreground/65 text-[10px] sm:text-sm mb-1.5 sm:mb-3">{enTitle}</p>
-        <p className="text-mystic-rose/55 text-[10px] sm:text-xs leading-tight">{desc}</p>
+        <p className="text-text-secondary text-[10px] sm:text-sm mb-1.5 sm:mb-3">{enTitle}</p>
+        <p className="text-text-secondary text-[10px] sm:text-xs leading-tight">{desc}</p>
       </div>
     </Link>
   );

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -81,7 +81,7 @@ export function DailyLearning() {
         <div className="flex items-center gap-2 mb-3">
           <Brain className="w-4 h-4 text-mystic-gold" />
           <span className="text-xs font-cinzel text-mystic-gold">学习进度</span>
-          <span className="text-[10px] text-mystic-rose/45 ml-auto">{totalLearned}/78</span>
+          <span className="text-[10px] text-text-tertiary ml-auto">{totalLearned}/78</span>
         </div>
         <div className="h-1.5 rounded-full bg-mystic-purple/15 overflow-hidden mb-2">
           <motion.div
@@ -94,8 +94,8 @@ export function DailyLearning() {
         <div className="grid grid-cols-5 gap-1">
           {Object.entries(stats).map(([key, count]) => (
             <div key={key} className="text-center">
-              <span className="text-[10px] text-mystic-rose/45">{SUIT_LABELS[key]?.slice(0, 2)}</span>
-              <p className="text-[10px] text-foreground/55">{count}/{SUIT_TOTALS[key]}</p>
+              <span className="text-[10px] text-text-tertiary">{SUIT_LABELS[key]?.slice(0, 2)}</span>
+              <p className="text-[10px] text-text-secondary">{count}/{SUIT_TOTALS[key]}</p>
             </div>
           ))}
         </div>
@@ -113,26 +113,26 @@ export function DailyLearning() {
           </div>
           <div className="text-center">
             <h2 className="text-xl font-cinzel text-mystic-gold">{card.nameCN}</h2>
-            <p className="text-xs text-mystic-rose/65">{card.name}</p>
+            <p className="text-xs text-text-secondary">{card.name}</p>
           </div>
 
           {/* Meta badges */}
           <div className="flex flex-wrap justify-center gap-2 text-[10px]">
-            <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-mystic-rose/70">
+            <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-text-secondary">
               {card.arcana === "major" ? "大阿卡纳" : "小阿卡纳"}
             </span>
             {card.suit && (
-              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-mystic-rose/70">
+              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-text-secondary">
                 {card.suit === "wands" ? "权杖" : card.suit === "cups" ? "圣杯" : card.suit === "swords" ? "宝剑" : "星币"}
               </span>
             )}
             {card.element && (
-              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-mystic-rose/70">
+              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-text-secondary">
                 {card.element}元素
               </span>
             )}
             {card.planet && (
-              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-mystic-rose/70">
+              <span className="px-2 py-0.5 rounded-full bg-mystic-purple/30 text-text-secondary">
                 {card.planet}
               </span>
             )}
@@ -153,19 +153,19 @@ export function DailyLearning() {
           <button
             onClick={() => setOrientation("upright")}
             className={`px-4 py-2 text-xs transition-colors border-b-2 -mb-[1px] ${
-              orientation === "upright" ? "border-mystic-gold text-mystic-gold" : "border-transparent text-foreground/55"
+              orientation === "upright" ? "border-mystic-gold text-mystic-gold" : "border-transparent text-text-secondary"
             }`}
           >正位 Upright</button>
           <button
             onClick={() => setOrientation("reversed")}
             className={`px-4 py-2 text-xs transition-colors border-b-2 -mb-[1px] ${
-              orientation === "reversed" ? "border-mystic-gold text-mystic-gold" : "border-transparent text-foreground/55"
+              orientation === "reversed" ? "border-mystic-gold text-mystic-gold" : "border-transparent text-text-secondary"
             }`}
           >逆位 Reversed</button>
         </div>
 
         {/* Meaning */}
-        <p className="text-xs text-foreground/75 italic text-center mb-4">
+        <p className="text-xs text-text-secondary italic text-center mb-4">
           {orientation === "upright" ? card.uprightMeaning : card.reversedMeaning}
         </p>
 
@@ -184,7 +184,7 @@ export function DailyLearning() {
                   <span className="text-xs font-cinzel text-mystic-gold/80 flex items-center gap-1.5">
                     <span>{dim.icon}</span> {dim.label}
                   </span>
-                  <ChevronDown className={`w-3 h-3 text-mystic-rose/55 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`w-3 h-3 text-text-secondary transition-transform ${isOpen ? "rotate-180" : ""}`} />
                 </button>
                 <AnimatePresence>
                   {isOpen && (
@@ -194,7 +194,7 @@ export function DailyLearning() {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-3 pb-3 text-xs text-foreground/80 leading-relaxed border-t border-mystic-purple/10 pt-2">
+                      <div className="px-3 pb-3 text-xs text-text-primary leading-relaxed border-t border-mystic-purple/10 pt-2">
                         {interp[key]}
                       </div>
                     </motion.div>
@@ -208,8 +208,8 @@ export function DailyLearning() {
         {/* Symbolism */}
         {card.symbolism && (
           <div className="mt-4 pt-4 border-t border-mystic-purple/20">
-            <p className="text-[10px] text-mystic-rose/55 mb-1">牌面象征</p>
-            <p className="text-[10px] text-foreground/45 italic">{card.symbolism}</p>
+            <p className="text-[10px] text-text-secondary mb-1">牌面象征</p>
+            <p className="text-[10px] text-text-tertiary italic">{card.symbolism}</p>
           </div>
         )}
 
@@ -231,14 +231,14 @@ export function DailyLearning() {
           {!learned && !inList && (
             <button
               onClick={handleAddToList}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-mystic-purple/30 text-mystic-rose/75 hover:bg-mystic-purple/10 transition-all text-sm"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-mystic-purple/30 text-text-secondary hover:bg-mystic-purple/10 transition-all text-sm"
             >
               <Plus className="w-4 h-4" />
               加入学习列表
             </button>
           )}
           {inList && (
-            <span className="text-xs text-mystic-rose/55">已在学习列表中</span>
+            <span className="text-xs text-text-secondary">已在学习列表中</span>
           )}
         </div>
       </motion.div>

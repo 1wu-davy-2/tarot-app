@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -33,7 +33,7 @@ interface UserInfo {
 
 const TIER_LABELS: Record<string, string> = { free: "免费", basic: "基础会员", premium: "高级会员" };
 const TIER_COLORS: Record<string, string> = {
-  free: "text-foreground/45",
+  free: "text-text-tertiary",
   basic: "text-blue-400/80",
   premium: "text-mystic-gold",
 };
@@ -177,7 +177,7 @@ export default function AdminPage() {
     <div className="min-h-screen p-4 md:p-8 max-w-6xl mx-auto">
       <button
         onClick={() => router.push("/")}
-        className="flex items-center gap-2 text-mystic-rose/65 hover:text-mystic-rose text-sm mb-6"
+        className="flex items-center gap-2 text-text-secondary hover:text-mystic-rose text-sm mb-6"
       >
         <ArrowLeft className="w-4 h-4" /> 返回首页
       </button>
@@ -193,7 +193,7 @@ export default function AdminPage() {
             className={`px-4 py-2 rounded-lg text-sm transition-colors ${
               tab === t
                 ? "bg-mystic-gold/20 border border-mystic-gold/40 text-mystic-gold"
-                : "border border-mystic-purple/20 text-mystic-rose/65 hover:text-mystic-rose"
+                : "border border-mystic-purple/20 text-text-secondary hover:text-mystic-rose"
             }`}
           >
             {t === "readings" ? "占卜记录" : "用户列表"}
@@ -228,7 +228,7 @@ export default function AdminPage() {
               发布
             </button>
           </div>
-          {annMsg && <p className="text-xs text-mystic-rose/75">{annMsg}</p>}
+          {annMsg && <p className="text-xs text-text-secondary">{annMsg}</p>}
         </div>
       </div>
 
@@ -250,31 +250,31 @@ export default function AdminPage() {
                 className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-mystic-purple/5 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-xs text-mystic-rose/55 shrink-0">#{r.id}</span>
-                  <span className="text-sm text-foreground/80 truncate">{r.username}</span>
+                  <span className="text-xs text-text-secondary shrink-0">#{r.id}</span>
+                  <span className="text-sm text-text-primary truncate">{r.username}</span>
                   <span className="text-xs px-2 py-0.5 rounded bg-mystic-gold/10 text-mystic-gold/60">{r.spread_type}</span>
-                  <span className="text-xs text-mystic-rose/45 truncate hidden sm:inline">{r.question?.slice(0, 30)}{(r.question?.length ?? 0) > 30 ? "..." : ""}</span>
+                  <span className="text-xs text-text-tertiary truncate hidden sm:inline">{r.question?.slice(0, 30)}{(r.question?.length ?? 0) > 30 ? "..." : ""}</span>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-xs text-mystic-rose/45">{r.created_at?.slice(0, 10)}</span>
-                  {expanded.has(r.id) ? <ChevronUp className="w-4 h-4 text-mystic-rose/55" /> : <ChevronDown className="w-4 h-4 text-mystic-rose/55" />}
+                  <span className="text-xs text-text-tertiary">{r.created_at?.slice(0, 10)}</span>
+                  {expanded.has(r.id) ? <ChevronUp className="w-4 h-4 text-text-secondary" /> : <ChevronDown className="w-4 h-4 text-text-secondary" />}
                 </div>
               </button>
               {expanded.has(r.id) && (
                 <div className="px-4 pb-4 border-t border-mystic-purple/10 pt-3 space-y-3">
                   <div>
-                    <span className="text-xs text-mystic-rose/65">用户：</span>
-                    <span className="text-sm text-foreground/85">{r.username} ({r.email})</span>
+                    <span className="text-xs text-text-secondary">用户：</span>
+                    <span className="text-sm text-text-primary">{r.username} ({r.email})</span>
                   </div>
                   <div>
-                    <span className="text-xs text-mystic-rose/65">问题：</span>
-                    <p className="text-sm text-foreground/85">{r.question || "（未填写）"}</p>
+                    <span className="text-xs text-text-secondary">问题：</span>
+                    <p className="text-sm text-text-primary">{r.question || "（未填写）"}</p>
                   </div>
                   <div>
-                    <span className="text-xs text-mystic-rose/65">卡牌：</span>
+                    <span className="text-xs text-text-secondary">卡牌：</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {r.cards.map((c, i) => (
-                        <span key={i} className="text-xs px-2 py-0.5 rounded bg-mystic-purple/10 text-mystic-rose/75">
+                        <span key={i} className="text-xs px-2 py-0.5 rounded bg-mystic-purple/10 text-text-secondary">
                           {c.nameCN} {c.isReversed ? "逆" : "正"} [{c.position}]
                         </span>
                       ))}
@@ -282,8 +282,8 @@ export default function AdminPage() {
                   </div>
                   {r.ai_response && (
                     <div>
-                      <span className="text-xs text-mystic-rose/65">AI 解读：</span>
-                      <div className="text-sm text-foreground/85 mt-1 max-h-64 overflow-y-auto whitespace-pre-wrap bg-mystic-dark/40 rounded-lg p-3">
+                      <span className="text-xs text-text-secondary">AI 解读：</span>
+                      <div className="text-sm text-text-primary mt-1 max-h-64 overflow-y-auto whitespace-pre-wrap bg-mystic-dark/40 rounded-lg p-3">
                         {r.ai_response}
                       </div>
                     </div>
@@ -293,16 +293,16 @@ export default function AdminPage() {
             </motion.div>
           ))}
           {readings.length === 0 && (
-            <p className="text-center text-mystic-rose/55 py-8">暂无记录</p>
+            <p className="text-center text-text-secondary py-8">暂无记录</p>
           )}
         </div>
       ) : (
         <div className="space-y-2">
           {users.map((u) => (
             <div key={u.id} className="flex items-center gap-2 px-4 py-3 bg-[#0f0a1a]/80 border border-mystic-purple/20 rounded-xl flex-wrap">
-              <span className="text-xs text-mystic-rose/55 w-8">#{u.id}</span>
-              <span className="text-sm text-foreground/80 flex-1 min-w-[80px]">{u.username}</span>
-              <span className="text-xs text-mystic-rose/65 hidden sm:inline">{u.email}</span>
+              <span className="text-xs text-text-secondary w-8">#{u.id}</span>
+              <span className="text-sm text-text-primary flex-1 min-w-[80px]">{u.username}</span>
+              <span className="text-xs text-text-secondary hidden sm:inline">{u.email}</span>
               {u.is_admin && <span className="text-xs px-1.5 py-0.5 rounded bg-mystic-gold/20 text-mystic-gold">管理员</span>}
               {u.membership_tier && u.membership_tier !== "free" && (
                 <span className={`text-xs px-1.5 py-0.5 rounded bg-mystic-purple/20 ${TIER_COLORS[u.membership_tier]}`}>
@@ -316,7 +316,7 @@ export default function AdminPage() {
               ) : (
                 <span className="text-xs text-red-400/60">未验证</span>
               )}
-              <span className="text-xs text-mystic-rose/45">{u.created_at?.slice(0, 10)}</span>
+              <span className="text-xs text-text-tertiary">{u.created_at?.slice(0, 10)}</span>
 
               {/* Action buttons */}
               <div className="flex items-center gap-1 ml-auto">
@@ -335,7 +335,7 @@ export default function AdminPage() {
                     setMemberMsg("");
                     setMemberOpen(true);
                   }}
-                  className="p-1.5 rounded-lg hover:bg-mystic-purple/20 text-mystic-rose/55 hover:text-mystic-rose transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-mystic-purple/20 text-text-secondary hover:text-mystic-rose transition-colors"
                   title="设置会员"
                 >
                   <Crown className="w-4 h-4" />
@@ -362,32 +362,32 @@ export default function AdminPage() {
               <div className="bg-mystic-deep border border-mystic-purple/30 rounded-2xl p-6 w-full max-w-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-cinzel text-mystic-gold">赠送次数</h3>
-                  <button onClick={() => setGiftOpen(false)} className="text-mystic-rose/55 hover:text-mystic-rose">
+                  <button onClick={() => setGiftOpen(false)} className="text-text-secondary hover:text-mystic-rose">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                <p className="text-sm text-foreground/75 mb-4">
+                <p className="text-sm text-text-secondary mb-4">
                   用户：<span className="text-mystic-gold">{giftUser.username}</span>
                 </p>
-                <label className="text-xs text-mystic-rose/65 mb-2 block">赠送次数</label>
+                <label className="text-xs text-text-secondary mb-2 block">赠送次数</label>
                 <div className="flex items-center gap-2 mb-4">
                   <button
                     onClick={() => setGiftAmount(Math.max(1, giftAmount - 1))}
-                    className="w-8 h-8 rounded-full border border-mystic-purple/20 text-mystic-rose/65 hover:text-mystic-rose"
+                    className="w-8 h-8 rounded-full border border-mystic-purple/20 text-text-secondary hover:text-mystic-rose"
                   >-</button>
                   <input
                     type="number"
                     value={giftAmount}
                     onChange={(e) => setGiftAmount(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-20 text-center bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-3 py-2 text-foreground/80 text-lg outline-none focus:border-mystic-gold/50"
+                    className="w-20 text-center bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-3 py-2 text-text-primary text-lg outline-none focus:border-mystic-gold/50"
                   />
                   <button
                     onClick={() => setGiftAmount(giftAmount + 1)}
-                    className="w-8 h-8 rounded-full border border-mystic-purple/20 text-mystic-rose/65 hover:text-mystic-rose"
+                    className="w-8 h-8 rounded-full border border-mystic-purple/20 text-text-secondary hover:text-mystic-rose"
                   >+</button>
-                  <span className="text-xs text-mystic-rose/45">次</span>
+                  <span className="text-xs text-text-tertiary">次</span>
                 </div>
-                {giftMsg && <p className="text-xs text-mystic-rose/75 mb-3">{giftMsg}</p>}
+                {giftMsg && <p className="text-xs text-text-secondary mb-3">{giftMsg}</p>}
                 <button
                   onClick={handleGiftQuota}
                   className="w-full py-3 rounded-full bg-gradient-to-r from-mystic-purple to-mystic-dark border border-mystic-gold/50 text-mystic-gold hover:border-mystic-gold transition-all font-cinzel text-sm"
@@ -416,15 +416,15 @@ export default function AdminPage() {
               <div className="bg-mystic-deep border border-mystic-purple/30 rounded-2xl p-6 w-full max-w-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-cinzel text-mystic-gold">设置会员</h3>
-                  <button onClick={() => setMemberOpen(false)} className="text-mystic-rose/55 hover:text-mystic-rose">
+                  <button onClick={() => setMemberOpen(false)} className="text-text-secondary hover:text-mystic-rose">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                <p className="text-sm text-foreground/75 mb-4">
+                <p className="text-sm text-text-secondary mb-4">
                   用户：<span className="text-mystic-gold">{memberUser.username}</span>
                 </p>
 
-                <label className="text-xs text-mystic-rose/65 mb-2 block">会员等级</label>
+                <label className="text-xs text-text-secondary mb-2 block">会员等级</label>
                 <div className="flex gap-2 mb-4">
                   {(["free", "basic", "premium"] as const).map((tier) => (
                     <button
@@ -433,7 +433,7 @@ export default function AdminPage() {
                       className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
                         memberTier === tier
                           ? "bg-mystic-gold/20 border border-mystic-gold/40 text-mystic-gold"
-                          : "border border-mystic-purple/20 text-mystic-rose/65 hover:text-mystic-rose"
+                          : "border border-mystic-purple/20 text-text-secondary hover:text-mystic-rose"
                       }`}
                     >
                       {TIER_LABELS[tier]}
@@ -441,15 +441,15 @@ export default function AdminPage() {
                   ))}
                 </div>
 
-                <label className="text-xs text-mystic-rose/65 mb-2 block">到期日期（留空则永久有效）</label>
+                <label className="text-xs text-text-secondary mb-2 block">到期日期（留空则永久有效）</label>
                 <input
                   type="date"
                   value={memberExpiry}
                   onChange={(e) => setMemberExpiry(e.target.value)}
-                  className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-3 py-2 text-sm text-foreground/80 outline-none focus:border-mystic-gold/50 mb-4"
+                  className="w-full bg-mystic-dark/60 border border-mystic-purple/20 rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-mystic-gold/50 mb-4"
                 />
 
-                {memberMsg && <p className="text-xs text-mystic-rose/75 mb-3">{memberMsg}</p>}
+                {memberMsg && <p className="text-xs text-text-secondary mb-3">{memberMsg}</p>}
                 <button
                   onClick={handleSetMembership}
                   className="w-full py-3 rounded-full bg-gradient-to-r from-mystic-purple to-mystic-dark border border-mystic-gold/50 text-mystic-gold hover:border-mystic-gold transition-all font-cinzel text-sm"

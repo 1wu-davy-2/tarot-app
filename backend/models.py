@@ -108,3 +108,14 @@ class ReportRecord(Base):
     period = Column(String(50), default="")
     content_html = Column(Text, default="")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class FortuneCache(Base):
+    __tablename__ = "fortune_cache"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    zodiac = Column(String(20), nullable=False, index=True)
+    period = Column(String(10), nullable=False)  # daily, weekly, monthly, yearly
+    date_key = Column(String(10), nullable=False)  # YYYY-MM-DD
+    response_json = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

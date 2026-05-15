@@ -108,6 +108,11 @@ def ensure_columns():
         SpreadTemplate.__table__.create(engine, checkfirst=True)
         print("[startup] Created table spread_templates")
 
+    if not insp.has_table("fortune_cache"):
+        from models import FortuneCache
+        FortuneCache.__table__.create(engine, checkfirst=True)
+        print("[startup] Created table fortune_cache")
+
 
 def ensure_admin():
     """Ensure an admin user exists on startup."""
@@ -152,6 +157,8 @@ async def lifespan(app: FastAPI):
     ensure_admin()
     from routers.feedback import start_feedback_scheduler
     start_feedback_scheduler()
+    from routers.fortune import start_fortune_scheduler
+    start_fortune_scheduler()
     yield
 
 

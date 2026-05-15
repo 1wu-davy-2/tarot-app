@@ -315,7 +315,7 @@ export const TIER_COLORS: Record<AchievementTier, string> = {
   bronze: "border-amber-600/40 bg-amber-600/5 text-amber-400/80",
   silver: "border-slate-400/30 bg-slate-400/5 text-slate-300/80",
   gold: "border-mystic-gold/40 bg-mystic-gold/5 text-mystic-gold",
-  mystic: "border-mystic-rose/40 bg-mystic-rose/5 text-mystic-rose/80",
+  mystic: "border-mystic-rose/40 bg-mystic-rose/5 text-text-primary",
 };
 
 export const TIER_LABELS: Record<AchievementTier, string> = {

@@ -56,14 +56,14 @@ export function FeedbackWidget() {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setCollapsed(true)}
-                  className="p-0.5 text-mystic-rose/45 hover:text-mystic-rose/75"
+                  className="p-0.5 text-text-tertiary hover:text-text-primary"
                   title="收起至边栏"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => { setOpen(false); setText(""); setSent(false); setError(""); setCollapsed(false); }}
-                  className="p-0.5 text-mystic-rose/55 hover:text-mystic-rose"
+                  className="p-0.5 text-text-secondary hover:text-mystic-rose"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -74,7 +74,7 @@ export function FeedbackWidget() {
               <div className="flex flex-col items-center gap-2 py-8">
                 <Check className="w-8 h-8 text-green-400" />
                 <p className="text-sm text-green-400">已发送，感谢反馈！</p>
-                <p className="text-[10px] text-mystic-rose/55">作者收到后会第一时间进行优化</p>
+                <p className="text-[10px] text-text-secondary">作者收到后会第一时间进行优化</p>
               </div>
             ) : (
               <>
@@ -84,12 +84,12 @@ export function FeedbackWidget() {
                   placeholder="反馈意见或功能建议..."
                   maxLength={2000}
                   rows={4}
-                  className="w-full bg-transparent px-4 py-3 text-sm text-foreground/80 placeholder:text-foreground/45 outline-none resize-none"
+                  className="w-full bg-transparent px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none resize-none"
                 />
-                <p className="px-4 text-[10px] text-mystic-rose/55">作者收到消息后会第一时间进行优化处理</p>
+                <p className="px-4 text-[10px] text-text-secondary">作者收到消息后会第一时间进行优化处理</p>
                 {error && <p className="px-4 text-xs text-red-400/80">{error}</p>}
                 <div className="flex items-center justify-between px-4 py-2 border-t border-mystic-purple/10">
-                  <span className="text-[10px] text-mystic-rose/55">{text.length}/2000</span>
+                  <span className="text-[10px] text-text-secondary">{text.length}/2000</span>
                   <button
                     onClick={handleSubmit}
                     disabled={sending || !text.trim()}
@@ -119,7 +119,7 @@ export function FeedbackWidget() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => setCollapsed(false)}
-          className="absolute bottom-14 left-0 flex items-center gap-1 px-2 py-3 rounded-r-xl bg-[#0f0a1a]/95 border border-l-0 border-mystic-purple/20 text-mystic-rose/65 hover:text-mystic-rose transition-colors shadow-lg"
+          className="absolute bottom-14 left-0 flex items-center gap-1 px-2 py-3 rounded-r-xl bg-[#0f0a1a]/95 border border-l-0 border-mystic-purple/20 text-text-secondary hover:text-mystic-rose transition-colors shadow-lg"
           title="展开反馈"
         >
           <MessageSquare className="w-3.5 h-3.5" />
@@ -134,7 +134,7 @@ export function FeedbackWidget() {
           className={`flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg transition-all ${
             open
               ? "bg-mystic-purple/40 text-mystic-rose"
-              : "bg-[#0f0a1a]/90 border border-mystic-purple/20 text-mystic-rose/75 hover:text-mystic-rose hover:border-mystic-rose/30"
+              : "bg-[#0f0a1a]/90 border border-mystic-purple/20 text-text-secondary hover:text-mystic-rose hover:border-mystic-rose/30"
           }`}
         >
           <MessageSquare className="w-4 h-4" />

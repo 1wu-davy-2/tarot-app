@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
@@ -102,7 +102,7 @@ export function ShareButton({
     <>
       <motion.button
         onClick={handleShare}
-        className={`flex items-center gap-2 px-5 py-2.5 rounded-full border border-mystic-rose/40 text-mystic-rose/70 hover:border-mystic-rose hover:text-mystic-rose transition-all text-sm ${className}`}
+        className={`flex items-center gap-2 px-5 py-2.5 rounded-full border border-mystic-rose/40 text-text-secondary hover:border-mystic-rose hover:text-mystic-rose transition-all text-sm ${className}`}
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.97 }}
       >
@@ -115,7 +115,7 @@ export function ShareButton({
           <div className="relative max-w-md w-full max-h-[90vh] overflow-auto rounded-2xl bg-mystic-dark border border-mystic-gold/30 shadow-2xl">
             <button
               onClick={() => setShowPreview(false)}
-              className="absolute top-3 right-3 z-10 p-1 rounded-full bg-mystic-dark/80 text-mystic-rose/75 hover:text-mystic-rose"
+              className="absolute top-3 right-3 z-10 p-1 rounded-full bg-mystic-dark/80 text-text-secondary hover:text-mystic-rose"
             >
               <X className="w-5 h-5" />
             </button>
@@ -193,7 +193,7 @@ export function ShareButton({
 
             <div className="p-4 border-t border-mystic-purple/20 flex justify-center gap-4">
               {capturing ? (
-                <div className="flex items-center gap-2 text-mystic-rose/75 text-sm">
+                <div className="flex items-center gap-2 text-text-secondary text-sm">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   生成中...
                 </div>

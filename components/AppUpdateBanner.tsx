@@ -96,7 +96,7 @@ export function AppUpdateBanner() {
                 <p className="text-xs font-cinzel text-mystic-gold">
                   发现新版本 v{serverVersion}
                 </p>
-                <p className="text-[10px] text-foreground/70 mt-0.5">{releaseNotes}</p>
+                <p className="text-[10px] text-text-secondary mt-0.5">{releaseNotes}</p>
               </div>
               {downloading ? (
                 <span className="text-[10px] text-mystic-gold/70 shrink-0">
@@ -113,7 +113,7 @@ export function AppUpdateBanner() {
                   安装
                 </button>
               )}
-              <button onClick={handleDismiss} className="text-mystic-rose/45 hover:text-mystic-rose/75 shrink-0">
+              <button onClick={handleDismiss} className="text-text-tertiary hover:text-text-primary shrink-0">
                 <X className="w-4 h-4" />
               </button>
             </div>
