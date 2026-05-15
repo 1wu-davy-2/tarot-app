@@ -99,6 +99,7 @@ class UserInfo(BaseModel):
     is_admin: bool
     membership_tier: Optional[str] = "free"
     membership_expiry: Optional[datetime] = None
+    ai_model: Optional[str] = "deepseek"
     created_at: datetime
     birth_date: Optional[date] = None
     birth_time: Optional[str] = None    # serialized as "HH:MM"

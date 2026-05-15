@@ -7,8 +7,9 @@ from datetime import date, timedelta, datetime
 from fastapi import APIRouter, HTTPException, Query, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, and_
 from database import get_db, SessionLocal
-from models import User, FortuneCache
+from models import User, FortuneCache, CompatibilityCache
 from routers.auth import get_current_user_optional
 from config import get_settings
 
@@ -516,4 +517,175 @@ def fortune_quota_remaining(
 def zodiac_list():
     """Return list of zodiac signs with emojis."""
     return [{"name": n, "emoji": e, "index": i} for i, (n, e) in enumerate(zip(ZODIAC_NAMES, ZODIAC_EMOJI))]
+
+
+# ── Compatibility endpoint ──
+
+def _save_compatibility_cache(zodiac_a: str, zodiac_b: str, date_key: str, response_json: str):
+    """Save compatibility reading to DB cache (sync helper)."""
+    db = SessionLocal()
+    try:
+        existing = db.query(CompatibilityCache).filter(
+            CompatibilityCache.zodiac_a == zodiac_a,
+            CompatibilityCache.zodiac_b == zodiac_b,
+            CompatibilityCache.date_key == date_key,
+        ).first()
+        if existing:
+            existing.response_json = response_json
+        else:
+            db.add(CompatibilityCache(
+                zodiac_a=zodiac_a,
+                zodiac_b=zodiac_b,
+                date_key=date_key,
+                response_json=response_json,
+            ))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[compat_cache] Save failed: {e}")
+    finally:
+        db.close()
+
+
+async def _stream_live_compatibility(
+    user_zodiac: str,
+    partner_zodiac: str,
+    partner_gender: str,
+    partner_birth_date: str,
+    partner_birth_time: str,
+    partner_birth_place: str,
+    ref_date: date,
+):
+    """Real-time AI compatibility analysis with SSE stream, then cache."""
+    gender_label = "男" if partner_gender == "male" else "女"
+    target_date = ref_date.strftime("%Y年%m月%d日")
+    place_line = f"对象出生地点：{partner_birth_place}" if partner_birth_place else ""
+
+    prompt = f"""你是命运之镜的情感占星师。请为以下两人进行星座配对（合盘）分析：
+
+用户星座：{user_zodiac}
+对象星座：{partner_zodiac}
+对象性别：{gender_label}
+对象出生日期：{partner_birth_date}
+对象出生时间：{partner_birth_time}
+{place_line}
+
+请从多个维度分析两人配对情况，严格用以下JSON格式回复（不要markdown代码块，直接输出纯JSON）：
+
+{{
+  "summary": "配对总结（15字以内，温暖治愈风）",
+  "compatibility_score": 85,
+  "love_match": "感情契合度分析（60-80字）",
+  "communication": "沟通模式分析（50-70字）",
+  "challenges": "潜在挑战与注意事项（40-60字）",
+  "advice": "给两人的相处建议（50字以内）",
+  "mood": "配对关键词（2-3个词）"
+}}"""
+
+    async def event_stream():
+        accumulated = ""
+        try:
+            async with httpx.AsyncClient(timeout=60) as client:
+                response = await client.post(
+                    "https://api.deepseek.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {settings.deepseek_api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": "deepseek-chat",
+                        "messages": [{"role": "user", "content": prompt}],
+                        "temperature": 0.8,
+                        "stream": True,
+                    },
+                )
+                response.raise_for_status()
+
+                buffer = ""
+                async for chunk in response.aiter_bytes():
+                    buffer += chunk.decode("utf-8")
+                    while "\n" in buffer:
+                        line, buffer = buffer.split("\n", 1)
+                        line = line.strip()
+                        if not line or not line.startswith("data: "):
+                            continue
+                        data = line[6:]
+                        if data == "[DONE]":
+                            yield "data: [DONE]\n\n"
+                            continue
+                        try:
+                            parsed = json.loads(data)
+                            content = parsed.get("choices", [{}])[0].get("delta", {}).get("content", "")
+                            if content:
+                                accumulated += content
+                                yield f"data: {json.dumps({'content': content}, ensure_ascii=False)}\n\n"
+                        except json.JSONDecodeError:
+                            pass
+
+        except httpx.ReadTimeout:
+            yield f"data: {json.dumps({'error': '配对分析超时，请稍后重试'}, ensure_ascii=False)}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': f'AI服务连接失败：{str(e)}'}, ensure_ascii=False)}\n\n"
+
+        # Cache the result
+        if accumulated:
+            try:
+                date_key = ref_date.isoformat()
+                _save_compatibility_cache(user_zodiac, partner_zodiac, date_key, accumulated)
+            except Exception:
+                pass
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+    )
+
+
+@router.post("/compatibility")
+async def compatibility_fortune(
+    user_zodiac: str = Query(""),
+    partner_zodiac: str = Query(""),
+    partner_gender: str = Query(""),
+    partner_birth_date: str = Query(""),
+    partner_birth_time: str = Query(""),
+    partner_birth_place: str = Query(""),
+    date_str: str = Query("", alias="date"),
+    user: User | None = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+):
+    """Get zodiac compatibility analysis, stream via SSE. Cache-first, fallback to live AI."""
+    if user_zodiac not in ZODIAC_NAMES:
+        raise HTTPException(status_code=400, detail="无效的用户星座名称")
+    if partner_zodiac not in ZODIAC_NAMES:
+        raise HTTPException(status_code=400, detail="无效的对象星座名称")
+
+    ref_date = date.fromisoformat(date_str) if date_str else date.today()
+    date_key = ref_date.isoformat()
+
+    # Consume quota for authenticated users
+    if user and hasattr(user, "id"):
+        _consume_fortune_quota(user.id, db)
+
+    # Check cache (order-independent: A-B same as B-A)
+    cached = db.query(CompatibilityCache).filter(
+        or_(
+            and_(CompatibilityCache.zodiac_a == user_zodiac, CompatibilityCache.zodiac_b == partner_zodiac),
+            and_(CompatibilityCache.zodiac_a == partner_zodiac, CompatibilityCache.zodiac_b == user_zodiac),
+        ),
+        CompatibilityCache.date_key == date_key,
+    ).first()
+
+    if cached:
+        return _stream_cached_response(cached.response_json)
+
+    return await _stream_live_compatibility(
+        user_zodiac=user_zodiac,
+        partner_zodiac=partner_zodiac,
+        partner_gender=partner_gender,
+        partner_birth_date=partner_birth_date,
+        partner_birth_time=partner_birth_time,
+        partner_birth_place=partner_birth_place,
+        ref_date=ref_date,
+    )
 

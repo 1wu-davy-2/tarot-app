@@ -423,7 +423,7 @@ export default function SpreadPage() {
         <div className="flex items-center justify-between mb-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-text-secondary hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
+            className="inline-flex items-center gap-1.5 text-mystic-rose/75 hover:text-mystic-gold transition-colors text-sm px-3 py-1.5 -ml-3 rounded-lg hover:bg-mystic-purple/10"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">返回首页</span>
@@ -442,7 +442,7 @@ export default function SpreadPage() {
               exit={{ opacity: 0, y: -20 }}
               className="flex flex-col items-center gap-10"
             >
-              <p className="text-text-secondary text-xs text-center">选择牌阵，聆听命运的指引</p>
+              <p className="text-mystic-rose/55 text-xs text-center">选择牌阵，聆听命运的指引</p>
 
               {/* Spread selection */}
               {!showBuilder && (
@@ -464,7 +464,7 @@ export default function SpreadPage() {
                         className={`flex-1 py-3 text-sm transition-colors border-b-2 -mb-[1px] ${
                           activeTemplatesTab === key
                             ? "border-mystic-gold text-mystic-gold"
-                            : "border-transparent text-text-secondary hover:text-text-primary"
+                            : "border-transparent text-foreground/55 hover:text-foreground/75"
                         }`}
                       >
                         {label}
@@ -489,16 +489,16 @@ export default function SpreadPage() {
                         >
                           <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{s.icon}</div>
                           <h3 className="text-xl font-cinzel text-mystic-gold mb-1">{s.name}</h3>
-                          <p className="text-text-secondary text-xs mb-3">{s.subtitle}</p>
-                          <p className="text-text-secondary text-sm mb-3">{s.description}</p>
+                          <p className="text-foreground/55 text-xs mb-3">{s.subtitle}</p>
+                          <p className="text-foreground/75 text-sm mb-3">{s.description}</p>
                           <div className="flex flex-wrap gap-2 text-xs">
-                            <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-text-primary">
+                            <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-mystic-rose/80">
                               <Clock className="w-3 h-3 inline mr-1" />{s.time}
                             </span>
-                            <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-text-primary">
+                            <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-mystic-rose/80">
                               <Layers className="w-3 h-3 inline mr-1" />{s.cardCount}张牌
                             </span>
-                            <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-text-primary">
+                            <span className="px-2 py-1 rounded-full bg-mystic-purple/30 text-mystic-rose/80">
                               {s.difficulty}
                             </span>
                           </div>
@@ -518,7 +518,7 @@ export default function SpreadPage() {
                     >
                       <span className="text-xs font-cinzel text-mystic-gold/60 tracking-wider">高级牌阵</span>
                       <ChevronDown
-                        className={`w-4 h-4 text-text-secondary transition-transform duration-300 ${
+                        className={`w-4 h-4 text-mystic-rose/55 transition-transform duration-300 ${
                           showAdvanced ? "rotate-180" : ""
                         }`}
                       />
@@ -552,8 +552,8 @@ export default function SpreadPage() {
                                   <div className="text-left min-w-0">
                                     <p className="text-sm font-cinzel text-mystic-gold/90 truncate">{s.name}</p>
                                     <div className="flex items-center gap-2 mt-0.5">
-                                      <span className="text-[10px] text-text-secondary">{s.cardCount}张</span>
-                                      <span className="text-[10px] text-text-tertiary">{s.difficulty}</span>
+                                      <span className="text-[10px] text-mystic-rose/55">{s.cardCount}张</span>
+                                      <span className="text-[10px] text-mystic-rose/45">{s.difficulty}</span>
                                     </div>
                                   </div>
                                   {spreadType === key && (
@@ -589,11 +589,11 @@ export default function SpreadPage() {
                                 <span className="text-2xl">{s.icon}</span>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleDeleteCustom(key); }}
-                                  className="text-text-tertiary hover:text-text-primary"
+                                  className="text-mystic-rose/35 hover:text-mystic-rose/75"
                                 ><X className="w-3.5 h-3.5" /></button>
                               </div>
                               <p className="text-sm font-cinzel text-mystic-gold/90">{s.name}</p>
-                              <p className="text-[10px] text-text-secondary mt-1">{s.cardCount}张 · {s.layoutType ? LAYOUT_LABELS[s.layoutType]?.name : "线性"}</p>
+                              <p className="text-[10px] text-mystic-rose/55 mt-1">{s.cardCount}张 · {s.layoutType ? LAYOUT_LABELS[s.layoutType]?.name : "线性"}</p>
                             </motion.button>
                           );
                         })}
@@ -602,12 +602,12 @@ export default function SpreadPage() {
                           onClick={startBuilder}
                           className="glass-card p-4 flex flex-col items-center justify-center gap-2 border-dashed border-mystic-rose/20 hover:border-mystic-rose/50 transition-all min-h-[100px]"
                         >
-                          <Plus className="w-6 h-6 text-text-tertiary" />
-                          <span className="text-xs text-text-secondary">创建新牌阵</span>
+                          <Plus className="w-6 h-6 text-mystic-rose/45" />
+                          <span className="text-xs text-mystic-rose/55">创建新牌阵</span>
                         </motion.button>
                       </div>
                       {customKeys.length === 0 && (
-                        <p className="text-center text-xs text-text-secondary py-8">暂无自定义牌阵，点击上方创建</p>
+                        <p className="text-center text-xs text-mystic-rose/55 py-8">暂无自定义牌阵，点击上方创建</p>
                       )}
                     </div>
                   )}
@@ -620,7 +620,7 @@ export default function SpreadPage() {
                           <motion.div className="w-6 h-6 rounded-full border-2 border-mystic-gold border-t-transparent" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
                         </div>
                       ) : communityTemplates.length === 0 ? (
-                        <p className="text-center text-xs text-text-secondary py-8">暂无社区模板</p>
+                        <p className="text-center text-xs text-mystic-rose/55 py-8">暂无社区模板</p>
                       ) : (
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                           {communityTemplates.map((t) => (
@@ -632,8 +632,8 @@ export default function SpreadPage() {
                                 <span className="text-xl">{t.icon}</span>
                                 <span className="text-sm font-cinzel text-mystic-gold/90 truncate">{t.name}</span>
                               </div>
-                              <p className="text-[10px] text-text-secondary">{t.card_count}张 · {t.description}</p>
-                              <p className="text-[10px] text-text-tertiary">⬇ {t.use_count} 次使用</p>
+                              <p className="text-[10px] text-mystic-rose/55">{t.card_count}张 · {t.description}</p>
+                              <p className="text-[10px] text-mystic-rose/45">⬇ {t.use_count} 次使用</p>
                               <button
                                 onClick={async () => {
                                   try {
@@ -686,7 +686,7 @@ export default function SpreadPage() {
                     <h3 className="text-lg font-cinzel text-mystic-gold">
                       创建自定义牌阵 · 步骤 {builderStep}/3
                     </h3>
-                    <button onClick={() => setShowBuilder(false)} className="text-text-secondary hover:text-mystic-rose">
+                    <button onClick={() => setShowBuilder(false)} className="text-mystic-rose/55 hover:text-mystic-rose">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
@@ -695,12 +695,12 @@ export default function SpreadPage() {
                   {builderStep === 1 && (
                     <div className="space-y-4">
                       <div>
-                        <label className="text-xs text-text-secondary mb-1.5 block">牌阵名称</label>
+                        <label className="text-xs text-mystic-rose/65 mb-1.5 block">牌阵名称</label>
                         <input
                           value={builderName}
                           onChange={(e) => setBuilderName(e.target.value)}
                           placeholder="给你的牌阵取个名字"
-                          className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-mystic-gold/50"
+                          className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50"
                         />
                       </div>
                       <LayoutSelector selected={builderLayout} onSelect={handleLayoutChange} />
@@ -716,7 +716,7 @@ export default function SpreadPage() {
                   {/* Step 2: Layout Preview + Node Editing */}
                   {builderStep === 2 && (
                     <div className="space-y-4">
-                      <p className="text-xs text-text-secondary text-center">点击节点编辑牌位名称</p>
+                      <p className="text-xs text-mystic-rose/55 text-center">点击节点编辑牌位名称</p>
                       <SpreadLayoutPreview
                         layoutType={builderLayout}
                         nodes={builderNodes}
@@ -743,7 +743,7 @@ export default function SpreadPage() {
                               desc: builderLabels[editingNode]?.desc || "",
                             })}
                             placeholder="位置名称，如：过去"
-                            className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-mystic-gold/50 mb-2"
+                            className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-foreground/80 placeholder:text-mystic-rose/45 text-sm focus:outline-none focus:border-mystic-gold/50 mb-2"
                           />
                           <input
                             value={builderLabels[editingNode]?.desc || ""}
@@ -753,7 +753,7 @@ export default function SpreadPage() {
                               desc: e.target.value,
                             })}
                             placeholder="含义描述，如：过去对当下的影响"
-                            className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-tertiary text-xs focus:outline-none focus:border-mystic-gold/50"
+                            className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-2.5 text-foreground/80 placeholder:text-mystic-rose/45 text-xs focus:outline-none focus:border-mystic-gold/50"
                           />
                           <button
                             onClick={() => setEditingNode(null)}
@@ -764,7 +764,7 @@ export default function SpreadPage() {
                         </motion.div>
                       )}
                       <div className="flex gap-3">
-                        <button onClick={() => setBuilderStep(1)} className="px-6 py-3 rounded-full border border-mystic-rose/30 text-text-secondary hover:text-mystic-rose text-sm">
+                        <button onClick={() => setBuilderStep(1)} className="px-6 py-3 rounded-full border border-mystic-rose/30 text-mystic-rose/65 hover:text-mystic-rose text-sm">
                           上一步
                         </button>
                         <button onClick={() => setBuilderStep(3)} className="flex-1 py-3 rounded-full bg-gradient-to-r from-mystic-purple to-mystic-dark border border-mystic-gold/40 text-mystic-gold hover:border-mystic-gold text-sm">
@@ -779,20 +779,20 @@ export default function SpreadPage() {
                     <div className="space-y-4">
                       <div className="text-center">
                         <p className="text-sm text-mystic-gold font-cinzel">{builderName || "自定义牌阵"}</p>
-                        <p className="text-xs text-text-secondary mt-1">
+                        <p className="text-xs text-mystic-rose/55 mt-1">
                           {builderNodes.length} 张牌 · {LAYOUT_LABELS[builderLayout]?.name}
                         </p>
                       </div>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
                         {builderNodes.map((_, i) => (
-                          <div key={i} className="flex items-center gap-2 text-xs text-text-secondary">
+                          <div key={i} className="flex items-center gap-2 text-xs text-foreground/70">
                             <span className="text-mystic-gold min-w-[1.5rem]">#{i + 1}</span>
                             <span>{builderLabels[i]?.label || `位置 ${i + 1}`}</span>
                           </div>
                         ))}
                       </div>
                       <div className="flex gap-3">
-                        <button onClick={() => setBuilderStep(2)} className="px-6 py-3 rounded-full border border-mystic-rose/30 text-text-secondary text-sm">
+                        <button onClick={() => setBuilderStep(2)} className="px-6 py-3 rounded-full border border-mystic-rose/30 text-mystic-rose/65 text-sm">
                           上一步
                         </button>
                         <button onClick={handleCreateCustom} className="flex-1 py-3 rounded-full bg-gradient-to-r from-mystic-purple to-mystic-dark border border-mystic-gold/50 text-mystic-gold hover:border-mystic-gold font-cinzel text-sm">
@@ -820,20 +820,20 @@ export default function SpreadPage() {
                       {spread!.positions.map((pos, i) => (
                         <div key={i} className="flex items-start gap-3 text-xs">
                           <span className="text-mystic-gold/60 font-cinzel min-w-[4rem]">{pos.label}</span>
-                          <span className="text-text-secondary">{pos.desc}</span>
+                          <span className="text-foreground/55">{pos.desc}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   <div ref={questionRef}>
-                    <label className="text-xs text-text-secondary mb-2 block">你的问题（可选）</label>
+                    <label className="text-xs text-mystic-rose/65 mb-2 block">你的问题（可选）</label>
                     <textarea
                       value={question}
                       onChange={(e) => setQuestion(e.target.value)}
                       placeholder="你可以在心中默想，或者写下来..."
                       rows={3}
-                      className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-text-primary placeholder:text-text-tertiary text-sm resize-none focus:outline-none focus:border-mystic-gold/50 transition-colors"
+                      className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm resize-none focus:outline-none focus:border-mystic-gold/50 transition-colors"
                     />
                   </div>
 
@@ -847,7 +847,7 @@ export default function SpreadPage() {
 
                   <button
                     onClick={() => setSpreadType(null)}
-                    className="text-text-secondary text-xs hover:text-mystic-rose transition-colors text-center"
+                    className="text-mystic-rose/55 text-xs hover:text-mystic-rose transition-colors text-center"
                   >
                     重新选择牌阵
                   </button>
@@ -868,7 +868,7 @@ export default function SpreadPage() {
                 <h2 className="text-lg sm:text-xl font-cinzel text-mystic-gold">
                   {spread!.name} — 抽牌仪式
                 </h2>
-                <p className="text-text-secondary text-xs mt-0.5 sm:mt-1">
+                <p className="text-mystic-rose/55 text-xs mt-0.5 sm:mt-1">
                   跟随直觉，选择 {spread!.cardCount} 张呼唤你的牌
                 </p>
               </div>
@@ -890,7 +890,7 @@ export default function SpreadPage() {
             >
               <div className="text-center">
                 <h2 className="text-2xl font-cinzel text-mystic-gold">{spread!.name}</h2>
-                <p className="text-text-secondary text-xs mt-1">
+                <p className="text-mystic-rose/55 text-xs mt-1">
                   已翻开 {flippedCount}/{cards.length} 张
                 </p>
               </div>
@@ -900,7 +900,7 @@ export default function SpreadPage() {
                 {/* Toggle bar */}
                 <button
                   onClick={() => setCardsCollapsed(!cardsCollapsed)}
-                  className="flex items-center justify-center gap-2 w-full py-2 text-xs text-text-secondary hover:text-text-primary transition-colors"
+                  className="flex items-center justify-center gap-2 w-full py-2 text-xs text-mystic-rose/55 hover:text-mystic-rose/70 transition-colors"
                 >
                   {cardsCollapsed ? (
                     <>
@@ -928,8 +928,8 @@ export default function SpreadPage() {
                         className="flex items-center gap-2 px-3 py-2 rounded-lg border border-mystic-purple/20 bg-mystic-dark/30 text-sm"
                       >
                         <span className="text-mystic-gold/60 font-cinzel text-xs min-w-[1rem]">{i + 1}.</span>
-                        <span className="text-text-primary">{c.card.nameCN}</span>
-                        <span className={`text-xs ${c.isReversed ? "text-text-secondary" : "text-mystic-gold/60"}`}>
+                        <span className="text-foreground/80">{c.card.nameCN}</span>
+                        <span className={`text-xs ${c.isReversed ? "text-mystic-rose/75" : "text-mystic-gold/60"}`}>
                           {c.isReversed ? "逆" : "正"}
                         </span>
                       </div>
@@ -948,7 +948,7 @@ export default function SpreadPage() {
               </div>
 
               {phase === "revealing" && flippedCount > 0 && flippedCount < cards.length && (
-                <button onClick={handleFlipAll} className="text-text-secondary text-xs hover:text-mystic-rose transition-colors">
+                <button onClick={handleFlipAll} className="text-mystic-rose/55 text-xs hover:text-mystic-rose transition-colors">
                   翻开全部
                 </button>
               )}
@@ -1059,11 +1059,11 @@ function SpreadCardGrid({
               onClick={() => onFlipCard(i)}
               size="md"
             />
-            <span className="text-xs text-text-secondary font-cinzel tracking-wider">{c.position}</span>
+            <span className="text-xs text-mystic-rose/65 font-cinzel tracking-wider">{c.position}</span>
             {c.flipped && (
               <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm font-cinzel text-mystic-gold">
                 {c.card.nameCN}
-                <span className="text-text-secondary text-xs ml-1">{c.isReversed ? "逆" : "正"}</span>
+                <span className="text-mystic-rose/75 text-xs ml-1">{c.isReversed ? "逆" : "正"}</span>
               </motion.span>
             )}
           </div>
@@ -1095,7 +1095,7 @@ function SpreadCardGrid({
                 onClick={() => onFlipCard(i)}
                 size="sm"
               />
-              <span className="text-[10px] text-text-secondary font-cinzel tracking-wider text-center leading-tight">
+              <span className="text-[10px] text-mystic-rose/65 font-cinzel tracking-wider text-center leading-tight">
                 {c.position}
               </span>
               {c.flipped && (
@@ -1105,7 +1105,7 @@ function SpreadCardGrid({
                   className="text-[10px] font-cinzel text-mystic-gold text-center leading-tight"
                 >
                   {c.card.nameCN}
-                  <span className="text-text-secondary ml-0.5">{c.isReversed ? "逆" : "正"}</span>
+                  <span className="text-mystic-rose/75 ml-0.5">{c.isReversed ? "逆" : "正"}</span>
                 </motion.span>
               )}
             </div>

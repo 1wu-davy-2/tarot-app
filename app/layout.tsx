@@ -3,7 +3,6 @@ import "./globals.css";
 import { MysticBackground } from "@/components/MysticBackground";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Header } from "@/components/Header";
-import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { OnboardingGuide } from "@/components/OnboardingGuide";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
@@ -40,7 +39,6 @@ export default function RootLayout({
         </main>
         <MobileBottomNav />
         <OnboardingGuide />
-        <FeedbackWidget />
         <NotifyToast />
         <AppInit />
         <AppUpdateBanner />

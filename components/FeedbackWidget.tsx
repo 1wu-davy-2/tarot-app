@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, Check, ChevronRight, ChevronLeft } from "lucide-react";
+import { getStoredUser } from "@/lib/api-client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -10,9 +11,21 @@ export function FeedbackWidget() {
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
   const [text, setText] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const u = getStoredUser();
+    if (u) {
+      setUsername(u.username || "");
+      setEmail(u.email || "");
+      setPhone(u.phone || "");
+    }
+  }, [open]);
 
   const handleSubmit = async () => {
     if (!text.trim()) return;
@@ -22,7 +35,12 @@ export function FeedbackWidget() {
       const res = await fetch(`${API_BASE}/api/feedback`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text.trim() }),
+        body: JSON.stringify({
+          message: text.trim(),
+          username: username.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+        }),
       });
       const data = await res.json();
       if (data.ok) {
@@ -49,7 +67,7 @@ export function FeedbackWidget() {
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="absolute bottom-14 left-0 w-72 bg-[#0f0a1a] border border-mystic-purple/30 rounded-xl shadow-2xl overflow-hidden"
+            className="absolute bottom-14 left-0 w-80 bg-[#0f0a1a] border border-mystic-purple/30 rounded-xl shadow-2xl overflow-hidden"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-mystic-purple/10">
               <span className="text-sm text-mystic-gold font-cinzel">给作者留言</span>
@@ -78,6 +96,35 @@ export function FeedbackWidget() {
               </div>
             ) : (
               <>
+                {/* User info fields */}
+                <div className="px-4 pt-3 space-y-2">
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="你的称呼"
+                    maxLength={30}
+                    className="w-full px-3 py-2 rounded-lg bg-mystic-dark/40 border border-mystic-purple/20 text-text-primary text-sm placeholder:text-text-tertiary/40 focus:border-mystic-gold/40 outline-none"
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="邮箱（选填）"
+                      maxLength={80}
+                      className="flex-1 px-3 py-2 rounded-lg bg-mystic-dark/40 border border-mystic-purple/20 text-text-primary text-sm placeholder:text-text-tertiary/40 focus:border-mystic-gold/40 outline-none"
+                    />
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="手机号（选填）"
+                      maxLength={20}
+                      className="flex-1 px-3 py-2 rounded-lg bg-mystic-dark/40 border border-mystic-purple/20 text-text-primary text-sm placeholder:text-text-tertiary/40 focus:border-mystic-gold/40 outline-none"
+                    />
+                  </div>
+                </div>
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}

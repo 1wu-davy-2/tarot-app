@@ -23,6 +23,9 @@ AUTHOR_EMAIL = "wxk0246@163.com"
 
 class FeedbackRequest(BaseModel):
     message: str
+    username: str = ""
+    email: str = ""
+    phone: str = ""
 
 
 def _send_email(subject: str, body_html: str) -> bool:
@@ -65,9 +68,9 @@ def submit_feedback(req: FeedbackRequest, db: Session = Depends(get_db), user: U
 
     fb = Feedback(
         user_id=user.id if user else None,
-        username=user.username if user else "",
-        email=user.email if user else "",
-        phone=user.phone if user else "",
+        username=req.username or (user.username if user else ""),
+        email=req.email or (user.email if user else ""),
+        phone=req.phone or (user.phone if user else ""),
         message=message,
     )
     db.add(fb)

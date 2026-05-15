@@ -10,8 +10,10 @@ interface StoredUser {
   id: number;
   username: string;
   email: string;
+  phone?: string;
   zodiac?: string;
   is_admin: boolean;
+  ai_model?: string;
   membership_tier?: string;
   membership_expiry?: string;
   birth_date?: string;
@@ -147,6 +149,8 @@ export async function apiLogin(account: string, password: string) {
     is_admin: data.is_admin,
     membership_tier: data.membership_tier,
     membership_expiry: data.membership_expiry,
+    phone: data.phone,
+    ai_model: data.ai_model,
   });
   if (typeof window !== "undefined") window.dispatchEvent(new Event("auth-change"));
   return data;
@@ -177,6 +181,8 @@ export async function apiGetMe() {
     birth_date: data.birth_date,
     birth_time: data.birth_time,
     birth_place: data.birth_place,
+    phone: data.phone,
+    ai_model: data.ai_model,
   });
   return data;
 }

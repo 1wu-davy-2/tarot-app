@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Sparkles, Check, Zap } from "lucide-react";
+import { ArrowLeft, Sparkles, Check, Zap, ChevronRight, Heart } from "lucide-react";
 import {
   generateLuckyItems, generateFortuneScores, generatePeriodScores, generatePeriodLuckyItems,
   generateSuggestAvoid, getTodayEnergyTasks, toggleEnergyTask,
@@ -13,6 +13,9 @@ import {
 import { getStoredUser } from "@/lib/api-client";
 import { getMoonPhaseName, getMoonPhaseEmoji } from "@/lib/astro-events";
 import { FortuneModal } from "@/components/FortuneModal";
+import { CompatibilityModal } from "@/components/CompatibilityModal";
+import { DreamModal } from "@/components/DreamModal";
+import { MoonCalendar } from "@/components/MoonCalendar";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -104,6 +107,9 @@ export default function FortunePage() {
   const [suggestAvoid, setSuggestAvoid] = useState<{ suggest: string[]; avoid: string[] } | null>(null);
   const [energyState, setEnergyState] = useState<EnergyTaskState | null>(null);
   const [fortuneModalOpen, setFortuneModalOpen] = useState(false);
+  const [compatModalOpen, setCompatModalOpen] = useState(false);
+  const [dreamModalOpen, setDreamModalOpen] = useState(false);
+  const [moonCalendarOpen, setMoonCalendarOpen] = useState(false);
   const [quotaExhausted, setQuotaExhausted] = useState(false);
 
   const handleOpenFortune = async () => {
@@ -507,12 +513,18 @@ export default function FortunePage() {
 
         {/* ── Compatibility Card ── */}
         {selectedZodiac && compatZodiac && (
-          <motion.div
+          <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
-            className="glass-card p-4 mb-4 flex items-center gap-4"
+            onClick={() => setCompatModalOpen(true)}
+            className="glass-card p-4 mb-4 flex items-center gap-4 w-full text-left cursor-pointer hover:border-mystic-gold/50 transition-colors group relative overflow-hidden"
           >
+            {/* Pulsing CTA badge */}
+            <span className="absolute top-2.5 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-mystic-gold/20 border border-mystic-gold/40 text-mystic-gold text-[10px] animate-pulse group-hover:bg-mystic-gold/30 transition-colors">
+              <Heart className="w-2.5 h-2.5 fill-mystic-gold/60" />
+              点击配对
+            </span>
             <div className="flex items-center">
               <span className="w-10 h-10 rounded-full bg-mystic-dark/80 border border-mystic-gold/30 flex items-center justify-center text-lg">
                 {selectedZodiac.emoji}
@@ -536,7 +548,8 @@ export default function FortunePage() {
                 <span className="text-xs text-mystic-rose font-bold">{compatScore}%</span>
               </div>
             </div>
-          </motion.div>
+            <ChevronRight className="w-4 h-4 text-text-tertiary group-hover:text-mystic-gold transition-colors shrink-0" />
+          </motion.button>
         )}
 
         {/* ── Spirit Tools 2×2 ── */}
@@ -551,10 +564,10 @@ export default function FortunePage() {
               <span className="w-6 h-px bg-mystic-gold/30" /> 灵性工具 <span className="w-6 h-px bg-mystic-gold/30" />
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              <SpiritToolCard icon="🌙" name="梦境解析" hint="输入梦境关键词，AI深度解读潜意识" />
+              <SpiritToolCard icon="🌙" name="梦境解析" hint="输入梦境关键词，AI深度解读潜意识" onClick={() => setDreamModalOpen(true)} badge="点击进入" />
               <SpiritToolCard icon="☯️" name="八字命盘" hint="四柱八字 · 紫微斗数东方命理精析" />
               <SpiritToolCard icon="🔮" name="灵摆占卜" hint="是/否问题 · 动态互动指引" />
-              <SpiritToolCard icon="📅" name="能量日历" hint="月相节气 · 幸运日智能标注" />
+              <SpiritToolCard icon="📅" name="能量日历" hint="月相节气 · 幸运日智能标注" onClick={() => setMoonCalendarOpen(true)} badge="点击进入" />
             </div>
           </motion.div>
         )}
@@ -580,6 +593,29 @@ export default function FortunePage() {
           selectedDate={selectedDate}
           onClose={() => setFortuneModalOpen(false)}
         />
+
+        {/* Compatibility Modal */}
+        <CompatibilityModal
+          open={compatModalOpen}
+          userZodiac={zodiac}
+          selectedDate={selectedDate}
+          onClose={() => setCompatModalOpen(false)}
+        />
+
+        {/* Dream Modal */}
+        <DreamModal
+          open={dreamModalOpen}
+          zodiac={zodiac}
+          selectedDate={selectedDate}
+          onClose={() => setDreamModalOpen(false)}
+        />
+
+        {/* Moon Calendar */}
+        <MoonCalendar
+          open={moonCalendarOpen}
+          selectedDate={selectedDate}
+          onClose={() => setMoonCalendarOpen(false)}
+        />
       </div>
     </div>
   );
@@ -597,12 +633,19 @@ function LuckyCard({ label, value, color }: { label: string; value: string; colo
   );
 }
 
-function SpiritToolCard({ icon, name, hint }: { icon: string; name: string; hint: string }) {
+function SpiritToolCard({ icon, name, hint, onClick, badge }: { icon: string; name: string; hint: string; onClick?: () => void; badge?: string }) {
   return (
-    <div className="glass-card p-4 relative overflow-hidden cursor-pointer hover:border-mystic-gold/40 transition-colors group">
+    <div
+      onClick={onClick}
+      className={`glass-card p-4 relative overflow-hidden transition-colors group ${onClick ? "cursor-pointer hover:border-mystic-gold/40" : "cursor-pointer hover:border-mystic-gold/40"}`}
+    >
       <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-mystic-gold/3 blur-xl pointer-events-none group-hover:bg-mystic-gold/8 transition-colors" />
-      <span className="absolute top-2 right-2 text-[9px] px-1.5 py-0.5 rounded-full bg-mystic-gold/15 border border-mystic-gold/25 text-mystic-gold/60">
-        即将开放
+      <span className={`absolute top-2 right-2 text-[9px] px-1.5 py-0.5 rounded-full border ${
+        badge === "点击进入"
+          ? "bg-mystic-gold/20 border-mystic-gold/40 text-mystic-gold"
+          : "bg-mystic-gold/15 border-mystic-gold/25 text-mystic-gold/60"
+      }`}>
+        {badge || "即将开放"}
       </span>
       <span className="text-2xl block mb-2">{icon}</span>
       <p className="text-[13px] text-text-primary font-medium mb-1">{name}</p>

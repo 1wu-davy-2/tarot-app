@@ -1,4 +1,7 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, Header
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
 from models import User
@@ -224,3 +227,50 @@ def update_profile(
     db.commit()
     db.refresh(user)
     return user
+
+
+class AiModelUpdate(BaseModel):
+    ai_model: str
+
+
+@router.patch("/me/ai-model")
+def set_ai_model(
+    req: AiModelUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    allowed = ["deepseek", "openai", "claude", "gemini"]
+    if req.ai_model not in allowed:
+        raise HTTPException(status_code=400, detail=f"不支持的模型: {req.ai_model}")
+    user.ai_model = req.ai_model
+    db.commit()
+    return {"ok": True, "ai_model": req.ai_model}
+
+
+class LessonProgressUpdate(BaseModel):
+    lesson_ids: list[str]
+
+
+@router.get("/me/lessons")
+def get_lesson_progress(user: User = Depends(get_current_user)):
+    try:
+        return {"lesson_ids": json.loads(user.lesson_progress or "[]")}
+    except Exception:
+        return {"lesson_ids": []}
+
+
+@router.post("/me/lessons/save")
+def save_lesson_progress(
+    req: LessonProgressUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        current = set(json.loads(user.lesson_progress or "[]"))
+    except Exception:
+        current = set()
+    for lid in req.lesson_ids:
+        current.add(lid)
+    user.lesson_progress = json.dumps(sorted(current))
+    db.commit()
+    return {"ok": True, "lesson_ids": sorted(current)}

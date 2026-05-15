@@ -3,12 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, X, Search, ChevronDown, Brain } from "lucide-react";
+import { ArrowLeft, X, Search, ChevronDown, Brain, BookOpen, GraduationCap } from "lucide-react";
 import { tarotCards, getMajorArcana, getCardsBySuit, type TarotCard } from "@/lib/tarot-data";
 import { getCollectedCount, getCollectedMajorCount } from "@/lib/achievements";
 import { getQuizStats, getLearnedCards, SUIT_LABELS, SUIT_TOTALS } from "@/lib/quiz-generator";
 import { QuizModal } from "@/components/QuizModal";
+import { LessonView } from "@/components/LessonView";
 import { getCardImageUrl, useThemeImageUrl } from "@/lib/deck-themes";
+import { TAROT_MODULES, getModuleProgress, getTotalProgress, loadProgressFromServer } from "@/lib/tarot-lessons";
 
 const filters = [
   { key: "all", label: "全部", icon: "🃏" },
@@ -321,6 +323,9 @@ export default function LibraryPage() {
   const [search, setSearch] = useState("");
   const [selectedCard, setSelectedCard] = useState<TarotCard | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
+  const [libTab, setLibTab] = useState<"cards" | "lessons">("cards");
+  const [selectedModule, setSelectedModule] = useState<string | null>(null);
+  const [selectedLessonIdx, setSelectedLessonIdx] = useState(0);
   const [, setThemeTick] = useState(0);
 
   // Re-render on theme change so getCardImageUrl() picks up new theme
@@ -329,6 +334,10 @@ export default function LibraryPage() {
     window.addEventListener("theme-change", h);
     return () => window.removeEventListener("theme-change", h);
   }, []);
+
+  // Sync lesson progress from server on mount
+  const [, setLessonTick] = useState(0);
+  useEffect(() => { loadProgressFromServer().then(() => setLessonTick(t => t + 1)); }, []);
 
   const cards = getCards(filter).filter((c) => {
     if (!search.trim()) return true;
@@ -360,8 +369,114 @@ export default function LibraryPage() {
           </motion.div>
           <div className="w-[60px]" />
         </div>
-        <p className="text-text-secondary text-xs text-center -mt-4 mb-6">探索全部 78 张 Rider-Waite 塔罗牌</p>
+        <p className="text-text-secondary text-xs text-center -mt-4 mb-4">探索全部 78 张 Rider-Waite 塔罗牌</p>
 
+        {/* Tab switcher */}
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex bg-mystic-dark/60 border border-mystic-purple/20 rounded-full p-1">
+            <button
+              onClick={() => setLibTab("cards")}
+              className={`px-5 py-1.5 rounded-full text-sm transition-all ${
+                libTab === "cards" ? "bg-mystic-gold/25 text-mystic-gold border border-mystic-gold/30" : "text-text-secondary hover:text-text-primary"
+              }`}
+            >
+              🃏 图鉴
+            </button>
+            <button
+              onClick={() => setLibTab("lessons")}
+              className={`px-5 py-1.5 rounded-full text-sm transition-all ${
+                libTab === "lessons" ? "bg-mystic-gold/25 text-mystic-gold border border-mystic-gold/30" : "text-text-secondary hover:text-text-primary"
+              }`}
+            >
+              <GraduationCap className="w-3.5 h-3.5 inline mr-1" />
+              课程
+            </button>
+          </div>
+        </div>
+
+        {/* ── LESSONS TAB ── */}
+        {libTab === "lessons" && (
+          selectedModule === null ? (
+            <div className="space-y-3">
+              {/* Overall progress */}
+              <div className="glass-card p-4 mb-4">
+                {(() => {
+                  const tp = getTotalProgress();
+                  return (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-text-secondary flex items-center gap-1">
+                          <BookOpen className="w-3.5 h-3.5 text-mystic-gold" /> 学习进度
+                        </span>
+                        <span className="text-xs text-mystic-gold font-bold">{tp.completed}/{tp.total}</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-mystic-purple to-mystic-gold transition-all"
+                          style={{ width: tp.total > 0 ? `${(tp.completed / tp.total) * 100}%` : "0%" }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Module cards */}
+              {TAROT_MODULES.map((mod) => {
+                const mp = getModuleProgress(mod.id);
+                return (
+                  <motion.button
+                    key={mod.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onClick={() => { setSelectedModule(mod.id); setSelectedLessonIdx(0); }}
+                    className="glass-card p-4 w-full text-left hover:border-mystic-gold/40 transition-colors group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{mod.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-text-primary font-medium">{mod.title}</p>
+                        <p className="text-[10px] text-text-tertiary mt-0.5">{mod.description}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <div className="flex-1 h-1 rounded-full bg-white/8 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-mystic-purple to-mystic-gold transition-all"
+                              style={{ width: mp.total > 0 ? `${(mp.completed / mp.total) * 100}%` : "0%" }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-text-tertiary">{mp.completed}/{mp.total}</span>
+                        </div>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-text-tertiary group-hover:text-mystic-gold transition-colors shrink-0" />
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          ) : (
+            /* Lesson view */
+            (() => {
+              const mod = TAROT_MODULES.find(m => m.id === selectedModule);
+              if (!mod) return null;
+              const lesson = mod.lessons[selectedLessonIdx];
+              return (
+                <LessonView
+                  module={mod}
+                  lesson={lesson}
+                  lessonIndex={selectedLessonIdx}
+                  totalLessons={mod.lessons.length}
+                  onBack={() => setSelectedModule(null)}
+                  onPrev={() => setSelectedLessonIdx(Math.max(0, selectedLessonIdx - 1))}
+                  onNext={() => setSelectedLessonIdx(Math.min(mod.lessons.length - 1, selectedLessonIdx + 1))}
+                />
+              );
+            })()
+          )
+        )}
+
+        {/* ── CARDS TAB ── */}
+        {libTab === "cards" && (
+          <>
         {/* Search */}
         <div className="relative max-w-md mx-auto mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
@@ -481,6 +596,8 @@ export default function LibraryPage() {
 
         {/* Quiz modal */}
         <QuizModal open={quizOpen} onClose={() => setQuizOpen(false)} />
+          </>
+        )}
       </div>
     </div>
   );

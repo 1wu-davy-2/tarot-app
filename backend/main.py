@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from config import get_settings
-from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement, journal, spread_templates, theme_images, app_update, journal_reports, fortune
+from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement, journal, spread_templates, theme_images, app_update, journal_reports, fortune, dream
 from redis_utils import get_dev_code
 
 settings = get_settings()
@@ -66,6 +66,8 @@ def ensure_columns():
             "birth_lng": "FLOAT NULL",
             "membership_tier": "VARCHAR(20) DEFAULT 'free'",
             "membership_expiry": "DATETIME NULL",
+            "ai_model": "VARCHAR(30) DEFAULT 'deepseek'",
+            "lesson_progress": "TEXT DEFAULT '[]'",
         }
         for col, typedef in desired.items():
             if col not in existing:
@@ -112,6 +114,34 @@ def ensure_columns():
         from models import FortuneCache
         FortuneCache.__table__.create(engine, checkfirst=True)
         print("[startup] Created table fortune_cache")
+
+    if not insp.has_table("compatibility_cache"):
+        from models import CompatibilityCache
+        CompatibilityCache.__table__.create(engine, checkfirst=True)
+        print("[startup] Created table compatibility_cache")
+
+    if not insp.has_table("dream_records"):
+        from models import DreamRecord
+        DreamRecord.__table__.create(engine, checkfirst=True)
+        print("[startup] Created table dream_records")
+    else:
+        # Fix FK constraint: make user_id nullable for guest users
+        try:
+            with engine.connect() as conn:
+                # Drop the FK constraint if it exists
+                insp2 = inspect(engine)
+                for fk in insp2.get_foreign_keys("dream_records"):
+                    if fk.get("constrained_columns") == ["user_id"]:
+                        fk_name = fk.get("name", "")
+                        if fk_name:
+                            conn.execute(text(f"ALTER TABLE dream_records DROP FOREIGN KEY {fk_name}"))
+                            conn.commit()
+                            print("[startup] Dropped FK on dream_records.user_id")
+                conn.execute(text("ALTER TABLE dream_records MODIFY COLUMN user_id INTEGER NULL"))
+                conn.commit()
+                print("[startup] Altered dream_records.user_id to nullable")
+        except Exception as e:
+            print(f"[startup] FK fix skipped: {e}")
 
 
 def ensure_admin():
@@ -181,19 +211,25 @@ class ForceCorsMiddleware:
                 headers = dict(message.get("headers", []))
                 headers[b"access-control-allow-origin"] = b"*"
                 headers[b"access-control-allow-methods"] = b"*"
-                headers[b"access-control-allow-headers"] = b"*"
+                headers[b"access-control-allow-headers"] = b"authorization, content-type, x-requested-with"
                 headers[b"access-control-max-age"] = b"86400"
                 message["headers"] = list(headers.items())
             await send(message)
 
         if scope["method"] == "OPTIONS":
+            # Echo back the requested headers for preflight
+            req_headers = scope.get("headers", [])
+            req_header_names = [v.decode().lower() for k, v in req_headers if k == b"access-control-request-headers"]
+            allow_headers = b"authorization, content-type, x-requested-with"
+            if req_header_names:
+                allow_headers = req_header_names[0].encode()
             await send({
                 "type": "http.response.start",
                 "status": 200,
                 "headers": [
                     (b"access-control-allow-origin", b"*"),
                     (b"access-control-allow-methods", b"*"),
-                    (b"access-control-allow-headers", b"*"),
+                    (b"access-control-allow-headers", allow_headers),
                     (b"access-control-max-age", b"86400"),
                 ],
             })
@@ -221,6 +257,7 @@ app.include_router(spread_templates.router)
 app.include_router(theme_images.router)
 app.include_router(app_update.router)
 app.include_router(fortune.router)
+app.include_router(dream.router)
 
 
 # Dev helper: get latest verification code

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { FeedbackWidget } from "@/components/FeedbackWidget";
 import {
   ArrowLeft, LogOut, Gift, Sparkles, Loader2, ChevronDown, Save, Crown, ChevronUp, Bell, Download, FileText, ScrollText, BarChart3,
 } from "lucide-react";
@@ -37,6 +38,7 @@ export default function ProfilePage() {
   const [readings, setReadings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkinMsg, setCheckinMsg] = useState("");
+  const [aiModelCollapsed, setAiModelCollapsed] = useState(true);
   const [checkinLoading, setCheckinLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [horoscope, setHoroscope] = useState<{ text: string; date: string } | null>(null);
@@ -675,6 +677,104 @@ export default function ProfilePage() {
         )}
         </motion.div>
 
+        {/* AI Model Selector (collapsible) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.09 }}
+          className="glass-card p-6 mb-6"
+        >
+          {(() => {
+            const MODELS = [
+              { id: "deepseek", name: "DeepSeek", icon: "🔮", model: "V4-Pro" },
+              { id: "openai", name: "OpenAI", icon: "🧠", model: "GPT-5" },
+              { id: "claude", name: "Claude", icon: "✨", model: "Opus 4.7" },
+              { id: "gemini", name: "Gemini", icon: "💎", model: "2.0 Pro" },
+            ];
+            const currentId = (user as any)?.ai_model || "deepseek";
+            const currentModel = MODELS.find(m => m.id === currentId) || MODELS[0];
+            return (
+              <>
+                {/* Collapsed header */}
+                <button
+                  onClick={() => setAiModelCollapsed(!aiModelCollapsed)}
+                  className="w-full flex items-center justify-between text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{currentModel.icon}</span>
+                    <div>
+                      <span className="text-sm font-cinzel text-mystic-gold">AI 模型</span>
+                      <p className="text-[10px] text-text-tertiary mt-0.5">
+                        当前接入 {currentModel.name} {currentModel.model}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-text-tertiary text-xs flex items-center gap-1">
+                    {aiModelCollapsed ? "展开切换" : "收起"}
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${aiModelCollapsed ? "" : "rotate-180"}`} />
+                  </span>
+                </button>
+
+                {/* Expanded grid */}
+                {!aiModelCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="mt-4 pt-4 border-t border-white/8"
+                  >
+                    <div className="grid grid-cols-2 gap-2">
+                      {MODELS.map((m) => {
+                        const isCurrent = m.id === currentId;
+                        return (
+                          <button
+                            key={m.id}
+                            onClick={async () => {
+                              if (isCurrent) return;
+                              const token = localStorage.getItem("tarot_token");
+                              if (!token) return;
+                              try {
+                                const base = process.env.NEXT_PUBLIC_API_URL || "";
+                                await fetch(`${base}/api/auth/me/ai-model`, {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                                  body: JSON.stringify({ ai_model: m.id }),
+                                });
+                                const meRes = await fetch(`${base}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+                                if (meRes.ok) {
+                                  const updated = await meRes.json();
+                                  localStorage.setItem("tarot_user", JSON.stringify(updated));
+                                  setUser(updated);
+                                  window.dispatchEvent(new Event("auth-change"));
+                                }
+                              } catch {}
+                            }}
+                            className={`p-3 rounded-xl border transition-all text-left ${
+                              isCurrent
+                                ? "bg-mystic-gold/10 border-mystic-gold/40 cursor-default"
+                                : "bg-mystic-dark/30 border-mystic-purple/10 hover:border-mystic-gold/30 hover:bg-mystic-purple/10 cursor-pointer"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{m.icon}</span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-text-primary font-medium">{m.name}</p>
+                                <p className="text-[10px] text-text-tertiary">{m.model}</p>
+                              </div>
+                              {isCurrent && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-mystic-gold/20 border border-mystic-gold/40 text-mystic-gold">当前</span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </>
+            );
+          })()}
+        </motion.div>
+
         {/* Deck Theme Switcher (premium gated) */}
         <DeckThemeSection user={user} />
 
@@ -810,6 +910,7 @@ export default function ProfilePage() {
           <AchievementGrid achievements={achievements} />
         )}
 
+        <FeedbackWidget />
       </div>
     </div>
   );

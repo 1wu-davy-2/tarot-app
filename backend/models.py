@@ -21,6 +21,8 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     membership_tier = Column(String(20), default="free")
     membership_expiry = Column(DateTime(timezone=True), nullable=True)
+    ai_model = Column(String(30), default="deepseek")
+    lesson_progress = Column(Text, default="[]")  # JSON array of completed lesson IDs
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -118,4 +120,29 @@ class FortuneCache(Base):
     period = Column(String(10), nullable=False)  # daily, weekly, monthly, yearly
     date_key = Column(String(10), nullable=False)  # YYYY-MM-DD
     response_json = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class CompatibilityCache(Base):
+    __tablename__ = "compatibility_cache"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    zodiac_a = Column(String(20), nullable=False, index=True)
+    zodiac_b = Column(String(20), nullable=False, index=True)
+    date_key = Column(String(10), nullable=False)  # YYYY-MM-DD
+    response_json = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class DreamRecord(Base):
+    __tablename__ = "dream_records"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, nullable=True, index=True)
+    date = Column(String(10), nullable=False, index=True)
+    dream_text = Column(Text, nullable=False)
+    ai_response = Column(Text, nullable=True)
+    moon_phase = Column(String(20), default="")
+    mood = Column(Integer, nullable=True)
+    tags = Column(String(200), default="")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
