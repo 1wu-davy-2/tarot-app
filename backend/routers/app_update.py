@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse
 router = APIRouter(prefix="/api", tags=["app-update"])
 
 # Bump this on each APK release
-CURRENT_VERSION = "1.2.2"
+CURRENT_VERSION = "1.2.3"
 
 # Where the APK file lives on the server
 APK_FILE_PATH = os.environ.get(
