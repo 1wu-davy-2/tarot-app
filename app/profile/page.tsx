@@ -6,12 +6,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 import {
-  ArrowLeft, LogOut, Gift, Sparkles, Loader2, ChevronDown, Save, Crown, ChevronUp, Bell, Download, FileText, ScrollText, BarChart3,
+  ArrowLeft, LogOut, Gift, Sparkles, Loader2, ChevronDown, Save, Crown, ChevronUp, Bell, Download, FileText, ScrollText, BarChart3, Brain,
 } from "lucide-react";
 import {
   isLoggedIn, logout, apiGetMe, apiGetQuota, apiCheckIn,
   apiGetReadings, getStoredUser, apiUpdateProfile, apiGetMonthJournal,
 } from "@/lib/api-client";
+import {
+  getMbtiResult, getSmResult, hasMbtiResult, hasSmResult,
+} from "@/lib/personality-tests";
 import {
   getNotifySettings, saveNotifySettings,
   type NotifySettings,
@@ -599,11 +602,30 @@ export default function ProfilePage() {
           </>)}
         </motion.div>
 
-        {/* Notification Settings */}
+        {/* Personality Archive */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className="glass-card p-6 mb-6"
+        >
+          <Link href="/personality" className="flex items-center justify-between mb-3 group">
+            <span className="flex items-center gap-2">
+              <Brain className="w-4 h-4 text-mystic-gold/70" />
+              <h2 className="text-sm font-cinzel text-mystic-gold group-hover:text-mystic-gold/80 transition-colors">性格档案</h2>
+            </span>
+            <span className="text-[10px] text-text-tertiary group-hover:text-text-secondary transition-colors">
+              查看详情 →
+            </span>
+          </Link>
+          <PersonalityArchive />
+        </motion.div>
+
+        {/* Notification Settings */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.11 }}
           className="glass-card p-6 mb-6"
         >
           <button onClick={() => setNotifyExpanded(!notifyExpanded)} className="w-full flex items-center justify-between mb-3">
@@ -1194,6 +1216,61 @@ function MembershipModal({ open, onClose, userMembership }: { open: boolean; onC
           })}
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+/* ── Personality Archive ── */
+
+function PersonalityArchive() {
+  const mbti = hasMbtiResult() ? getMbtiResult() : null;
+  const sm = hasSmResult() ? getSmResult() : null;
+  const hasAny = mbti || sm;
+
+  if (!hasAny) {
+    return (
+      <Link
+        href="/personality"
+        className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-mystic-rose/20 bg-mystic-purple/5 hover:border-mystic-rose/40 transition-all group"
+      >
+        <span className="text-2xl">🧠</span>
+        <div>
+          <p className="text-xs text-text-primary">完成性格测试</p>
+          <p className="text-[10px] text-text-tertiary mt-0.5">
+            发现你的 MBTI 类型和 S/M 倾向，解锁星座配对建议
+          </p>
+        </div>
+        <span className="text-text-tertiary group-hover:text-text-primary transition-colors ml-auto">→</span>
+      </Link>
+    );
+  }
+
+  return (
+    <div className="flex gap-3">
+      {mbti && (
+        <Link
+          href="/personality"
+          className="flex-1 p-3 rounded-xl border text-center hover:border-mystic-gold/30 transition-all"
+          style={{ borderColor: mbti.color + "44", background: mbti.color + "10" }}
+        >
+          <p className="text-2xl font-cinzel" style={{ color: mbti.color }}>{mbti.type}</p>
+          <p className="text-[10px] text-text-secondary mt-0.5">{mbti.typeName}</p>
+          <p className="text-[10px] text-text-tertiary">{mbti.group}</p>
+        </Link>
+      )}
+      {sm && (
+        <Link
+          href="/personality"
+          className="flex-1 p-3 rounded-xl border text-center hover:border-mystic-gold/30 transition-all"
+          style={{ borderColor: sm.primaryType.color + "44", background: sm.primaryType.color + "10" }}
+        >
+          <p className="text-xl">{sm.primaryType.icon}</p>
+          <p className="text-xs font-cinzel" style={{ color: sm.primaryType.color }}>
+            {sm.primaryType.type}
+          </p>
+          <p className="text-[10px] text-text-tertiary">{sm.primaryType.score}%</p>
+        </Link>
+      )}
     </div>
   );
 }

@@ -434,6 +434,9 @@ export async function apiUpdateProfile(data: {
   birth_time?: string;
   birth_place?: string;
   zodiac?: string;
+  mbti_type?: string;
+  sm_type?: string;
+  sm_scores?: string;
 }) {
   const result = await api<any>("/api/auth/me", {
     method: "PATCH",
@@ -455,4 +458,16 @@ export async function apiUpdateProfile(data: {
     birth_place: result.birth_place,
   });
   return result;
+}
+
+/** Sync personality test results to backend for logged-in users. */
+export async function apiSyncPersonality(data: {
+  mbti_type?: string;
+  sm_type?: string;
+  sm_scores?: string;
+}) {
+  if (!isLoggedIn()) return;
+  try {
+    await apiUpdateProfile(data);
+  } catch {}
 }

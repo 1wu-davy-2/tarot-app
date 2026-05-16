@@ -68,6 +68,9 @@ def ensure_columns():
             "membership_expiry": "DATETIME NULL",
             "ai_model": "VARCHAR(30) DEFAULT 'deepseek'",
             "lesson_progress": "TEXT DEFAULT '[]'",
+            "mbti_type": "VARCHAR(50) NULL",
+            "sm_type": "VARCHAR(50) NULL",
+            "sm_scores": "TEXT NULL",
         }
         for col, typedef in desired.items():
             if col not in existing:

@@ -224,6 +224,12 @@ def update_profile(
         user.birth_place = req.birth_place if req.birth_place != "" else None
     if req.zodiac is not None:
         user.zodiac = req.zodiac if req.zodiac != "" else None
+    if req.mbti_type is not None:
+        user.mbti_type = req.mbti_type if req.mbti_type != "" else None
+    if req.sm_type is not None:
+        user.sm_type = req.sm_type if req.sm_type != "" else None
+    if req.sm_scores is not None:
+        user.sm_scores = req.sm_scores if req.sm_scores != "" else None
     db.commit()
     db.refresh(user)
     return user

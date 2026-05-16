@@ -105,6 +105,9 @@ class UserInfo(BaseModel):
     birth_time: Optional[str] = None    # serialized as "HH:MM"
     birth_place: Optional[str] = None
     birth_lat: Optional[float] = None
+    mbti_type: Optional[str] = None
+    sm_type: Optional[str] = None
+    sm_scores: Optional[str] = None
     birth_lng: Optional[float] = None
 
     class Config:
@@ -210,6 +213,9 @@ class BirthChartUpdate(BaseModel):
     birth_time: Optional[str] = None     # "HH:MM", None = no change
     birth_place: Optional[str] = None    # city name, None = no change
     zodiac: Optional[str] = None         # existing zodiac field
+    mbti_type: Optional[str] = None      # e.g. "INFP|调停者|#d4a853"
+    sm_type: Optional[str] = None        # e.g. "Dominant|支配者"
+    sm_scores: Optional[str] = None      # JSON [{type,score}]
 
     @validator("birth_date")
     def bd_valid(cls, v):

@@ -23,6 +23,9 @@ class User(Base):
     membership_expiry = Column(DateTime(timezone=True), nullable=True)
     ai_model = Column(String(30), default="deepseek")
     lesson_progress = Column(Text, default="[]")  # JSON array of completed lesson IDs
+    mbti_type = Column(String(50), nullable=True, default=None)   # e.g. "INFP|调停者|#d4a853"
+    sm_type = Column(String(50), nullable=True, default=None)     # e.g. "Dominant|支配者"
+    sm_scores = Column(Text, nullable=True, default=None)         # JSON: [{type,score}]
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
