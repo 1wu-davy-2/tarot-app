@@ -69,15 +69,15 @@ export function SpreadLayoutPreview({
   return (
     <div className="relative w-full max-w-sm mx-auto">
       {/* Aspect ratio container */}
-      <div className="relative w-full" style={{ paddingBottom: "85%" }}>
+      <div className="relative w-full" style={{ paddingBottom: "90%" }}>
         <svg
-          viewBox="0 0 100 85"
+          viewBox="0 0 100 100"
           className="absolute inset-0 w-full h-full"
           style={{ background: "rgba(255,255,255,0.015)", borderRadius: "1rem" }}
         >
           {/* Decorative ring */}
-          <circle cx="50" cy="42" r="48" fill="none" stroke="rgba(212,168,83,0.08)" strokeWidth="0.3" />
-          <circle cx="50" cy="42" r="38" fill="none" stroke="rgba(192,132,252,0.06)" strokeWidth="0.2" strokeDasharray="1 2" />
+          <circle cx="50" cy="48" r="46" fill="none" stroke="rgba(212,168,83,0.08)" strokeWidth="0.3" />
+          <circle cx="50" cy="48" r="36" fill="none" stroke="rgba(192,132,252,0.06)" strokeWidth="0.2" strokeDasharray="1 2" />
 
           {/* Connecting lines */}
           {nodes.length > 1 && (
@@ -140,13 +140,13 @@ export function SpreadLayoutPreview({
                 >
                   {i + 1}
                 </text>
-                {/* Label below node */}
-                {hasLabel && !isEditing && (
+                {/* Label below node (or above if near bottom) */}
+                {hasLabel && (
                   <text
-                    x={node.x} y={node.y + 7}
+                    x={node.x} y={node.y > 80 ? node.y - 5 : node.y + 7}
                     textAnchor="middle"
-                    fill="rgba(212,168,83,0.8)"
-                    fontSize="2.2"
+                    fill={isEditing ? "rgba(212,168,83,1)" : "rgba(212,168,83,0.8)"}
+                    fontSize="2.4"
                     className="pointer-events-none select-none"
                   >
                     {label.label}
