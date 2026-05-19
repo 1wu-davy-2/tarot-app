@@ -171,8 +171,10 @@ def get_sm_talks(
     lang: str = Query("zh", max_length=5),
     db: Session = Depends(get_db),
 ):
-    """Return spicy Dirty/Sweet Talk phrases for a given S/M type.
-    Aggregates all matching rows. Falls back to defaults if nothing in DB."""
+    """Return 3-4 random spicy Dirty/Sweet Talk phrases for a given S/M type.
+    Aggregates all matching rows then samples. Falls back to defaults if nothing in DB."""
+    import random
+
     dirty_rows = db.query(SmTalkPhrase).filter(
         SmTalkPhrase.sm_type == sm_type,
         SmTalkPhrase.category == "dirty",
@@ -185,16 +187,22 @@ def get_sm_talks(
         SmTalkPhrase.lang == lang,
     ).all()
 
-    dirty_talk = []
+    dirty_pool = []
     for r in dirty_rows:
-        dirty_talk.extend(json.loads(r.phrases))
+        dirty_pool.extend(json.loads(r.phrases))
 
-    sweet_talk = []
+    sweet_pool = []
     for r in sweet_rows:
-        sweet_talk.extend(json.loads(r.phrases))
+        sweet_pool.extend(json.loads(r.phrases))
+
+    # Return 3-4 random items per category
+    n_dirty = min(4, len(dirty_pool)) if len(dirty_pool) >= 3 else len(dirty_pool)
+    n_sweet = min(4, len(sweet_pool)) if len(sweet_pool) >= 3 else len(sweet_pool)
+    dirty_talk = random.sample(dirty_pool, n_dirty) if n_dirty > 0 else []
+    sweet_talk = random.sample(sweet_pool, n_sweet) if n_sweet > 0 else []
 
     return {
         "sm_type": sm_type,
-        "dirty_talk": dirty_talk if dirty_talk else DEFAULT_DIRTY.get(sm_type, []),
-        "sweet_talk": sweet_talk if sweet_talk else DEFAULT_SWEET.get(sm_type, []),
+        "dirty_talk": dirty_talk if dirty_talk else DEFAULT_DIRTY.get(sm_type, [])[:4],
+        "sweet_talk": sweet_talk if sweet_talk else DEFAULT_SWEET.get(sm_type, [])[:4],
     }
