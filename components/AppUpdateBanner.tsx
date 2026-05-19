@@ -7,7 +7,7 @@ import { Download, X, Loader2 } from "lucide-react";
 const IS_APK = process.env.NEXT_PUBLIC_BUILD_TARGET === "apk";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-const APP_VERSION = "1.2.5";
+const APP_VERSION = "1.2.6";
 const DISMISSED_KEY = "tarot_update_dismissed";
 
 export function AppUpdateBanner() {
