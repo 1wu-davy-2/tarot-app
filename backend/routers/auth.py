@@ -280,3 +280,15 @@ def save_lesson_progress(
     user.lesson_progress = json.dumps(sorted(current))
     db.commit()
     return {"ok": True, "lesson_ids": sorted(current)}
+
+
+@router.post("/me/ping")
+def ping_activity(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update last_visit_at to track user activity for re-engagement."""
+    from datetime import datetime as dt
+    user.last_visit_at = dt.utcnow()
+    db.commit()
+    return {"ok": True}

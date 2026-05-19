@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from config import get_settings
-from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement, journal, spread_templates, theme_images, app_update, journal_reports, fortune, dream
+from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement, journal, spread_templates, theme_images, app_update, journal_reports, fortune, dream, personality
 from redis_utils import get_dev_code
 
 settings = get_settings()
@@ -71,6 +71,7 @@ def ensure_columns():
             "mbti_type": "VARCHAR(50) NULL",
             "sm_type": "VARCHAR(50) NULL",
             "sm_scores": "TEXT NULL",
+            "last_visit_at": "DATETIME NULL",
         }
         for col, typedef in desired.items():
             if col not in existing:
@@ -132,6 +133,17 @@ def ensure_columns():
         from models import ReadingRecord
         ReadingRecord.__table__.create(engine, checkfirst=True)
         print("[startup] Created table reading_records")
+
+    if not insp.has_table("sm_talk_phrases"):
+        from models import SmTalkPhrase
+        SmTalkPhrase.__table__.create(engine, checkfirst=True)
+        print("[startup] Created table sm_talk_phrases")
+        from routers.personality import _seed_sm_phrases
+        db = SessionLocal()
+        try:
+            _seed_sm_phrases(db)
+        finally:
+            db.close()
 
     if not insp.has_table("daily_card_cache"):
         from models import DailyCardCache
@@ -197,11 +209,18 @@ async def lifespan(app: FastAPI):
         print("[startup] Email: console mode (no real emails)")
     run_migrations()
     ensure_columns()
+    # Print all table names for verification
+    from sqlalchemy import inspect as sa_inspect
+    insp = sa_inspect(engine)
+    tables = sorted(insp.get_table_names())
+    print(f"[startup] Tables ({len(tables)}): {', '.join(tables)}")
     ensure_admin()
     from routers.feedback import start_feedback_scheduler
     start_feedback_scheduler()
     from routers.fortune import start_fortune_scheduler
     start_fortune_scheduler()
+    from email_reengage import start_reengage_scheduler
+    start_reengage_scheduler()
     yield
 
 
@@ -271,6 +290,7 @@ app.include_router(theme_images.router)
 app.include_router(app_update.router)
 app.include_router(fortune.router)
 app.include_router(dream.router)
+app.include_router(personality.router)
 
 
 # Dev helper: get latest verification code

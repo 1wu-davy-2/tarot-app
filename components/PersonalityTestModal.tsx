@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, LogIn } from "lucide-react";
 import Link from "next/link";
@@ -12,7 +12,7 @@ import {
   getPersonalityPayload,
   type MbtiResult, type SmResult,
 } from "@/lib/personality-tests";
-import { apiSyncPersonality, isLoggedIn } from "@/lib/api-client";
+import { apiSyncPersonality, apiGetSmTalks, isLoggedIn } from "@/lib/api-client";
 
 interface Props {
   open: boolean;
@@ -500,6 +500,39 @@ function HexRadar({ types }: { types: { type: string; score: number; color: stri
 /* ── S/M result view ── */
 
 function SmResultView({ result }: { result: SmResult }) {
+  const [dirtyTalk, setDirtyTalk] = useState<string[]>(result.dirtyTalk);
+  const [sweetTalk, setSweetTalk] = useState<string[]>(result.sweetTalk);
+
+  // Map 6-type English names to 4-type DB keys
+  const apiTypeMap: Record<string, string> = {
+    Dominant: "S型", Sadist: "S型",
+    Submissive: "M型", Masochist: "M型",
+    Switch: "Switch", Vanilla: "Vanilla",
+  };
+  const apiType = apiTypeMap[result.primaryType.en] || result.primaryType.en;
+
+  // Fetch spicy phrases from DB API, with localStorage cache
+  useEffect(() => {
+    const cacheKey = "tarot_sm_talks_" + apiType;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.dirty_talk && parsed.dirty_talk.length) setDirtyTalk(parsed.dirty_talk);
+        if (parsed.sweet_talk && parsed.sweet_talk.length) setSweetTalk(parsed.sweet_talk);
+        return;
+      }
+    } catch { /* no cache */ }
+
+    apiGetSmTalks(apiType).then((data) => {
+      if (data && (data.dirty_talk && data.dirty_talk.length || data.sweet_talk && data.sweet_talk.length)) {
+        if (data.dirty_talk && data.dirty_talk.length) setDirtyTalk(data.dirty_talk);
+        if (data.sweet_talk && data.sweet_talk.length) setSweetTalk(data.sweet_talk);
+        try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* quota */ }
+      }
+    });
+  }, [apiType]);
+
   return (
     <div className="flex flex-col gap-4">
       {/* Primary type badge */}
@@ -558,17 +591,17 @@ function SmResultView({ result }: { result: SmResult }) {
       <div className="grid grid-cols-2 gap-3">
         <div className="p-3 rounded-xl bg-red-500/5 border border-red-400/15">
           <p className="text-[10px] text-red-400/60 mb-1.5">🔥 Dirty Talk</p>
-          {result.dirtyTalk?.map((line, i) => (
+          {dirtyTalk.map((line, i) => (
             <p key={i} className="text-[10px] text-text-primary leading-relaxed mb-1 last:mb-0">
-              “{line}”
+              &ldquo;{line}&rdquo;
             </p>
           ))}
         </div>
         <div className="p-3 rounded-xl bg-pink-500/5 border border-pink-400/15">
           <p className="text-[10px] text-pink-400/60 mb-1.5">💕 Sweet Talk</p>
-          {result.sweetTalk?.map((line, i) => (
+          {sweetTalk.map((line, i) => (
             <p key={i} className="text-[10px] text-text-primary leading-relaxed mb-1 last:mb-0">
-              “{line}”
+              &ldquo;{line}&rdquo;
             </p>
           ))}
         </div>

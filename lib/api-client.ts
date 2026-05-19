@@ -490,3 +490,20 @@ export async function apiSyncPersonality(data: {
     await apiUpdateProfile(data);
   } catch {}
 }
+
+/** Fetch spicy Dirty/Sweet Talk phrases from DB for a given S/M type. */
+export async function apiGetSmTalks(smType: string): Promise<{
+  sm_type: string;
+  dirty_talk: string[];
+  sweet_talk: string[];
+} | null> {
+  try {
+    return await api<{
+      sm_type: string;
+      dirty_talk: string[];
+      sweet_talk: string[];
+    }>(`/api/personality/sm-talks?sm_type=${encodeURIComponent(smType)}`);
+  } catch {
+    return null;
+  }
+}

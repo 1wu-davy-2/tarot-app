@@ -149,3 +149,25 @@ class DreamRecord(Base):
     mood = Column(Integer, nullable=True)
     tags = Column(String(200), default="")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class DailyCardCache(Base):
+    __tablename__ = "daily_card_cache"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    date = Column(String(10), nullable=False, unique=True, index=True)
+    card_index = Column(Integer, nullable=False)
+    is_reversed = Column(Boolean, default=False)
+    sentence = Column(String(120), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class SmTalkPhrase(Base):
+    __tablename__ = "sm_talk_phrases"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    sm_type = Column(String(20), nullable=False, index=True)  # dominant/submissive/sadist/masochist/switch/vanilla
+    category = Column(String(10), nullable=False)  # dirty / sweet
+    phrases = Column(Text, nullable=False)  # JSON array of strings
+    lang = Column(String(5), default="zh")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
