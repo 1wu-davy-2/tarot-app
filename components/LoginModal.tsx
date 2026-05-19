@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles, Mail, Lock, User, Phone, ShieldCheck } from "lucide-react";
 import { apiLogin, apiRegister, apiSendCode } from "@/lib/api-client";
 
+const IS_APK = typeof window !== "undefined" && process.env.NEXT_PUBLIC_BUILD_TARGET === "apk";
+
 interface LoginModalProps {
   open: boolean;
   onClose: () => void;
@@ -59,7 +61,7 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
     if (!password) { setError("请输入密码"); return; }
     setLoading(true);
     try {
-      await apiLogin(account.trim(), password);
+      await apiLogin(account.trim(), password, IS_APK);
       onSuccess();
       onClose();
     } catch (e: any) {
@@ -94,7 +96,7 @@ export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
     try {
       await apiRegister(regUsername.trim(), regEmail.trim(), regPassword, regPhone.trim(), regCode.trim(), regZodiac || undefined);
       // Auto-login after register
-      await apiLogin(regEmail.trim(), regPassword);
+      await apiLogin(regEmail.trim(), regPassword, IS_APK);
       onSuccess();
       onClose();
     } catch (e: any) {

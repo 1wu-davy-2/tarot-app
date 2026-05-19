@@ -127,6 +127,16 @@ def ensure_columns():
         from models import DreamRecord
         DreamRecord.__table__.create(engine, checkfirst=True)
         print("[startup] Created table dream_records")
+
+    if not insp.has_table("reading_records"):
+        from models import ReadingRecord
+        ReadingRecord.__table__.create(engine, checkfirst=True)
+        print("[startup] Created table reading_records")
+
+    if not insp.has_table("daily_card_cache"):
+        from models import DailyCardCache
+        DailyCardCache.__table__.create(engine, checkfirst=True)
+        print("[startup] Created table daily_card_cache")
     else:
         # Fix FK constraint: make user_id nullable for guest users
         try:

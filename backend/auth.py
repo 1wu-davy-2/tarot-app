@@ -15,8 +15,11 @@ def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
 
-def create_access_token(user_id: int, is_admin: bool = False) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
+def create_access_token(user_id: int, is_admin: bool = False, long_lived: bool = False) -> str:
+    if long_lived:
+        expire = datetime.utcnow() + timedelta(days=365 * 10)  # 10 years for APK
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
     payload = {
         "sub": str(user_id),
         "is_admin": is_admin,

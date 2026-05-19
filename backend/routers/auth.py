@@ -153,7 +153,7 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
     if not user.is_verified:
         raise HTTPException(status_code=403, detail="请先验证邮箱后再登录")
 
-    token = create_access_token(user.id, user.is_admin)
+    token = create_access_token(user.id, user.is_admin, long_lived=req.is_apk)
 
     return TokenResponse(
         access_token=token,

@@ -54,6 +54,7 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     account: str  # email or username
     password: str
+    is_apk: Optional[bool] = False
 
 
 class SendCodeRequest(BaseModel):

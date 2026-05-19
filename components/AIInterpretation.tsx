@@ -130,7 +130,7 @@ export function AIInterpretation({ cards, isReversed, spreadType, question, onCo
           isReversed: isReversed[i] ?? false,
           position: `牌位${i + 1}`,
         })),
-      }).catch(() => {});
+      }).catch((err) => { console.error("[AIInterpretation] backend save failed:", err); });
     }
   }, [text, loading, cards, isReversed, spreadType, question]);
 

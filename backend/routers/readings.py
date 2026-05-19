@@ -25,6 +25,7 @@ def save_reading(
     db.add(record)
     db.commit()
     db.refresh(record)
+    print(f"[reading_save] id={record.id} user={user.username}({user.id}) spread={req.spread_type} cards={len(req.cards)} ai_len={len(req.ai_response)}")
     return {"id": record.id, "message": "保存成功"}
 
 

@@ -7,6 +7,7 @@ import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { OnboardingGuide } from "@/components/OnboardingGuide";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { NotifyToast } from "@/components/NotifyToast";
+import { SessionWatcher } from "@/components/SessionWatcher";
 import { AppInit } from "@/components/AppInit";
 import { AppUpdateBanner } from "@/components/AppUpdateBanner";
 
@@ -36,6 +37,7 @@ export default function RootLayout({
         <MobileBottomNav />
         <OnboardingGuide />
         <NotifyToast />
+        <SessionWatcher />
         <AppInit />
         <AppUpdateBanner />
       </body>

@@ -401,6 +401,13 @@ function AIInterpretationTab({
     }
   }, []);
 
+  // Listen for auth expiry events (token rejected by server)
+  useEffect(() => {
+    const onExpired = () => { setShowLogin(true); setError("会话已过期，请重新登录"); };
+    window.addEventListener("auth-expired", onExpired);
+    return () => window.removeEventListener("auth-expired", onExpired);
+  }, []);
+
   const startAiFlow = async () => {
     if (!isLoggedIn()) {
       const used = localStorage.getItem("tarot_guest_used");
@@ -414,6 +421,9 @@ function AIInterpretationTab({
       } catch (err: any) {
         if (err.message?.includes("用完") || err.message?.includes("429")) {
           setError("今日AI解读次数已用完，请签到获取更多");
+        } else if (err.message?.includes("令牌") || err.message?.includes("登录") || err.message?.includes("token")) {
+          setShowLogin(true);
+          setError("会话已过期，请重新登录");
         } else {
           setError(err.message || "扣减失败");
         }

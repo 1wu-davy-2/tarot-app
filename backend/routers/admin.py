@@ -1,9 +1,10 @@
 """Admin-only endpoints."""
 import json
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from fastapi import APIRouter, Depends, Query, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
 from database import get_db
 from models import User, ReadingRecord, DailyQuota
 from routers.auth import get_current_user
@@ -19,17 +20,74 @@ def require_admin(user: User = Depends(get_current_user)):
     return user
 
 
+@router.get("/stats")
+def admin_stats(
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Dashboard stats: totals, today's activity."""
+    total_users = db.query(func.count(User.id)).scalar() or 0
+    total_readings = db.query(func.count(ReadingRecord.id)).scalar() or 0
+    today_str = date.today().isoformat()
+    today_readings = db.query(func.count(ReadingRecord.id)).filter(
+        ReadingRecord.created_at >= today_str
+    ).scalar() or 0
+    week_ago = datetime.now() - timedelta(days=7)
+    week_readings = db.query(func.count(ReadingRecord.id)).filter(
+        ReadingRecord.created_at >= week_ago
+    ).scalar() or 0
+    premium_users = db.query(func.count(User.id)).filter(
+        User.membership_tier.in_(["basic", "premium"])
+    ).scalar() or 0
+
+    # Top spread types
+    spread_rows = db.query(
+        ReadingRecord.spread_type, func.count(ReadingRecord.id).label("cnt")
+    ).group_by(ReadingRecord.spread_type).order_by(func.count(ReadingRecord.id).desc()).limit(6).all()
+
+    return {
+        "total_users": total_users,
+        "total_readings": total_readings,
+        "today_readings": today_readings,
+        "week_readings": week_readings,
+        "premium_users": premium_users,
+        "top_spreads": [{"name": r[0], "count": r[1]} for r in spread_rows],
+    }
+
+
+@router.delete("/readings/{reading_id}")
+def delete_reading(
+    reading_id: int,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    r = db.query(ReadingRecord).filter(ReadingRecord.id == reading_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="记录不存在")
+    db.delete(r)
+    db.commit()
+    return {"ok": True, "message": "已删除"}
+
+
 @router.get("/readings")
 def admin_readings(
     admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    search: str = Query("", max_length=100),
 ):
-    """Get all readings across all users, newest first."""
+    """Get all readings across all users, newest first. Optional search by username or question."""
+    q = db.query(ReadingRecord)
+    if search:
+        # Join users to search by username
+        q = q.join(User, ReadingRecord.user_id == User.id).filter(
+            (User.username.contains(search)) |
+            (ReadingRecord.question.contains(search)) |
+            (ReadingRecord.spread_type.contains(search))
+        )
     records = (
-        db.query(ReadingRecord)
-        .order_by(ReadingRecord.created_at.desc())
+        q.order_by(ReadingRecord.created_at.desc())
         .offset(offset)
         .limit(limit)
         .all()
@@ -63,9 +121,16 @@ def admin_readings(
 def admin_users(
     admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
+    search: str = Query("", max_length=100),
 ):
-    """List all users with basic info."""
-    users = db.query(User).order_by(User.created_at.desc()).all()
+    """List all users with basic info. Optional search by username or email."""
+    q = db.query(User)
+    if search:
+        q = q.filter(
+            (User.username.contains(search)) |
+            (User.email.contains(search))
+        )
+    users = q.order_by(User.created_at.desc()).all()
     return [{
         "id": u.id,
         "username": u.username,

@@ -94,16 +94,37 @@ export default function DailyPage() {
     }
   }, [showInterpretation, data]);
 
-  // Update localStorage in real-time; debounce backend save
+  // Update localStorage in real-time; save to backend on stream complete
   const backendSaved = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
+  const pendingSave = useRef<(() => void) | null>(null);
+
+  // Flush pending backend save on unmount or page hide
+  useEffect(() => {
+    const flush = () => {
+      if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+      pendingSave.current?.();
+      pendingSave.current = null;
+    };
+    const onVisibility = () => { if (document.hidden) flush(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("beforeunload", flush);
+    return () => {
+      flush();
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("beforeunload", flush);
+    };
+  }, []);
+
   useEffect(() => {
     if (aiText && dailySaved.current && dailyId.current) {
       updateReading(dailyId.current, { aiInterpretation: aiText });
-      // Debounce backend save — only save after 3s of no text changes (stream complete)
       if (isLoggedIn() && data && !backendSaved.current) {
         if (saveTimer.current) clearTimeout(saveTimer.current);
-        saveTimer.current = setTimeout(() => {
+        const doSave = () => {
+          if (backendSaved.current) return;
+          backendSaved.current = true;
+          pendingSave.current = null;
           apiSaveReading({
             question: "今日的指引与能量",
             ai_response: aiText,
@@ -114,9 +135,10 @@ export default function DailyPage() {
               isReversed: data.isReversed,
               position: "今日指引",
             }],
-          }).catch(() => {});
-          backendSaved.current = true;
-        }, 3000);
+          }).catch((err) => { console.error("[daily] backend save failed:", err); });
+        };
+        pendingSave.current = doSave;
+        saveTimer.current = setTimeout(doSave, 1500);
       }
     }
     return () => {

@@ -53,7 +53,21 @@ function setStoredUser(user: StoredUser) {
 }
 
 export function isLoggedIn(): boolean {
-  return !!getToken();
+  const token = getToken();
+  if (!token) return false;
+  // Check JWT expiry
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      logout();
+      return false;
+    }
+  } catch {
+    // If we can't decode, assume invalid
+    logout();
+    return false;
+  }
+  return true;
 }
 
 export function isAdmin(): boolean {
@@ -106,6 +120,11 @@ async function api<T = any>(
   const data = await res.json();
 
   if (!res.ok) {
+    // Auto-logout on 401 (token expired/invalid)
+    if (res.status === 401 && auth) {
+      logout();
+      if (typeof window !== "undefined") window.dispatchEvent(new Event("auth-expired"));
+    }
     throw new Error(data.detail || "请求失败");
   }
 
@@ -135,10 +154,10 @@ export async function apiVerifyEmail(email: string, code: string) {
   });
 }
 
-export async function apiLogin(account: string, password: string) {
+export async function apiLogin(account: string, password: string, isApk = false) {
   const data = await api<any>("/api/auth/login", {
     method: "POST",
-    body: { account, password },
+    body: { account, password, is_apk: isApk },
   });
   setToken(data.access_token);
   setStoredUser({

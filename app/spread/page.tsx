@@ -352,13 +352,34 @@ export default function SpreadPage() {
 
   const backendSaved = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
+  const pendingSave = useRef<(() => void) | null>(null);
+
+  // Flush pending backend save on unmount or page hide
+  useEffect(() => {
+    const flush = () => {
+      if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+      pendingSave.current?.();
+      pendingSave.current = null;
+    };
+    const onVisibility = () => { if (document.hidden) flush(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("beforeunload", flush);
+    return () => {
+      flush();
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("beforeunload", flush);
+    };
+  }, []);
+
   useEffect(() => {
     if (aiText && spreadSaved.current && spreadId.current) {
       updateReading(spreadId.current, { aiInterpretation: aiText });
-      // Debounce backend save — only save after 3s of no text changes
       if (isLoggedIn() && !backendSaved.current) {
         if (saveTimer.current) clearTimeout(saveTimer.current);
-        saveTimer.current = setTimeout(() => {
+        const doSave = () => {
+          if (backendSaved.current) return;
+          backendSaved.current = true;
+          pendingSave.current = null;
           apiSaveReading({
             question: question || "",
             ai_response: aiText,
@@ -369,9 +390,10 @@ export default function SpreadPage() {
               isReversed: c.isReversed,
               position: c.position,
             })),
-          }).catch(() => {});
-          backendSaved.current = true;
-        }, 3000);
+          }).catch((err) => { console.error("[spread] backend save failed:", err); });
+        };
+        pendingSave.current = doSave;
+        saveTimer.current = setTimeout(doSave, 1500);
       }
     }
     return () => {
