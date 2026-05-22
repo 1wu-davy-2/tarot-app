@@ -34,7 +34,11 @@ export default function HomePage() {
       if (u2) { setUserName(u2.username); setIsMember(!!(u2.membership_tier && u2.membership_tier !== "free")); }
     };
     window.addEventListener("auth-change", onAuthChange);
-    return () => window.removeEventListener("auth-change", onAuthChange);
+    window.addEventListener("auth-expired", onAuthChange);
+    return () => {
+      window.removeEventListener("auth-change", onAuthChange);
+      window.removeEventListener("auth-expired", onAuthChange);
+    };
   }, []);
 
   const today = new Date().toLocaleDateString("zh-CN", {

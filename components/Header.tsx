@@ -27,10 +27,12 @@ export function Header() {
     window.addEventListener("focus", check);
     window.addEventListener("storage", check);
     window.addEventListener("auth-change", check);
+    window.addEventListener("auth-expired", check);
     return () => {
       window.removeEventListener("focus", check);
       window.removeEventListener("storage", check);
       window.removeEventListener("auth-change", check);
+      window.removeEventListener("auth-expired", check);
     };
   }, []);
 

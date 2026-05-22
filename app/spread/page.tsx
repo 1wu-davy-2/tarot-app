@@ -188,6 +188,7 @@ export default function SpreadPage() {
   const [showInterpretation, setShowInterpretation] = useState(false);
   const [cardsCollapsed, setCardsCollapsed] = useState(false);
   const [aiText, setAiText] = useState("");
+  const [layoutMode, setLayoutMode] = useState<"fan" | "grid">("fan");
 
   // Custom spread builder state
   const [customSpreads, setCustomSpreads] = useState<Record<string, CustomSpreadEntry>>({});
@@ -350,16 +351,92 @@ export default function SpreadPage() {
     }
   }, [showInterpretation, cards, question, spreadType, allSpreads]);
 
+  // Refs to capture latest values for the backend-save effect without stale closures
+  const cardsRef = useRef(cards);
+  cardsRef.current = cards;
+  const questionRef2 = useRef(question);
+  questionRef2.current = question;
+  const spreadTypeRef2 = useRef(spreadType);
+  spreadTypeRef2.current = spreadType;
+  const allSpreadsRef2 = useRef(allSpreads);
+  allSpreadsRef2.current = allSpreads;
+  const aiTextRef = useRef(aiText);
+  aiTextRef.current = aiText;
+
   const backendSaved = useRef(false);
+  const backendSaving = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
   const pendingSave = useRef<(() => void) | null>(null);
+  const saveRetries = useRef(0);
+  const MAX_SAVE_RETRIES = 3;
 
-  // Flush pending backend save on unmount or page hide
+  const doSave = useCallback(async () => {
+    if (backendSaved.current || backendSaving.current) return;
+    backendSaving.current = true;
+    pendingSave.current = null;
+    try {
+      const curCards = cardsRef.current;
+      const curQuestion = questionRef2.current;
+      const curSpreadType = spreadTypeRef2.current;
+      const curAllSpreads = allSpreadsRef2.current;
+      const curAiText = aiTextRef.current;
+      await apiSaveReading({
+        question: curQuestion || "",
+        ai_response: curAiText,
+        spread_type: (curSpreadType && curAllSpreads[curSpreadType]?.name) || "自定义牌阵",
+        cards: curCards.map((c) => ({
+          nameCN: c.card.nameCN,
+          imageUrl: c.card.imageUrl,
+          isReversed: c.isReversed,
+          position: c.position,
+        })),
+      });
+      backendSaved.current = true;
+      saveRetries.current = 0;
+    } catch (err) {
+      console.error("[spread] backend save failed:", err);
+      backendSaving.current = false;
+      saveRetries.current += 1;
+      if (saveRetries.current <= MAX_SAVE_RETRIES) {
+        saveTimer.current = setTimeout(doSave, 3000 * saveRetries.current);
+      }
+    }
+  }, []);
+
+  // Flush pending backend save on unmount or page hide (use sendBeacon for reliability)
   useEffect(() => {
     const flush = () => {
+      if (backendSaved.current || backendSaving.current) return;
+      backendSaving.current = true;
       if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
-      pendingSave.current?.();
-      pendingSave.current = null;
+      const token = typeof window !== "undefined" ? localStorage.getItem("tarot_token") : null;
+      if (!token) return;
+      const curCards = cardsRef.current;
+      const curQuestion = questionRef2.current;
+      const curSpreadType = spreadTypeRef2.current;
+      const curAllSpreads = allSpreadsRef2.current;
+      const curAiText = aiTextRef.current;
+      if (!curAiText) return;
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+      fetch(`${API_BASE}/api/readings`, {
+        method: "POST",
+        keepalive: true,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          question: curQuestion || "",
+          ai_response: curAiText,
+          spread_type: (curSpreadType && curAllSpreads[curSpreadType]?.name) || "自定义牌阵",
+          cards: curCards.map((c) => ({
+            nameCN: c.card.nameCN,
+            imageUrl: c.card.imageUrl,
+            isReversed: c.isReversed,
+            position: c.position,
+          })),
+        }),
+      }).catch(() => {});
     };
     const onVisibility = () => { if (document.hidden) flush(); };
     document.addEventListener("visibilitychange", onVisibility);
@@ -374,24 +451,8 @@ export default function SpreadPage() {
   useEffect(() => {
     if (aiText && spreadSaved.current && spreadId.current) {
       updateReading(spreadId.current, { aiInterpretation: aiText });
-      if (isLoggedIn() && !backendSaved.current) {
+      if (isLoggedIn() && !backendSaved.current && !backendSaving.current) {
         if (saveTimer.current) clearTimeout(saveTimer.current);
-        const doSave = () => {
-          if (backendSaved.current) return;
-          backendSaved.current = true;
-          pendingSave.current = null;
-          apiSaveReading({
-            question: question || "",
-            ai_response: aiText,
-            spread_type: (spreadType && allSpreads[spreadType]?.name) || "自定义牌阵",
-            cards: cards.map((c) => ({
-              nameCN: c.card.nameCN,
-              imageUrl: c.card.imageUrl,
-              isReversed: c.isReversed,
-              position: c.position,
-            })),
-          }).catch((err) => { console.error("[spread] backend save failed:", err); });
-        };
         pendingSave.current = doSave;
         saveTimer.current = setTimeout(doSave, 1500);
       }
@@ -399,7 +460,7 @@ export default function SpreadPage() {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [aiText]);
+  }, [aiText, doSave]);
 
   const spread = spreadType ? allSpreads[spreadType] : null;
 
@@ -893,11 +954,35 @@ export default function SpreadPage() {
                 <p className="text-mystic-rose/55 text-xs mt-0.5 sm:mt-1">
                   跟随直觉，选择 {spread!.cardCount} 张呼唤你的牌
                 </p>
+                {/* Layout toggle */}
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  <button
+                    onClick={() => setLayoutMode("fan")}
+                    className={`px-4 py-1.5 rounded-full text-xs transition-all ${
+                      layoutMode === "fan"
+                        ? "bg-mystic-gold/15 border border-mystic-gold/40 text-mystic-gold"
+                        : "border border-mystic-purple/20 text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    扇形
+                  </button>
+                  <button
+                    onClick={() => setLayoutMode("grid")}
+                    className={`px-4 py-1.5 rounded-full text-xs transition-all ${
+                      layoutMode === "grid"
+                        ? "bg-mystic-gold/15 border border-mystic-gold/40 text-mystic-gold"
+                        : "border border-mystic-purple/20 text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    平铺
+                  </button>
+                </div>
               </div>
               <CardDrawAnimation
                 cards={tarotCards}
                 count={spread!.cardCount}
                 onComplete={handleDrawComplete}
+                layoutMode={layoutMode}
               />
             </motion.div>
           )}
@@ -1005,6 +1090,7 @@ export default function SpreadPage() {
                       allReversed={cards.map(c => c.isReversed)}
                       positions={cards.map(c => c.position)}
                       onAiText={setAiText}
+                      autoStart={true}
                     />
                   )}
                   <ShareButton

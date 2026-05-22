@@ -8,6 +8,7 @@ interface CardDrawAnimationProps {
   cards: TarotCardType[];
   count: number;
   onComplete: (selected: { card: TarotCardType; isReversed: boolean }[]) => void;
+  layoutMode?: "fan" | "grid";
 }
 
 // Pick 20 random cards for the fan selection pool
@@ -19,7 +20,38 @@ function pickFanCards(allCards: TarotCardType[], count: number): (TarotCardType 
   }));
 }
 
-export function CardDrawAnimation({ cards, count, onComplete }: CardDrawAnimationProps) {
+function CardBack({ isSelected }: { isSelected: boolean }) {
+  return (
+    <div
+      className={`w-full h-full rounded-lg border-2 transition-colors duration-300 ${
+        isSelected
+          ? "border-mystic-gold shadow-[0_0_20px_rgba(212,168,83,0.5)]"
+          : "border-mystic-gold/30 hover:border-mystic-gold/60"
+      }`}
+      style={{
+        background: "linear-gradient(135deg, #1a0f2e, #2d1b69, #1a1040)",
+      }}
+    >
+      <div className="w-full h-full flex items-center justify-center">
+        <svg viewBox="0 0 60 100" className="w-1/2 opacity-40">
+          <polygon
+            points="30,5 37,25 60,25 41,38 47,58 30,45 13,58 19,38 0,25 23,25"
+            fill="none"
+            stroke="rgba(212,168,83,0.5)"
+            strokeWidth="1"
+          />
+        </svg>
+      </div>
+      {isSelected && (
+        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-mystic-gold text-mystic-dark text-xs flex items-center justify-center font-bold">
+          ✓
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function CardDrawAnimation({ cards, count, onComplete, layoutMode = "fan" }: CardDrawAnimationProps) {
   const [phase, setPhase] = useState<"shuffle" | "fan" | "selecting" | "complete">("shuffle");
   const [fanCards, setFanCards] = useState<(TarotCardType & { _isReversed: boolean })[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -98,75 +130,94 @@ export function CardDrawAnimation({ cards, count, onComplete }: CardDrawAnimatio
         )}
       </AnimatePresence>
 
-      {/* Fan spread */}
+      {/* Fan spread / Grid layout */}
       <AnimatePresence>
         {(phase === "fan" || phase === "selecting" || phase === "complete") && (
-          <div className="relative flex justify-center w-full overflow-x-hidden min-h-[180px] sm:min-h-[280px]">
-            <div className="relative fan-container">
-              {fanCards.map((card, idx) => {
-                const angle = startAngle + (angleRange * idx) / (fanCards.length - 1);
-                const isSelected = selected.has(idx);
-                const isHovered = hoveredIdx === idx;
+          layoutMode === "fan" ? (
+            <div className="relative flex justify-center w-full overflow-x-hidden min-h-[180px] sm:min-h-[280px]">
+              <div className="relative fan-container">
+                {fanCards.map((card, idx) => {
+                  const angle = startAngle + (angleRange * idx) / (fanCards.length - 1);
+                  const isSelected = selected.has(idx);
+                  const isHovered = hoveredIdx === idx;
 
-                return (
-                  <motion.div
-                    key={idx}
-                    className="absolute cursor-pointer fan-card"
-                    style={{
-                      bottom: "0px",
-                      left: "50%",
-                      transformOrigin: "bottom center",
-                    }}
-                    initial={{ rotate: 0, x: "-50%", y: 50, opacity: 0 }}
-                    animate={{
-                      rotate: angle,
-                      x: `calc(-50% + ${Math.sin((angle * Math.PI) / 180) * 240}px)`,
-                      y: isSelected ? -30 : isHovered ? -15 : 0,
-                      opacity: 1,
-                      scale: isSelected ? 1.08 : isHovered ? 1.05 : 1,
-                    }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 100,
-                      damping: 15,
-                      delay: phase === "fan" ? idx * 0.03 : 0,
-                    }}
-                    onMouseEnter={() => setHoveredIdx(idx)}
-                    onMouseLeave={() => setHoveredIdx(null)}
-                    onClick={() => handleSelect(idx)}
-                  >
-                    {/* Mini card back */}
-                    <div
-                      className={`w-full h-full rounded-lg border-2 transition-colors duration-300 ${
-                        isSelected
-                          ? "border-mystic-gold shadow-[0_0_20px_rgba(212,168,83,0.5)]"
-                          : "border-mystic-gold/30 hover:border-mystic-gold/60"
-                      }`}
+                  return (
+                    <motion.div
+                      key={idx}
+                      className="absolute cursor-pointer fan-card"
                       style={{
-                        background: "linear-gradient(135deg, #1a0f2e, #2d1b69, #1a1040)",
+                        bottom: "0px",
+                        left: "50%",
+                        transformOrigin: "bottom center",
                       }}
+                      initial={{ rotate: 0, x: "-50%", y: 50, opacity: 0 }}
+                      animate={{
+                        rotate: angle,
+                        x: `calc(-50% + ${Math.sin((angle * Math.PI) / 180) * 240}px)`,
+                        y: isSelected ? -30 : isHovered ? -15 : 0,
+                        opacity: 1,
+                        scale: isSelected ? 1.08 : isHovered ? 1.05 : 1,
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 100,
+                        damping: 15,
+                        delay: phase === "fan" ? idx * 0.03 : 0,
+                      }}
+                      onMouseEnter={() => setHoveredIdx(idx)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                      onClick={() => handleSelect(idx)}
                     >
-                      <div className="w-full h-full flex items-center justify-center">
-                        <svg viewBox="0 0 60 100" className="w-1/2 opacity-40">
-                          <polygon
-                            points="30,5 37,25 60,25 41,38 47,58 30,45 13,58 19,38 0,25 23,25"
-                            fill="none"
-                            stroke="rgba(212,168,83,0.5)"
-                            strokeWidth="1"
-                          />
-                        </svg>
-                      </div>
-                      {isSelected && (
-                        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-mystic-gold text-mystic-dark text-xs flex items-center justify-center font-bold">
-                          ✓
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })}
+                      <CardBack isSelected={isSelected} />
+                    </motion.div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Grid layout — 2 rows, CSS grid */
+            <div className="relative flex justify-center w-full overflow-x-auto min-h-[180px] sm:min-h-[280px] py-4">
+              <div
+                className="grid-container"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${Math.ceil(fanCards.length / 2)}, 1fr)`,
+                  gridTemplateRows: "repeat(2, auto)",
+                  gap: "12px",
+                  justifyItems: "center",
+                  alignItems: "center",
+                }}
+              >
+                {fanCards.map((card, idx) => {
+                  const isSelected = selected.has(idx);
+                  const isHovered = hoveredIdx === idx;
+                  return (
+                    <motion.div
+                      key={idx}
+                      className="cursor-pointer grid-card"
+                      initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                      animate={{
+                        opacity: 1,
+                        y: isSelected ? -8 : 0,
+                        scale: isSelected ? 1.08 : isHovered ? 1.05 : 1,
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 100,
+                        damping: 15,
+                        delay: phase === "fan" ? idx * 0.03 : 0,
+                      }}
+                      onMouseEnter={() => setHoveredIdx(idx)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                      onClick={() => handleSelect(idx)}
+                    >
+                      <CardBack isSelected={isSelected} />
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          )
         )}
       </AnimatePresence>
 
@@ -177,7 +228,7 @@ export function CardDrawAnimation({ cards, count, onComplete }: CardDrawAnimatio
           animate={{ opacity: 1 }}
           className="text-mystic-rose/75 text-sm"
         >
-          请从扇形牌阵中选择 {count} 张牌（已选 {selected.size}/{count}）
+          请从{layoutMode === "fan" ? "扇形" : "平铺"}牌阵中选择 {count} 张牌（已选 {selected.size}/{count}）
         </motion.p>
       )}
     </div>

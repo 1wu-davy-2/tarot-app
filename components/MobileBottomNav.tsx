@@ -55,7 +55,11 @@ export function MobileBottomNav() {
     checkAuth();
     const onAuthChange = () => checkAuth();
     window.addEventListener("auth-change", onAuthChange);
-    return () => window.removeEventListener("auth-change", onAuthChange);
+    window.addEventListener("auth-expired", onAuthChange);
+    return () => {
+      window.removeEventListener("auth-change", onAuthChange);
+      window.removeEventListener("auth-expired", onAuthChange);
+    };
   }, [pathname]);
 
   // Don't show on login page

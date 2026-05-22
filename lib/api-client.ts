@@ -92,6 +92,7 @@ export function checkSession(): boolean {
 export function logout() {
   clearToken();
   localStorage.removeItem(ACTIVITY_KEY);
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("auth-change"));
 }
 
 // ── API call helper ──

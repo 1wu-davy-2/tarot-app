@@ -147,6 +147,43 @@ body {
   }
 }
 
+/* ── Grid layout responsive card sizing ── */
+.grid-container {
+  max-width: 720px;
+  width: 100%;
+}
+.grid-card {
+  width: 72px;
+  height: 120px;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .grid-container {
+    max-width: 520px;
+  }
+  .grid-card {
+    width: 56px;
+    height: 94px;
+  }
+}
+@media (max-width: 480px) {
+  .grid-container {
+    max-width: 340px;
+    gap: 6px !important;
+  }
+  .grid-card {
+    width: 42px;
+    height: 70px;
+  }
+}
+@media (max-width: 360px) {
+  .grid-card {
+    width: 36px;
+    height: 60px;
+  }
+}
+
 /* ── Mobile bottom nav safe area ── */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);

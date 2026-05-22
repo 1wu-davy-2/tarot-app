@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, BookOpen, ChevronDown, Send, Wand2, Heart, Briefcase, Target } from "lucide-react";
 import type { TarotCard } from "@/lib/tarot-data";
@@ -42,6 +42,7 @@ interface CardInterpretationProps {
   allReversed?: boolean[];
   positions?: string[];
   onAiText?: (text: string) => void;
+  autoStart?: boolean;
 }
 
 const dimensionLabels: Record<string, { label: string; icon: string }> = {
@@ -368,6 +369,7 @@ function AIInterpretationTab({
   spreadType,
   positions,
   onText,
+  autoStart = false,
 }: {
   cards: TarotCard[];
   isReversed: boolean[];
@@ -375,6 +377,7 @@ function AIInterpretationTab({
   spreadType?: string;
   positions?: string[];
   onText?: (text: string) => void;
+  autoStart?: boolean;
 }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -400,6 +403,15 @@ function AIInterpretationTab({
       setQuotaLoaded(true);
     }
   }, []);
+
+  // Auto-start AI interpretation when pre-warming flag is set
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (autoStart && quotaLoaded && !autoStarted.current) {
+      autoStarted.current = true;
+      startAiFlow();
+    }
+  }, [autoStart, quotaLoaded]);
 
   // Listen for auth expiry events (token rejected by server)
   useEffect(() => {
@@ -738,8 +750,9 @@ export function CardInterpretation({
   allReversed,
   positions,
   onAiText,
+  autoStart = false,
 }: CardInterpretationProps) {
-  const [tab, setTab] = useState<"standard" | "ai">("standard");
+  const [tab, setTab] = useState<"standard" | "ai">(autoStart ? "ai" : "standard");
   const interpCards = allCards || [card];
   const interpReversed = allReversed || [isReversed];
 
@@ -789,6 +802,7 @@ export function CardInterpretation({
           spreadType={spreadType}
           positions={positions}
           onText={onAiText}
+          autoStart={autoStart}
         />
       </div>
     </div>
