@@ -486,10 +486,14 @@ export async function apiSyncPersonality(data: {
   sm_type?: string;
   sm_scores?: string;
 }) {
-  if (!isLoggedIn()) return;
+  if (!isLoggedIn()) return false;
   try {
     await apiUpdateProfile(data);
-  } catch {}
+    return true;
+  } catch {
+    console.warn("[personality] Sync to server failed, results saved locally only");
+    return false;
+  }
 }
 
 /** Fetch spicy Dirty/Sweet Talk phrases from DB for a given S/M type. */

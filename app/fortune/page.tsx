@@ -10,7 +10,7 @@ import {
   SCORE_LABELS, PERIOD_LABELS,
   type LuckyItems, type FortuneScores, type Period, type EnergyTaskState,
 } from "@/lib/fortune-data";
-import { getStoredUser } from "@/lib/api-client";
+import { getStoredUser, isLoggedIn, getToken } from "@/lib/api-client";
 import { getMoonPhaseName, getMoonPhaseEmoji } from "@/lib/astro-events";
 import { FortuneModal } from "@/components/FortuneModal";
 import { CompatibilityModal } from "@/components/CompatibilityModal";
@@ -113,13 +113,12 @@ export default function FortunePage() {
   const [quotaExhausted, setQuotaExhausted] = useState(false);
 
   const handleOpenFortune = async () => {
-    const token = localStorage.getItem("tarot_token");
-    if (!token || token === "undefined") {
-      // Guest — open directly
+    if (!isLoggedIn()) {
       setFortuneModalOpen(true);
       return;
     }
     try {
+      const token = getToken();
       const url = API_BASE ? `${API_BASE}/api/fortune/quota-remaining` : "/api/fortune/quota-remaining";
       const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
@@ -158,9 +157,9 @@ export default function FortunePage() {
       setZodiac(u.zodiac);
       return;
     }
-    const token = localStorage.getItem("tarot_token");
-    if (!token || zodiacFetched.current || token === "undefined") return;
+    if (!isLoggedIn() || zodiacFetched.current) return;
     zodiacFetched.current = true;
+    const token = getToken();
     fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => { if (!r.ok) return null; return r.json(); })
       .then(data => {

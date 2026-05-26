@@ -67,6 +67,15 @@ export default function DailyPage() {
   // Save reading to history once interpretation is shown
   const dailySaved = useRef(false);
   const dailyId = useRef("");
+
+  // Reset refs on unmount so re-navigation doesn't skip saves
+  useEffect(() => {
+    return () => {
+      dailySaved.current = false;
+      dailyId.current = "";
+    };
+  }, []);
+
   useEffect(() => {
     if (showInterpretation && data && !dailySaved.current) {
       dailySaved.current = true;

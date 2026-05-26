@@ -6,10 +6,14 @@ import ctypes
 from datetime import date
 
 import httpx
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import StreamingResponse, JSONResponse
+from sqlalchemy.orm import Session
 
 from config import get_settings
+from database import get_db
+from models import User, DailyQuota
+from routers.auth import get_current_user_optional
 
 router = APIRouter(prefix="/api", tags=["interpret"])
 
@@ -162,11 +166,18 @@ def daily_reading():
 
 
 @router.post("/interpret")
-async def interpret(request: Request):
+async def interpret(
+    request: Request,
+    user: User | None = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+):
     """SSE streaming AI interpretation via DeepSeek.
 
     Expects JSON body: { cards, isReversed, question, spreadType, positions?, style?, history? }
     Returns text/event-stream with data: {"content": "..."} chunks.
+
+    Authenticated users must have remaining quota. Guests are limited to 1
+    free interpretation (enforced client-side via localStorage).
     """
     settings = get_settings()
     api_key = settings.deepseek_api_key
@@ -176,6 +187,21 @@ async def interpret(request: Request):
             {"error": "AI 服务尚未配置。请在 .env.local 中设置有效的 DEEPSEEK_API_KEY。您仍可查看标准解读。"},
             status_code=503,
         )
+
+    # Quota gate for authenticated users
+    if user and hasattr(user, "id") and not getattr(user, "is_admin", False):
+        today_str = date.today().isoformat()
+        dq = db.query(DailyQuota).filter(
+            DailyQuota.user_id == user.id,
+            DailyQuota.date == today_str,
+        ).first()
+        if dq:
+            remaining = dq.base_quota + dq.bonus_quota + (dq.gifted_quota or 0) - dq.used_count
+            if remaining <= 0:
+                return JSONResponse(
+                    {"error": "今日AI解读次数已用完，请签到获取更多或明天再来"},
+                    status_code=429,
+                )
 
     body = await request.json()
     cards = body.get("cards", [])

@@ -92,10 +92,6 @@ async def _cached_fortune_impl(
     ref_date = date_cls.fromisoformat(date_str) if date_str else date_cls.today()
     date_key = _period_date_key(period, ref_date)
 
-    # Consume quota for authenticated users (before streaming)
-    if user and hasattr(user, "id"):
-        _consume_fortune_quota(user.id, db)
-
     # 1. Try cache first
     cached = db.query(FortuneCache).filter(
         FortuneCache.zodiac == zodiac,
@@ -112,7 +108,11 @@ async def _cached_fortune_impl(
                 traceback.print_exc(file=f)
             raise HTTPException(status_code=500, detail=f"Cache stream error: {e}")
 
-    # 2. Fallback to live AI
+    # 2. Fallback to live AI — consume quota only for authenticated users
+    if user and hasattr(user, "id"):
+        if not _consume_fortune_quota(user.id, db):
+            raise HTTPException(status_code=429, detail="今日运势AI次数已用完")
+
     try:
         return await _stream_live_ai(zodiac, period, ref_date)
     except Exception as e:
@@ -226,33 +226,15 @@ async def _stream_live_ai(zodiac: str, period: str, ref_date: date):
 def _consume_fortune_quota(user_id: int, db: Session) -> bool:
     """Deduct one quota for fortune AI reading. Returns True if consumed."""
     try:
-        from database import SessionLocal
         from models import DailyQuota
-        today_str = date.today().isoformat()
-        dq = db.query(DailyQuota).filter(
-            DailyQuota.user_id == user_id,
-            DailyQuota.date == today_str,
-        ).first()
-        if dq and dq.remaining > 0:
+        from routers.checkin import get_or_create_quota
+        dq = get_or_create_quota(user_id, db)
+        remaining = dq.base_quota + dq.bonus_quota + (dq.gifted_quota or 0) - dq.used_count
+        if remaining > 0:
             dq.used_count += 1
             db.commit()
             return True
-        elif dq and dq.remaining <= 0:
-            return False
-        # No quota row yet — create one with default base_quota
-        from config import get_settings
-        settings = get_settings()
-        dq = DailyQuota(
-            user_id=user_id,
-            date=today_str,
-            base_quota=settings.daily_base_quota,
-            bonus_quota=0,
-            gifted_quota=0,
-            used_count=1,
-        )
-        db.add(dq)
-        db.commit()
-        return True
+        return False
     except Exception as e:
         print(f"[fortune_quota] Consume failed: {e}")
         db.rollback()
@@ -504,8 +486,9 @@ def fortune_quota_remaining(
     ).first()
     if not dq:
         return {"remaining": 2, "used": 0, "note": "no record yet"}
+    remaining = dq.base_quota + dq.bonus_quota + (dq.gifted_quota or 0) - dq.used_count
     return {
-        "remaining": dq.remaining,
+        "remaining": max(0, remaining),
         "used": dq.used_count,
         "base": dq.base_quota,
         "bonus": dq.bonus_quota,
@@ -663,11 +646,7 @@ async def compatibility_fortune(
     ref_date = date.fromisoformat(date_str) if date_str else date.today()
     date_key = ref_date.isoformat()
 
-    # Consume quota for authenticated users
-    if user and hasattr(user, "id"):
-        _consume_fortune_quota(user.id, db)
-
-    # Check cache (order-independent: A-B same as B-A)
+    # Check cache first (order-independent: A-B same as B-A)
     cached = db.query(CompatibilityCache).filter(
         or_(
             and_(CompatibilityCache.zodiac_a == user_zodiac, CompatibilityCache.zodiac_b == partner_zodiac),
@@ -678,6 +657,11 @@ async def compatibility_fortune(
 
     if cached:
         return _stream_cached_response(cached.response_json)
+
+    # Consume quota only for live AI calls
+    if user and hasattr(user, "id"):
+        if not _consume_fortune_quota(user.id, db):
+            raise HTTPException(status_code=429, detail="今日运势AI次数已用完")
 
     return await _stream_live_compatibility(
         user_zodiac=user_zodiac,

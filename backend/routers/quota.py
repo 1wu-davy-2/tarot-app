@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import update as sql_update, func
 from database import get_db
 from models import User, DailyQuota
 from routers.auth import get_current_user
@@ -38,14 +39,26 @@ def consume_quota(user: User = Depends(get_current_user), db: Session = Depends(
     if user.is_admin:
         return {"success": True, "remaining": settings.admin_quota}
 
+    # Ensure quota row exists
     quota = get_or_create_quota(user.id, db)
-    remaining = quota.base_quota + quota.bonus_quota + (quota.gifted_quota or 0) - quota.used_count
 
-    if remaining <= 0:
-        raise HTTPException(status_code=429, detail="今日AI解读次数已用完，请签到获取更多或明天再来")
-
-    quota.used_count += 1
+    # Atomic UPDATE with WHERE gate — prevents race condition
+    today = get_today()
+    result = db.execute(
+        sql_update(DailyQuota)
+        .where(
+            DailyQuota.user_id == user.id,
+            DailyQuota.date == today,
+            (DailyQuota.base_quota + DailyQuota.bonus_quota + func.coalesce(DailyQuota.gifted_quota, 0) - DailyQuota.used_count) > 0,
+        )
+        .values(used_count=DailyQuota.used_count + 1)
+    )
     db.commit()
 
+    if result.rowcount == 0:
+        raise HTTPException(status_code=429, detail="今日AI解读次数已用完，请签到获取更多或明天再来")
+
+    # Refresh to get updated values
+    db.refresh(quota)
     new_remaining = quota.base_quota + quota.bonus_quota + (quota.gifted_quota or 0) - quota.used_count
     return {"success": True, "remaining": max(0, new_remaining)}

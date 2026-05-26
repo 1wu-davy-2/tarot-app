@@ -5,9 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
 from database import get_db
-from models import User, DailyJournal
+from models import User, DailyJournal, DailyQuota
 from schemas import JournalCreate, JournalResponse, WeeklyReportRequest
 from routers.auth import get_current_user
+from routers.checkin import get_or_create_quota
 from config import get_settings
 
 router = APIRouter(prefix="/api/journal", tags=["journal"])
@@ -60,7 +61,7 @@ def get_journal(
 
     if date:
         entry = query.filter(DailyJournal.date == date).first()
-        return entry
+        return {"entry": entry}
     if start and end:
         entries = (
             query.filter(DailyJournal.date >= start, DailyJournal.date <= end)
@@ -118,6 +119,15 @@ async def monthly_report(
             {"error": "至少需要7天日记记录才能生成月报"},
             status_code=400,
         )
+
+    # Consume one quota for AI report generation
+    from datetime import date as date_cls
+    dq = get_or_create_quota(user.id, db)
+    remaining = dq.base_quota + dq.bonus_quota + (dq.gifted_quota or 0) - dq.used_count
+    if remaining <= 0 and not getattr(user, "is_admin", False):
+        return JSONResponse({"error": "今日AI次数已用完，请签到获取更多"}, status_code=429)
+    dq.used_count += 1
+    db.commit()
 
     # Statistics
     element_counts = {}
@@ -384,6 +394,14 @@ async def weekly_report(
             {"error": "至少需要3天日记记录才能生成周报"},
             status_code=400,
         )
+
+    # Consume one quota for AI report generation
+    dq = get_or_create_quota(user.id, db)
+    remaining = dq.base_quota + dq.bonus_quota + (dq.gifted_quota or 0) - dq.used_count
+    if remaining <= 0 and not getattr(user, "is_admin", False):
+        return JSONResponse({"error": "今日AI次数已用完，请签到获取更多"}, status_code=429)
+    dq.used_count += 1
+    db.commit()
 
     # Compute statistics
     element_counts = {}

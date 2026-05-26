@@ -51,11 +51,11 @@ def get_or_create_quota(user_id: int, db: Session) -> DailyQuota:
 def checkin(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     today = get_today()
 
-    # Check if already checked in today
+    # Use SELECT ... FOR UPDATE to prevent race condition
     existing = db.query(CheckIn).filter(
         CheckIn.user_id == user.id,
         CheckIn.date == today,
-    ).first()
+    ).with_for_update().first()
 
     if existing:
         return {"date": today, "bonus_awarded": 0, "already_checked_in": True, "message": "今日已签到"}

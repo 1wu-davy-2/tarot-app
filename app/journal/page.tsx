@@ -166,6 +166,7 @@ export default function JournalPage() {
     const entry = entries.get(selectedDate);
     if (!entry) return;
 
+    // Optimistic local delete
     deleteLocalJournal(entry.id);
     setEntries((prev) => {
       const next = new Map(prev);
@@ -174,7 +175,17 @@ export default function JournalPage() {
     });
 
     if (entry.synced && entry.id) {
-      try { await apiDeleteJournalEntry(entry.id); } catch {}
+      try {
+        await apiDeleteJournalEntry(entry.id);
+      } catch {
+        // Revert local state on server failure
+        saveLocalJournal(entry);
+        setEntries((prev) => {
+          const next = new Map(prev);
+          next.set(selectedDate, entry);
+          return next;
+        });
+      }
     }
     setSheetOpen(false);
   };
