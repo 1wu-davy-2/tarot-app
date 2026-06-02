@@ -182,6 +182,7 @@ function saveCustomSpreads(spreads: Record<string, CustomSpreadEntry>) {
 export default function SpreadPage() {
   const [spreadType, setSpreadType] = useState<SpreadType | null>(null);
   const [question, setQuestion] = useState("");
+  const [forOthers, setForOthers] = useState(false);
   const [cards, setCards] = useState<CardState[]>([]);
   const [phase, setPhase] = useState<"select-type" | "draw" | "revealing" | "interpreting">("select-type");
   const [flippedCount, setFlippedCount] = useState(0);
@@ -910,11 +911,39 @@ export default function SpreadPage() {
                   </div>
 
                   <div ref={questionRef}>
-                    <label className="text-xs text-mystic-rose/65 mb-2 block">你的问题（可选）</label>
+                    {/* Self / Others toggle */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-xs text-mystic-rose/65">求问对象</span>
+                      <div className="flex rounded-full bg-mystic-dark/60 border border-mystic-purple/30 p-0.5">
+                        <button
+                          onClick={() => setForOthers(false)}
+                          className={`px-4 py-1.5 rounded-full text-xs transition-all ${
+                            !forOthers
+                              ? "bg-mystic-gold/20 border border-mystic-gold/40 text-mystic-gold"
+                              : "text-text-secondary hover:text-text-primary"
+                          }`}
+                        >
+                          自己
+                        </button>
+                        <button
+                          onClick={() => setForOthers(true)}
+                          className={`px-4 py-1.5 rounded-full text-xs transition-all ${
+                            forOthers
+                              ? "bg-mystic-gold/20 border border-mystic-gold/40 text-mystic-gold"
+                              : "text-text-secondary hover:text-text-primary"
+                          }`}
+                        >
+                          帮助别人
+                        </button>
+                      </div>
+                    </div>
+                    <label className="text-xs text-mystic-rose/65 mb-2 block">
+                      {forOthers ? "对方的问题（可选）" : "你的问题（可选）"}
+                    </label>
                     <textarea
                       value={question}
                       onChange={(e) => setQuestion(e.target.value)}
-                      placeholder="你可以在心中默想，或者写下来..."
+                      placeholder={forOthers ? "描述对方的情况或问题..." : "你可以在心中默想，或者写下来..."}
                       rows={3}
                       className="w-full bg-mystic-dark/50 border border-mystic-purple/30 rounded-lg px-4 py-3 text-foreground/80 placeholder:text-mystic-rose/45 text-sm resize-none focus:outline-none focus:border-mystic-gold/50 transition-colors"
                     />
@@ -929,7 +958,7 @@ export default function SpreadPage() {
                   </button>
 
                   <button
-                    onClick={() => setSpreadType(null)}
+                    onClick={() => { setSpreadType(null); setForOthers(false); }}
                     className="text-mystic-rose/55 text-xs hover:text-mystic-rose transition-colors text-center"
                   >
                     重新选择牌阵
@@ -1091,6 +1120,7 @@ export default function SpreadPage() {
                       positions={cards.map(c => c.position)}
                       onAiText={setAiText}
                       autoStart={true}
+                      forOthers={forOthers}
                     />
                   )}
                   <ShareButton
