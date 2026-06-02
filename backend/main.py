@@ -238,10 +238,17 @@ class ForceCorsMiddleware:
             await self.app(scope, receive, send)
             return
 
+        # Extract request Origin once (used for echo-back instead of wildcard *)
+        req_origin = b"*"
+        for k, v in scope.get("headers", []):
+            if k == b"origin":
+                req_origin = v
+                break
+
         async def cors_send(message):
             if message["type"] == "http.response.start":
                 headers = dict(message.get("headers", []))
-                headers[b"access-control-allow-origin"] = b"*"
+                headers[b"access-control-allow-origin"] = req_origin
                 headers[b"access-control-allow-methods"] = b"*"
                 headers[b"access-control-allow-headers"] = b"authorization, content-type, x-requested-with"
                 headers[b"access-control-max-age"] = b"86400"
@@ -249,17 +256,16 @@ class ForceCorsMiddleware:
             await send(message)
 
         if scope["method"] == "OPTIONS":
-            # Echo back the requested headers for preflight
             req_headers = scope.get("headers", [])
-            req_header_names = [v.decode().lower() for k, v in req_headers if k == b"access-control-request-headers"]
+            all_req_header_names = [v.decode().lower() for k, v in req_headers if k == b"access-control-request-headers"]
             allow_headers = b"authorization, content-type, x-requested-with"
-            if req_header_names:
-                allow_headers = req_header_names[0].encode()
+            if all_req_header_names:
+                allow_headers = all_req_header_names[0].encode()
             await send({
                 "type": "http.response.start",
                 "status": 200,
                 "headers": [
-                    (b"access-control-allow-origin", b"*"),
+                    (b"access-control-allow-origin", req_origin),
                     (b"access-control-allow-methods", b"*"),
                     (b"access-control-allow-headers", allow_headers),
                     (b"access-control-max-age", b"86400"),

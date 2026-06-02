@@ -27,3 +27,4 @@ services:
       - NODE_ENV=production
       # 与后端 backend/.env 中相同的加密密钥
       - ENCRYPTION_KEY
+      - BACKEND_URL
