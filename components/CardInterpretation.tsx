@@ -13,16 +13,19 @@ import {
 const IS_APK = process.env.NEXT_PUBLIC_BUILD_TARGET === "apk";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-function buildQuestion(base: string | undefined, spreadType: string | undefined): string {
+function buildQuestion(base: string | undefined, spreadType: string | undefined, forOthers?: boolean): string {
   let q = base?.trim() || "未说明具体问题，求问者心中默想";
-  const user = getStoredUser();
-  if (user?.zodiac) {
-    q = `[问询者星座：${user.zodiac}] ${q}`;
+  if (!forOthers) {
+    const user = getStoredUser();
+    if (user?.zodiac) {
+      q = `[问询者星座：${user.zodiac}] ${q}`;
+    }
   }
   return q;
 }
 
-function getBirthChart() {
+function getBirthChart(forOthers?: boolean) {
+  if (forOthers) return undefined;
   const user = getStoredUser();
   if (!user) return undefined;
   const bc: any = {};
@@ -43,6 +46,7 @@ interface CardInterpretationProps {
   positions?: string[];
   onAiText?: (text: string) => void;
   autoStart?: boolean;
+  forOthers?: boolean;
 }
 
 const dimensionLabels: Record<string, { label: string; icon: string }> = {
@@ -370,6 +374,7 @@ function AIInterpretationTab({
   positions,
   onText,
   autoStart = false,
+  forOthers = false,
 }: {
   cards: TarotCard[];
   isReversed: boolean[];
@@ -378,6 +383,7 @@ function AIInterpretationTab({
   positions?: string[];
   onText?: (text: string) => void;
   autoStart?: boolean;
+  forOthers?: boolean;
 }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -475,12 +481,12 @@ function AIInterpretationTab({
         body: JSON.stringify({
           cards,
           isReversed,
-          question: buildQuestion(question, spreadType),
+          question: buildQuestion(question, spreadType, forOthers),
           spreadType: spreadType || "自定义牌阵",
           positions: positions || undefined,
           style: persona,
           history: history || undefined,
-          birthChart: getBirthChart(),
+          birthChart: getBirthChart(forOthers),
         }),
       });
 
@@ -751,6 +757,7 @@ export function CardInterpretation({
   positions,
   onAiText,
   autoStart = false,
+  forOthers = false,
 }: CardInterpretationProps) {
   const [tab, setTab] = useState<"standard" | "ai">(autoStart ? "ai" : "standard");
   const interpCards = allCards || [card];
@@ -803,6 +810,7 @@ export function CardInterpretation({
           positions={positions}
           onText={onAiText}
           autoStart={autoStart}
+          forOthers={forOthers}
         />
       </div>
     </div>
