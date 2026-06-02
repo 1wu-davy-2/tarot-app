@@ -83,7 +83,7 @@ async def horoscope(sign: str = ""):
                     "Authorization": f"Bearer {api_key}",
                 },
                 json={
-                    "model": "deepseek-v4-pro",
+                    "model": settings.deepseek_model,
                     "messages": [
                         {"role": "system", "content": "你是星座运势专家，回复简洁口语化。"},
                         {"role": "user", "content": prompt},

@@ -174,7 +174,7 @@ async def _stream_live_ai(zodiac: str, period: str, ref_date: date):
                         "Content-Type": "application/json",
                     },
                     json={
-                        "model": "deepseek-chat",
+                        "model": settings.deepseek_model,
                         "messages": [{"role": "user", "content": prompt}],
                         "temperature": 0.8,
                         "stream": True,
@@ -326,7 +326,7 @@ def _generate_one_zodiac(zodiac: str, ref_date: date):
                 "Content-Type": "application/json",
             },
             json={
-                "model": "deepseek-chat",
+                "model": settings.deepseek_model,
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.8,
                 "stream": False,
@@ -576,7 +576,7 @@ async def _stream_live_compatibility(
                         "Content-Type": "application/json",
                     },
                     json={
-                        "model": "deepseek-chat",
+                        "model": settings.deepseek_model,
                         "messages": [{"role": "user", "content": prompt}],
                         "temperature": 0.8,
                         "stream": True,

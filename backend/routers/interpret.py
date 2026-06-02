@@ -303,7 +303,7 @@ async def interpret(
                         "Authorization": f"Bearer {api_key}",
                     },
                     json={
-                        "model": "deepseek-v4-pro",
+                        "model": settings.deepseek_model,
                         "messages": messages,
                         "stream": True,
                         "temperature": 0.7,

@@ -40,6 +40,6 @@ def ai_config():
     encrypted = encrypt_api_key(settings.deepseek_api_key, settings.encryption_key)
 
     return {
-        "model": "deepseek-v4-pro",
+        "model": settings.deepseek_model,
         "api_key": encrypted,
     }

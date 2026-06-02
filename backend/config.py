@@ -64,6 +64,7 @@ class Settings(BaseSettings):
 
     # DeepSeek
     deepseek_api_key: str = ""
+    deepseek_model: str = "deepseek-v4-pro"
 
     # Encryption key for AI config delivery
     encryption_key: str = ""

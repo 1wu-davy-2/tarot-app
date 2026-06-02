@@ -225,7 +225,7 @@ async def monthly_report(
                         "Authorization": f"Bearer {api_key}",
                     },
                     json={
-                        "model": "deepseek-v4-pro",
+                        "model": settings.deepseek_model,
                         "messages": messages,
                         "stream": True,
                         "temperature": 0.7,
@@ -491,7 +491,7 @@ async def weekly_report(
                         "Authorization": f"Bearer {api_key}",
                     },
                     json={
-                        "model": "deepseek-v4-pro",
+                        "model": settings.deepseek_model,
                         "messages": messages,
                         "stream": True,
                         "temperature": 0.7,

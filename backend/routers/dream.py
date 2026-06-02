@@ -283,7 +283,7 @@ async def _stream_and_save_dream(
                         "Content-Type": "application/json",
                     },
                     json={
-                        "model": "deepseek-chat",
+                        "model": settings.deepseek_model,
                         "messages": [{"role": "user", "content": prompt}],
                         "temperature": 0.8,
                         "stream": True,
