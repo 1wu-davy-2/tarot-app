@@ -171,3 +171,15 @@ class SmTalkPhrase(Base):
     phrases = Column(Text, nullable=False)  # JSON array of strings
     lang = Column(String(5), default="zh")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class AnswerBookRecord(Base):
+    __tablename__ = "answer_book_records"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    question = Column(Text, default="")
+    answer = Column(Text, nullable=False)
+    page_number = Column(Integer, nullable=False)
+    ai_interpretation = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from config import get_settings
-from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement, journal, spread_templates, theme_images, app_update, journal_reports, fortune, dream, personality
+from routers import auth, checkin, quota, readings, interpret, ai_config, feedback, admin, zodiac, announcement, journal, spread_templates, theme_images, app_update, journal_reports, fortune, dream, personality, answer_book
 from redis_utils import get_dev_code
 
 settings = get_settings()
@@ -168,6 +168,11 @@ def ensure_columns():
         except Exception as e:
             print(f"[startup] FK fix skipped: {e}")
 
+    if not insp.has_table("answer_book_records"):
+        from models import AnswerBookRecord
+        AnswerBookRecord.__table__.create(engine, checkfirst=True)
+        print("[startup] Created table answer_book_records")
+
 
 def ensure_admin():
     """Ensure an admin user exists on startup."""
@@ -297,6 +302,7 @@ app.include_router(app_update.router)
 app.include_router(fortune.router)
 app.include_router(dream.router)
 app.include_router(personality.router)
+app.include_router(answer_book.router)
 
 
 # Dev helper: get latest verification code

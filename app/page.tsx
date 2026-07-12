@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Sparkles, LayoutGrid, BookHeart, Library, User, LogIn, Crown, Compass, Brain } from "lucide-react";
+import { Sparkles, LayoutGrid, BookHeart, Library, User, LogIn, Crown, Compass, Brain, BookOpen } from "lucide-react";
 import { isLoggedIn, getStoredUser } from "@/lib/api-client";
 
 const container = {
@@ -103,6 +103,7 @@ export default function HomePage() {
           <EntryCard href="/library" icon={Library} title="塔罗图鉴" enTitle="Card Library" desc="78张牌 · 完整释义" />
           <EntryCard href="/fortune" icon={Compass} title="每日运势" enTitle="Daily Fortune" desc="星座运势 · 幸运指引" />
           <EntryCard href="/personality" icon={Brain} title="性格测试" enTitle="Personality Test" desc="MBTI · BDSM倾向" />
+          <EntryCard href="/answer-book" icon={BookOpen} title="答案之书" enTitle="Book of Answers" desc="640页 · 宇宙的回答" />
         </motion.div>
 
         {/* Login / Profile link */}
