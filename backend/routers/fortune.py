@@ -9,7 +9,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 from database import get_db, SessionLocal
-from models import User, FortuneCache, CompatibilityCache
+from models import User, FortuneCache, CompatibilityCache, DailyCardCache
+from routers.interpret import hash_string, to_int32
 from routers.auth import get_current_user_optional
 from config import get_settings
 
@@ -386,6 +387,8 @@ def _scheduler_loop():
         try:
             with _GENERATE_LOCK:
                 generate_all_cache()
+            # Also pre-generate daily card sentence
+            generate_daily_card_sentence()
         except Exception as e:
             print(f"[fortune_scheduler] Error: {e}")
 
@@ -500,6 +503,161 @@ def fortune_quota_remaining(
 def zodiac_list():
     """Return list of zodiac signs with emojis."""
     return [{"name": n, "emoji": e, "index": i} for i, (n, e) in enumerate(zip(ZODIAC_NAMES, ZODIAC_EMOJI))]
+
+
+# ── Daily Card One-Sentence ──
+
+TAROT_NAMES_CN = [
+    "愚者", "魔术师", "女祭司", "女皇", "皇帝", "教皇", "恋人", "战车",
+    "力量", "隐者", "命运之轮", "正义", "倒吊人", "死神", "节制", "恶魔",
+    "高塔", "星星", "月亮", "太阳", "审判", "世界",
+    # Minor Arcana — Wands
+    "权杖王牌", "权杖二", "权杖三", "权杖四", "权杖五", "权杖六", "权杖七",
+    "权杖八", "权杖九", "权杖十", "权杖侍从", "权杖骑士", "权杖皇后", "权杖国王",
+    # Cups
+    "圣杯王牌", "圣杯二", "圣杯三", "圣杯四", "圣杯五", "圣杯六", "圣杯七",
+    "圣杯八", "圣杯九", "圣杯十", "圣杯侍从", "圣杯骑士", "圣杯皇后", "圣杯国王",
+    # Swords
+    "宝剑王牌", "宝剑二", "宝剑三", "宝剑四", "宝剑五", "宝剑六", "宝剑七",
+    "宝剑八", "宝剑九", "宝剑十", "宝剑侍从", "宝剑骑士", "宝剑皇后", "宝剑国王",
+    # Pentacles
+    "星币王牌", "星币二", "星币三", "星币四", "星币五", "星币六", "星币七",
+    "星币八", "星币九", "星币十", "星币侍从", "星币骑士", "星币皇后", "星币国王",
+]
+
+TAROT_NAMES_EN = [
+    "The Fool", "The Magician", "The High Priestess", "The Empress", "The Emperor",
+    "The Hierophant", "The Lovers", "The Chariot", "Strength", "The Hermit",
+    "Wheel of Fortune", "Justice", "The Hanged Man", "Death", "Temperance",
+    "The Devil", "The Tower", "The Star", "The Moon", "The Sun", "Judgement", "The World",
+    # Wands
+    "Ace of Wands", "Two of Wands", "Three of Wands", "Four of Wands", "Five of Wands",
+    "Six of Wands", "Seven of Wands", "Eight of Wands", "Nine of Wands", "Ten of Wands",
+    "Page of Wands", "Knight of Wands", "Queen of Wands", "King of Wands",
+    # Cups
+    "Ace of Cups", "Two of Cups", "Three of Cups", "Four of Cups", "Five of Cups",
+    "Six of Cups", "Seven of Cups", "Eight of Cups", "Nine of Cups", "Ten of Cups",
+    "Page of Cups", "Knight of Cups", "Queen of Cups", "King of Cups",
+    # Swords
+    "Ace of Swords", "Two of Swords", "Three of Swords", "Four of Swords", "Five of Swords",
+    "Six of Swords", "Seven of Swords", "Eight of Swords", "Nine of Swords", "Ten of Swords",
+    "Page of Swords", "Knight of Swords", "Queen of Swords", "King of Swords",
+    # Pentacles
+    "Ace of Pentacles", "Two of Pentacles", "Three of Pentacles", "Four of Pentacles", "Five of Pentacles",
+    "Six of Pentacles", "Seven of Pentacles", "Eight of Pentacles", "Nine of Pentacles", "Ten of Pentacles",
+    "Page of Pentacles", "Knight of Pentacles", "Queen of Pentacles", "King of Pentacles",
+]
+
+
+def _get_daily_card():
+    """Get today's deterministic tarot card (same as frontend getDailyCard())."""
+    today = date.today()
+    date_str = today.isoformat()
+    seed = hash_string(date_str)
+    card_index = seed % 78
+    is_reversed = (seed % 2) == 1
+    card_cn = TAROT_NAMES_CN[card_index] if card_index < len(TAROT_NAMES_CN) else f"牌#{card_index}"
+    card_en = TAROT_NAMES_EN[card_index] if card_index < len(TAROT_NAMES_EN) else f"Card #{card_index}"
+    return {"date_str": date_str, "card_index": card_index, "is_reversed": is_reversed, "card_cn": card_cn, "card_en": card_en}
+
+
+def generate_daily_card_sentence():
+    """Generate AI one-sentence daily card guidance. Non-blocking sync call via DeepSeek."""
+    info = _get_daily_card()
+    date_str = info["date_str"]
+
+    db = SessionLocal()
+    try:
+        existing = db.query(DailyCardCache).filter(DailyCardCache.date == date_str).first()
+        if existing:
+            print(f"[daily_card] Already cached for {date_str}: {existing.sentence}")
+            return existing.sentence
+    finally:
+        db.close()
+
+    orientation = "逆位（相反含义/内在反思）" if info["is_reversed"] else "正位（正向含义/外在行动）"
+    prompt = f"""你是命运之镜的每日塔罗指引师。今天（{date_str}）的每日牌是：{info['card_cn']}（{info['card_en']}），牌位：{orientation}。
+
+请写一句温暖而富有诗意的今日指引（15字以内，中文），直接输出句子，不要引号、标点、解释或任何额外内容。"""
+
+    try:
+        import httpx
+        resp = httpx.post(
+            "https://api.deepseek.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {settings.deepseek_api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "deepseek-chat",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.9,
+                "max_tokens": 50,
+                "stream": False,
+            },
+            timeout=20,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        sentence = data["choices"][0]["message"]["content"].strip()
+        # Clean any quotes or extra characters
+        sentence = sentence.strip('"\'""''「」『』。，！？、')
+        sentence = sentence[:120]
+        print(f"[daily_card] AI generated for {date_str}: {sentence}")
+    except Exception as e:
+        print(f"[daily_card] AI failed for {date_str}: {e}")
+        # Fallback to static
+        orientation_word = "逆位" if info["is_reversed"] else "正位"
+        sentence = f"今日{info['card_cn']} {orientation_word}，指引你前行"
+
+    # Save to cache
+    db = SessionLocal()
+    try:
+        cache = DailyCardCache(
+            date=date_str,
+            card_index=info["card_index"],
+            is_reversed=info["is_reversed"],
+            sentence=sentence,
+        )
+        db.add(cache)
+        db.commit()
+        print(f"[daily_card] Cached for {date_str}")
+    except Exception as e:
+        db.rollback()
+        print(f"[daily_card] Cache save failed: {e}")
+    finally:
+        db.close()
+
+    return sentence
+
+
+@router.get("/daily-card-sentence")
+def daily_card_sentence(db: Session = Depends(get_db)):
+    """Return today's daily card with AI one-sentence guidance (cached)."""
+    info = _get_daily_card()
+    date_str = info["date_str"]
+
+    cached = db.query(DailyCardCache).filter(DailyCardCache.date == date_str).first()
+    if cached:
+        return {
+            "date": date_str,
+            "card_index": cached.card_index,
+            "is_reversed": cached.is_reversed,
+            "card_name_cn": info["card_cn"],
+            "card_name_en": info["card_en"],
+            "sentence": cached.sentence,
+        }
+
+    # Generate on demand if not cached
+    sentence = generate_daily_card_sentence()
+    return {
+        "date": date_str,
+        "card_index": info["card_index"],
+        "is_reversed": info["is_reversed"],
+        "card_name_cn": info["card_cn"],
+        "card_name_en": info["card_en"],
+        "sentence": sentence,
+    }
 
 
 # ── Compatibility endpoint ──

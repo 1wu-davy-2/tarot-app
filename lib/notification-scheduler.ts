@@ -11,6 +11,7 @@ export interface NotifySettings {
 }
 
 const STORAGE_KEY = "tarot_notify_settings";
+const DAILY_CARD_SENTENCE_KEY = "tarot_daily_card_sentence";
 
 const DEFAULTS: NotifySettings = {
   dailyCard: { enabled: true, time: "09:00" },
@@ -18,6 +19,62 @@ const DEFAULTS: NotifySettings = {
   checkIn: { enabled: true, time: "10:00" },
   membershipExpiry: { enabled: true },
 };
+
+// ── Daily card sentence caching ──
+
+interface DailyCardSentence {
+  date: string;
+  card_name_cn: string;
+  is_reversed: boolean;
+  sentence: string;
+}
+
+export async function fetchDailyCardSentence(): Promise<DailyCardSentence | null> {
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    // Check localStorage cache first
+    const cached = getCachedDailySentence();
+    if (cached && cached.date === today) return cached;
+
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+    const url = API_BASE
+      ? `${API_BASE}/api/fortune/daily-card-sentence`
+      : "/api/fortune/daily-card-sentence";
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.sentence) {
+      cacheDailySentence(data);
+      return data;
+    }
+  } catch {}
+  return null;
+}
+
+function cacheDailySentence(data: DailyCardSentence) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(DAILY_CARD_SENTENCE_KEY, JSON.stringify({ ...data, _cached_at: Date.now() }));
+  } catch {}
+}
+
+function getCachedDailySentence(): DailyCardSentence | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(DAILY_CARD_SENTENCE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
+export function getDailyCardNotificationBody(data: DailyCardSentence | null): string {
+  if (data) {
+    const orientation = data.is_reversed ? "逆" : "正";
+    return `${data.card_name_cn} · ${orientation}位 — ${data.sentence}`;
+  }
+  return "今日运势牌已揭晓，点击查看今日指引";
+}
 
 export function getNotifySettings(): NotifySettings {
   if (typeof window === "undefined") return DEFAULTS;
@@ -57,10 +114,14 @@ export function checkWebReminders(
     const key = `daily-${today}`;
     if (lastFired["daily"] !== key) {
       lastFired["daily"] = key;
+      const cached = getCachedDailySentence();
+      const body = getDailyCardNotificationBody(
+        cached && cached.date === today ? cached : null
+      );
       onReminder({
         id: "daily-card",
         title: "命运之镜 · 每日塔罗",
-        body: "今日运势牌已揭晓，点击查看今日指引",
+        body,
         action: { label: "查看", path: "/daily" },
       });
     }
@@ -144,12 +205,16 @@ export async function scheduleAPKNotifications(settings: NotifySettings): Promis
     // Request permission
     await LocalNotifications.requestPermissions();
 
+    // Pre-fetch today's daily card sentence
+    const dailySentence = await fetchDailyCardSentence().catch(() => null);
+
     // Clear existing and schedule new ones for next 7 days
     const notifications: Array<{
       title: string;
       body: string;
       id: number;
       schedule: { at: Date };
+      extra?: { path: string };
     }> = [];
 
     let idCounter = 100;
@@ -165,11 +230,15 @@ export async function scheduleAPKNotifications(settings: NotifySettings): Promis
         const at = new Date(date);
         at.setHours(h, m, 0, 0);
         if (at > now) {
+          const body = d === 0
+            ? getDailyCardNotificationBody(dailySentence)
+            : "今日运势牌已揭晓，点击查看今日指引";
           notifications.push({
             title: "命运之镜 · 每日塔罗",
-            body: "今日运势牌已揭晓，点击查看今日指引",
+            body,
             id: idCounter++,
             schedule: { at },
+            extra: { path: "/daily" },
           });
         }
       }
@@ -187,6 +256,7 @@ export async function scheduleAPKNotifications(settings: NotifySettings): Promis
               body: isNew ? "新月之夜，适合冥想与许愿" : "满月之夜，能量最强的占卜夜",
               id: idCounter++,
               schedule: { at },
+              extra: { path: "/journal" },
             });
           }
         }
@@ -203,6 +273,7 @@ export async function scheduleAPKNotifications(settings: NotifySettings): Promis
             body: "今日尚未签到，点击签到获取 AI 解读次数",
             id: idCounter++,
             schedule: { at },
+            extra: { path: "/profile" },
           });
         }
       }
