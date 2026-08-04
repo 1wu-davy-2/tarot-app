@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Shuffle, Sparkles, Clock, Layers, ChevronDown, ChevronUp, Plus, X, Globe, Download } from "lucide-react";
+import { ArrowLeft, Shuffle, Sparkles, Clock, Layers, ChevronDown, ChevronUp, Plus, X, Globe, Download, User, Users, Eye, EyeOff } from "lucide-react";
 import { ShareButton } from "@/components/ShareButton";
 import { TarotCard } from "@/components/TarotCard";
 import { CardDrawAnimation } from "@/components/CardDrawAnimation";
@@ -188,6 +188,7 @@ export default function SpreadPage() {
   const [flippedCount, setFlippedCount] = useState(0);
   const [showInterpretation, setShowInterpretation] = useState(false);
   const [cardsCollapsed, setCardsCollapsed] = useState(false);
+  const [showQuestionInfo, setShowQuestionInfo] = useState(true);
   const [aiText, setAiText] = useState("");
   const [layoutMode, setLayoutMode] = useState<"fan" | "grid">("fan");
 
@@ -1030,6 +1031,54 @@ export default function SpreadPage() {
                   已翻开 {flippedCount}/{cards.length} 张
                 </p>
               </div>
+
+              {/* Question context — collapsible */}
+              {(question || forOthers) && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full max-w-md mx-auto"
+                >
+                  <button
+                    onClick={() => setShowQuestionInfo(!showQuestionInfo)}
+                    className="flex items-center justify-center gap-2 w-full py-1.5 text-xs text-mystic-rose/55 hover:text-mystic-rose/75 transition-colors"
+                  >
+                    {showQuestionInfo ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {showQuestionInfo ? "隐藏问题" : "显示问题"}
+                  </button>
+                  <AnimatePresence>
+                    {showQuestionInfo && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="glass-card px-4 py-3 flex flex-col gap-2">
+                          <div className="flex items-center gap-2 text-xs">
+                            {forOthers ? (
+                              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-mystic-purple/25 border border-mystic-purple/30 text-mystic-rose/80">
+                                <Users className="w-3.5 h-3.5" />
+                                帮助别人
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-mystic-gold/10 border border-mystic-gold/25 text-mystic-gold/80">
+                                <User className="w-3.5 h-3.5" />
+                                为自己
+                              </span>
+                            )}
+                          </div>
+                          {question && (
+                            <p className="text-sm text-foreground/70 leading-relaxed pl-1">
+                              「{question}」
+                            </p>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
 
               {/* Card grid — collapsible */}
               <div className="w-full">
