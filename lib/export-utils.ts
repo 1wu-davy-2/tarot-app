@@ -1,6 +1,7 @@
 // Data export utilities — generate HTML files with inline CSS and trigger browser download.
 
 import { tarotCards } from "./tarot-data";
+import { conversationToPlainText } from "./conversation-format";
 
 // ── Shared styles (dark theme, inline CSS) ──
 
@@ -115,7 +116,7 @@ export function generateReadingsHTML(
       const date = r.date || r.created_at?.slice(0, 10) || "";
       const spread = r.spreadType || r.spread_type || "占卜";
       const question = r.question || "";
-      const response = r.aiInterpretation || r.ai_response || "";
+      const response = conversationToPlainText(r.aiInterpretation || r.ai_response || "");
       const cards = r.cards || [];
 
       return `

@@ -429,9 +429,16 @@ export default function SpreadPage() {
   // Called by CardInterpretation whenever the conversation changes (first reply + follow-ups)
   const handleConversationUpdate = useCallback((messages: { role: string; content: string }[]) => {
     conversationRef.current = messages;
-    // Build full text for local storage and aiText state
+    // Flatten for localStorage. The first user message is the original question,
+    // which the history card already shows separately — skip it and only inline follow-ups.
+    let seenFirstQuestion = false;
     const fullText = messages
-      .map(m => m.role === "user" ? `【追问】${m.content}` : m.content)
+      .map((m) => {
+        if (m.role !== "user") return m.content;
+        if (!seenFirstQuestion) { seenFirstQuestion = true; return null; }
+        return `【追问】${m.content}`;
+      })
+      .filter((s): s is string => s !== null)
       .join("\n\n");
     setAiText(fullText);
 

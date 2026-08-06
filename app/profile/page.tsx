@@ -15,6 +15,7 @@ import {
 import {
   getMbtiResult, getSmResult, hasMbtiResult, hasSmResult,
 } from "@/lib/personality-tests";
+import { ConversationView } from "@/components/ConversationView";
 import {
   getNotifySettings, saveNotifySettings,
   type NotifySettings,
@@ -915,8 +916,10 @@ export default function ProfilePage() {
                     animate={{ height: "auto", opacity: 1 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-4 pb-4 border-t border-mystic-purple/10 text-xs text-text-primary leading-relaxed whitespace-pre-wrap">
-                      {r.ai_response || r.question}
+                    <div className="px-4 pb-4 border-t border-mystic-purple/10">
+                      {r.ai_response
+                        ? <ConversationView raw={r.ai_response} />
+                        : <p className="text-xs text-text-primary leading-relaxed whitespace-pre-wrap">{r.question}</p>}
                     </div>
                   </motion.div>
                 )}

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ArrowLeft, Trash2, ChevronDown, X, Clock, Layers } from "lucide-react";
 import { getReadings, deleteReading, clearReadings, type ReadingRecord } from "@/lib/reading-history";
 import { getCardImageUrl } from "@/lib/deck-themes";
+import { parseConversation } from "@/lib/conversation-format";
+import { ConversationView } from "@/components/ConversationView";
 
 export default function HistoryPage() {
   const [readings, setReadings] = useState<ReadingRecord[]>([]);
@@ -206,9 +208,7 @@ export default function HistoryPage() {
                         {r.aiInterpretation && (
                           <div className="border-t border-mystic-purple/10 pt-3 mt-3">
                             <p className="text-[10px] text-text-secondary mb-2">🔮 AI 深度解读</p>
-                            <p className="text-xs text-text-primary leading-relaxed whitespace-pre-wrap">
-                              {r.aiInterpretation}
-                            </p>
+                            <InterpretationBody text={r.aiInterpretation} />
                           </div>
                         )}
                       </div>
@@ -220,6 +220,44 @@ export default function HistoryPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Renders a stored interpretation. Local records are flattened text where
+ * follow-up questions are marked with a 【追问】 prefix — style those as bubbles
+ * so the conversation reads as a dialogue rather than one wall of text.
+ */
+function InterpretationBody({ text }: { text: string }) {
+  const convo = parseConversation(text);
+
+  if (convo) {
+    return <ConversationView raw={text} />;
+  }
+
+  const blocks = text.split("\n\n");
+  return (
+    <div className="space-y-3">
+      {blocks.map((block, i) => {
+        if (block.startsWith("【追问】")) {
+          return (
+            <div key={i} className="flex justify-end">
+              <div className="max-w-[85%] px-3 py-2 rounded-xl bg-mystic-purple/20 border border-mystic-purple/25">
+                <p className="text-[9px] text-mystic-rose/60 mb-0.5 font-cinzel tracking-wide">追问</p>
+                <p className="text-xs text-text-primary leading-relaxed whitespace-pre-wrap">
+                  {block.slice(4)}
+                </p>
+              </div>
+            </div>
+          );
+        }
+        return (
+          <p key={i} className="text-xs text-text-primary leading-relaxed whitespace-pre-wrap">
+            {block}
+          </p>
+        );
+      })}
     </div>
   );
 }

@@ -8,6 +8,8 @@ import {
   Megaphone, Search, Trash2, BarChart3, Users, BookOpen, Zap, RefreshCw,
 } from "lucide-react";
 import { isLoggedIn, isAdmin, getToken } from "@/lib/api-client";
+import { followUpCount } from "@/lib/conversation-format";
+import { ConversationView } from "@/components/ConversationView";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -462,9 +464,20 @@ export default function AdminPage() {
                           </div>
                           {r.ai_response && (
                             <div>
-                              <span className="text-xs text-text-secondary">AI 解读：</span>
-                              <div className="text-sm text-text-primary mt-1 max-h-64 overflow-y-auto whitespace-pre-wrap bg-mystic-dark/40 rounded-lg p-3">
-                                {r.ai_response}
+                              <span className="text-xs text-text-secondary">
+                                AI 解读
+                                {followUpCount(r.ai_response) > 0 && (
+                                  <span className="ml-1.5 text-mystic-gold/70">
+                                    · {followUpCount(r.ai_response)} 轮追问
+                                  </span>
+                                )}
+                                ：
+                              </span>
+                              <div className="mt-1 max-h-64 overflow-y-auto bg-mystic-dark/40 rounded-lg p-3">
+                                <ConversationView
+                                  raw={r.ai_response}
+                                  textClassName="text-sm text-text-primary leading-relaxed"
+                                />
                               </div>
                             </div>
                           )}
