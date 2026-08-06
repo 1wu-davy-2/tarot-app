@@ -1,10 +1,10 @@
 import json
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models import User, ReadingRecord
 from routers.auth import get_current_user
-from schemas import SaveReadingRequest, ReadingResponse
+from schemas import SaveReadingRequest, UpdateReadingRequest, ReadingResponse
 
 router = APIRouter(prefix="/api/readings", tags=["readings"])
 
@@ -27,6 +27,26 @@ def save_reading(
     db.refresh(record)
     print(f"[reading_save] id={record.id} user={user.username}({user.id}) spread={req.spread_type} cards={len(req.cards)} ai_len={len(req.ai_response)}")
     return {"id": record.id, "message": "保存成功"}
+
+
+@router.patch("/{reading_id}")
+def update_reading(
+    reading_id: int,
+    req: UpdateReadingRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    record = (
+        db.query(ReadingRecord)
+        .filter(ReadingRecord.id == reading_id, ReadingRecord.user_id == user.id)
+        .first()
+    )
+    if not record:
+        raise HTTPException(status_code=404, detail="记录不存在")
+    record.ai_response = req.ai_response
+    db.commit()
+    print(f"[reading_patch] id={record.id} user={user.username}({user.id}) ai_len={len(req.ai_response)}")
+    return {"message": "更新成功"}
 
 
 @router.get("", response_model=list[ReadingResponse])

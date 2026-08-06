@@ -150,6 +150,10 @@ class SaveReadingRequest(BaseModel):
     cards: list = []
 
 
+class UpdateReadingRequest(BaseModel):
+    ai_response: str
+
+
 class ReadingResponse(BaseModel):
     id: int
     question: str

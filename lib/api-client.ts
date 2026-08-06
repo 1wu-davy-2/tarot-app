@@ -252,6 +252,14 @@ export async function apiSaveReading(data: {
   });
 }
 
+export async function apiPatchReading(id: number, data: { ai_response: string }) {
+  return api(`/api/readings/${id}`, {
+    method: "PATCH",
+    auth: true,
+    body: data,
+  });
+}
+
 export async function apiGetReadings(limit: number = 50, offset: number = 0) {
   return api<any[]>(`/api/readings?limit=${limit}&offset=${offset}`, { auth: true });
 }

@@ -36,6 +36,11 @@ function getBirthChart(forOthers?: boolean) {
   return Object.keys(bc).length > 0 ? bc : undefined;
 }
 
+interface ConversationMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 interface CardInterpretationProps {
   card: TarotCard;
   isReversed: boolean;
@@ -45,6 +50,7 @@ interface CardInterpretationProps {
   allReversed?: boolean[];
   positions?: string[];
   onAiText?: (text: string) => void;
+  onConversationUpdate?: (messages: ConversationMessage[]) => void;
   autoStart?: boolean;
   forOthers?: boolean;
 }
@@ -373,6 +379,7 @@ function AIInterpretationTab({
   spreadType,
   positions,
   onText,
+  onConversationUpdate,
   autoStart = false,
   forOthers = false,
 }: {
@@ -382,6 +389,7 @@ function AIInterpretationTab({
   spreadType?: string;
   positions?: string[];
   onText?: (text: string) => void;
+  onConversationUpdate?: (messages: ConversationMessage[]) => void;
   autoStart?: boolean;
   forOthers?: boolean;
 }) {
@@ -534,6 +542,22 @@ function AIInterpretationTab({
               }
             if (parsed.error) setError(parsed.error);
           } catch {}
+        }
+      }
+
+      // After streaming completes, emit full conversation for persistence
+      if (accumulated) {
+        if (history) {
+          // Follow-up completed: history already includes all prior messages + the user's new question
+          const fullConversation: ConversationMessage[] = [...history, { role: "assistant", content: accumulated }];
+          onConversationUpdate?.(fullConversation);
+        } else {
+          // First interpretation completed: build initial conversation
+          const initialConversation: ConversationMessage[] = [
+            { role: "user", content: question || "请解读牌面" },
+            { role: "assistant", content: accumulated },
+          ];
+          onConversationUpdate?.(initialConversation);
         }
       }
     } catch (err: any) {
@@ -756,6 +780,7 @@ export function CardInterpretation({
   allReversed,
   positions,
   onAiText,
+  onConversationUpdate,
   autoStart = false,
   forOthers = false,
 }: CardInterpretationProps) {
@@ -809,6 +834,7 @@ export function CardInterpretation({
           spreadType={spreadType}
           positions={positions}
           onText={onAiText}
+          onConversationUpdate={onConversationUpdate}
           autoStart={autoStart}
           forOthers={forOthers}
         />

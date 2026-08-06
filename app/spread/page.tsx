@@ -10,7 +10,7 @@ import { CardDrawAnimation } from "@/components/CardDrawAnimation";
 import { CardInterpretation } from "@/components/CardInterpretation";
 import { tarotCards, type TarotCard as TarotCardType } from "@/lib/tarot-data";
 import { saveReading, updateReading } from "@/lib/reading-history";
-import { isLoggedIn, apiSaveReading, apiGetSpreadTemplates, apiUploadSpreadTemplate, apiUseSpreadTemplate } from "@/lib/api-client";
+import { isLoggedIn, apiSaveReading, apiPatchReading, apiGetSpreadTemplates, apiUploadSpreadTemplate, apiUseSpreadTemplate } from "@/lib/api-client";
 import {
   SpreadLayoutPreview, LayoutSelector,
   SPREAD_LAYOUTS, LAYOUT_LABELS,
@@ -365,6 +365,10 @@ export default function SpreadPage() {
   const aiTextRef = useRef(aiText);
   aiTextRef.current = aiText;
 
+  // Conversation tracking for follow-up persistence
+  const conversationRef = useRef<{ role: string; content: string }[]>([]);
+  const backendRecordId = useRef<number | null>(null);
+
   const backendSaved = useRef(false);
   const backendSaving = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
@@ -382,9 +386,12 @@ export default function SpreadPage() {
       const curSpreadType = spreadTypeRef2.current;
       const curAllSpreads = allSpreadsRef2.current;
       const curAiText = aiTextRef.current;
-      await apiSaveReading({
+      // If conversation has follow-ups, store as JSON array; otherwise plain text
+      const convo = conversationRef.current;
+      const aiPayload = convo.length > 2 ? JSON.stringify(convo) : curAiText;
+      const result = await apiSaveReading({
         question: curQuestion || "",
-        ai_response: curAiText,
+        ai_response: aiPayload,
         spread_type: (curSpreadType && curAllSpreads[curSpreadType]?.name) || "自定义牌阵",
         cards: curCards.map((c) => ({
           nameCN: c.card.nameCN,
@@ -394,6 +401,7 @@ export default function SpreadPage() {
         })),
       });
       backendSaved.current = true;
+      backendRecordId.current = result?.id ?? null;
       saveRetries.current = 0;
     } catch (err) {
       console.error("[spread] backend save failed:", err);
@@ -404,6 +412,34 @@ export default function SpreadPage() {
       }
     }
   }, []);
+
+  // Patch existing record with updated conversation (after follow-ups)
+  const doPatchSave = useCallback(async () => {
+    const recordId = backendRecordId.current;
+    if (!recordId || !isLoggedIn()) return;
+    const convo = conversationRef.current;
+    if (convo.length <= 2) return; // No follow-ups yet
+    try {
+      await apiPatchReading(recordId, { ai_response: JSON.stringify(convo) });
+    } catch (err) {
+      console.error("[spread] backend patch failed:", err);
+    }
+  }, []);
+
+  // Called by CardInterpretation whenever the conversation changes (first reply + follow-ups)
+  const handleConversationUpdate = useCallback((messages: { role: string; content: string }[]) => {
+    conversationRef.current = messages;
+    // Build full text for local storage and aiText state
+    const fullText = messages
+      .map(m => m.role === "user" ? `【追问】${m.content}` : m.content)
+      .join("\n\n");
+    setAiText(fullText);
+
+    // If already saved to backend and this is a follow-up, PATCH
+    if (backendSaved.current && backendRecordId.current && messages.length > 2) {
+      doPatchSave();
+    }
+  }, [doPatchSave]);
 
   // Flush pending backend save on unmount or page hide (use sendBeacon for reliability)
   useEffect(() => {
@@ -419,6 +455,8 @@ export default function SpreadPage() {
       const curAllSpreads = allSpreadsRef2.current;
       const curAiText = aiTextRef.current;
       if (!curAiText) return;
+      const convo = conversationRef.current;
+      const aiPayload = convo.length > 2 ? JSON.stringify(convo) : curAiText;
       const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
       fetch(`${API_BASE}/api/readings`, {
         method: "POST",
@@ -429,7 +467,7 @@ export default function SpreadPage() {
         },
         body: JSON.stringify({
           question: curQuestion || "",
-          ai_response: curAiText,
+          ai_response: aiPayload,
           spread_type: (curSpreadType && curAllSpreads[curSpreadType]?.name) || "自定义牌阵",
           cards: curCards.map((c) => ({
             nameCN: c.card.nameCN,
@@ -1168,6 +1206,7 @@ export default function SpreadPage() {
                       allReversed={cards.map(c => c.isReversed)}
                       positions={cards.map(c => c.position)}
                       onAiText={setAiText}
+                      onConversationUpdate={handleConversationUpdate}
                       autoStart={true}
                       forOthers={forOthers}
                     />
