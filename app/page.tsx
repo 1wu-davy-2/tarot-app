@@ -70,7 +70,7 @@ export default function HomePage() {
       />
 
       <motion.div
-        className="relative z-10 flex flex-col items-center gap-4 sm:gap-10 max-w-lg mx-auto"
+        className="relative z-10 flex flex-col items-center gap-4 sm:gap-10 max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto"
         variants={container}
         initial="hidden"
         animate="show"
@@ -96,7 +96,7 @@ export default function HomePage() {
         </motion.div>
 
         {/* Entry cards grid */}
-        <motion.div variants={item} className="grid grid-cols-2 gap-3 sm:gap-6 w-full max-w-lg">
+        <motion.div variants={item} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 w-full">
           <EntryCard href="/daily" icon={Sparkles} title="每日卦算" enTitle="Daily Tarot" desc={today} />
           <EntryCard href="/spread" icon={LayoutGrid} title="牌阵占卜" enTitle="Card Spread" desc="多种牌阵 · 深度解读" />
           <EntryCard href="/journal" icon={BookHeart} title="塔罗日记" enTitle="Tarot Diary" desc="每日记录 · 心情点滴" />
