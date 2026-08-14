@@ -418,14 +418,15 @@ export default function SpreadPage() {
     }
   }, []);
 
-  // Patch existing record with updated conversation (after follow-ups)
+  // Patch existing record with updated conversation (first reply + follow-ups)
   const doPatchSave = useCallback(async () => {
     const recordId = backendRecordId.current;
     if (!recordId || !isLoggedIn()) return;
     const convo = conversationRef.current;
-    if (convo.length <= 2) return; // No follow-ups yet
+    if (convo.length < 2) return; // Need at least user question + AI answer
     try {
       await apiPatchReading(recordId, { ai_response: JSON.stringify(convo) });
+      console.log("[spread] PATCH successful, conversation length:", convo.length);
     } catch (err) {
       console.error("[spread] backend patch failed:", err);
     }
