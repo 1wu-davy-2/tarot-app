@@ -386,7 +386,10 @@ export default function SpreadPage() {
       const curSpreadType = spreadTypeRef2.current;
       const curAllSpreads = allSpreadsRef2.current;
       const curAiText = aiTextRef.current;
-      if (curCards.length === 0) return; // Only save if cards exist
+      if (curCards.length === 0) {
+        backendSaving.current = false;
+        return;
+      }
       // If conversation has follow-ups, store as JSON array; otherwise plain text (or empty string)
       const convo = conversationRef.current;
       const aiPayload = convo.length > 2 ? JSON.stringify(convo) : (curAiText || "");
@@ -409,6 +412,7 @@ export default function SpreadPage() {
       backendSaving.current = false;
       saveRetries.current += 1;
       if (saveRetries.current <= MAX_SAVE_RETRIES) {
+        if (saveTimer.current) clearTimeout(saveTimer.current);
         saveTimer.current = setTimeout(doSave, 3000 * saveRetries.current);
       }
     }
@@ -456,15 +460,15 @@ export default function SpreadPage() {
       backendSaving.current = true;
       if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
       const token = typeof window !== "undefined" ? localStorage.getItem("tarot_token") : null;
-      if (!token) return;
+      if (!token) { backendSaving.current = false; return; }
       const curCards = cardsRef.current;
       const curQuestion = questionRef2.current;
       const curSpreadType = spreadTypeRef2.current;
       const curAllSpreads = allSpreadsRef2.current;
       const curAiText = aiTextRef.current;
-      if (curCards.length === 0) return; // Only save if cards exist
+      if (curCards.length === 0) { backendSaving.current = false; return; }
       const convo = conversationRef.current;
-      const aiPayload = convo.length > 2 ? JSON.stringify(convo) : curAiText;
+      const aiPayload = convo.length > 2 ? JSON.stringify(convo) : (curAiText || "");
       const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
       fetch(`${API_BASE}/api/readings`, {
         method: "POST",

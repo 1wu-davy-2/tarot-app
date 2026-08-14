@@ -99,9 +99,9 @@ export function logout() {
 
 async function api<T = any>(
   path: string,
-  options: { method?: string; body?: any; auth?: boolean } = {}
+  options: { method?: string; body?: any; auth?: boolean; timeout?: number } = {}
 ): Promise<T> {
-  const { method = "GET", body, auth = false } = options;
+  const { method = "GET", body, auth = false, timeout = 10000 } = options;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -112,24 +112,38 @@ async function api<T = any>(
     if (token) headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-  const data = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
 
-  if (!res.ok) {
-    // Auto-logout on 401 (token expired/invalid)
-    if (res.status === 401 && auth) {
-      logout();
-      if (typeof window !== "undefined") window.dispatchEvent(new Event("auth-expired"));
+    clearTimeout(timeoutId);
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      // Auto-logout on 401 (token expired/invalid)
+      if (res.status === 401 && auth) {
+        logout();
+        if (typeof window !== "undefined") window.dispatchEvent(new Event("auth-expired"));
+      }
+      throw new Error(data.detail || "请求失败");
     }
-    throw new Error(data.detail || "请求失败");
-  }
 
-  return data as T;
+    return data as T;
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === "AbortError") {
+      throw new Error("请求超时");
+    }
+    throw err;
+  }
 }
 
 // ── Auth ──
