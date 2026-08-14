@@ -447,9 +447,22 @@ export default function SpreadPage() {
       .join("\n\n");
     setAiText(fullText);
 
-    // If already saved to backend and this is a follow-up, PATCH
-    if (backendSaved.current && backendRecordId.current && messages.length > 2) {
-      doPatchSave();
+    // Wait for initial doSave() to complete before PATCH
+    const attemptPatch = async () => {
+      // If not saved yet, wait for doSave() to finish (max 10 attempts = 5 seconds)
+      for (let i = 0; i < 10; i++) {
+        if (backendSaved.current && backendRecordId.current) {
+          doPatchSave();
+          return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      console.warn("[spread] PATCH abandoned: initial save never completed");
+    };
+
+    // Trigger PATCH for first AI response (messages.length === 2) or follow-ups
+    if (messages.length >= 2 && isLoggedIn()) {
+      attemptPatch();
     }
   }, [doPatchSave]);
 
