@@ -46,3 +46,17 @@ scripts/download-images.mjs
 
 # IDE
 .idea/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local WIP / Screenshots / Docs
+screenshots/
+docs/superpowers/
+*.md.bak
+*_draft.*
+*_wip.*
+tarot_astrology_app_redesign.html
