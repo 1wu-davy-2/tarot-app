@@ -386,9 +386,10 @@ export default function SpreadPage() {
       const curSpreadType = spreadTypeRef2.current;
       const curAllSpreads = allSpreadsRef2.current;
       const curAiText = aiTextRef.current;
-      // If conversation has follow-ups, store as JSON array; otherwise plain text
+      if (curCards.length === 0) return; // Only save if cards exist
+      // If conversation has follow-ups, store as JSON array; otherwise plain text (or empty string)
       const convo = conversationRef.current;
-      const aiPayload = convo.length > 2 ? JSON.stringify(convo) : curAiText;
+      const aiPayload = convo.length > 2 ? JSON.stringify(convo) : (curAiText || "");
       const result = await apiSaveReading({
         question: curQuestion || "",
         ai_response: aiPayload,
@@ -461,7 +462,7 @@ export default function SpreadPage() {
       const curSpreadType = spreadTypeRef2.current;
       const curAllSpreads = allSpreadsRef2.current;
       const curAiText = aiTextRef.current;
-      if (!curAiText) return;
+      if (curCards.length === 0) return; // Only save if cards exist
       const convo = conversationRef.current;
       const aiPayload = convo.length > 2 ? JSON.stringify(convo) : curAiText;
       const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
@@ -495,9 +496,9 @@ export default function SpreadPage() {
     };
   }, []);
 
+  // Auto-save to backend when all cards flipped (regardless of AI interpretation)
   useEffect(() => {
-    if (aiText && spreadSaved.current && spreadId.current) {
-      updateReading(spreadId.current, { aiInterpretation: aiText });
+    if (phase === "interpreting" && cards.length > 0) {
       if (isLoggedIn() && !backendSaved.current && !backendSaving.current) {
         if (saveTimer.current) clearTimeout(saveTimer.current);
         pendingSave.current = doSave;
@@ -507,7 +508,14 @@ export default function SpreadPage() {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [aiText, doSave]);
+  }, [phase, cards.length, doSave]);
+
+  // Update local storage when AI text changes
+  useEffect(() => {
+    if (aiText && spreadSaved.current && spreadId.current) {
+      updateReading(spreadId.current, { aiInterpretation: aiText });
+    }
+  }, [aiText]);
 
   const spread = spreadType ? allSpreads[spreadType] : null;
 
