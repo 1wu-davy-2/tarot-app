@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const model = config.model || "deepseek-v4-pro"; // fallback — actual model from backend config
+    const model = config.model || "deepseek-flash"; // fallback — actual model from backend config
 
     const { cards, isReversed, question, spreadType, positions, style, history, birthChart } = body;
     if (!cards || !isReversed || cards.length === 0) {

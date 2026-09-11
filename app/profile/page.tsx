@@ -709,7 +709,7 @@ export default function ProfilePage() {
         >
           {(() => {
             const MODELS = [
-              { id: "deepseek", name: "DeepSeek", icon: "🔮", model: "V4-Pro" },
+              { id: "deepseek", name: "DeepSeek", icon: "🔮", model: "V4.1-Flash" },
               { id: "openai", name: "OpenAI", icon: "🧠", model: "GPT-5" },
               { id: "claude", name: "Claude", icon: "✨", model: "Opus 4.7" },
               { id: "gemini", name: "Gemini", icon: "💎", model: "2.0 Pro" },

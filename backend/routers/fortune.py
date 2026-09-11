@@ -589,7 +589,7 @@ def generate_daily_card_sentence():
                 "Content-Type": "application/json",
             },
             json={
-                "model": "deepseek-chat",
+                "model": settings.deepseek_model,
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.9,
                 "max_tokens": 50,

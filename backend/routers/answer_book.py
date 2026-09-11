@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from database import get_db
+from config import get_settings
 from routers.auth import get_current_user
 from models import User, AnswerBookRecord
 from routers.checkin import get_or_create_quota
@@ -32,6 +33,7 @@ class UpdateInterpretationRequest(BaseModel):
 
 async def _stream_answer_interpretation(question: str, answer: str):
     """Stream AI interpretation of answer book result via DeepSeek."""
+    settings = get_settings()
     api_key = os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
         yield f"data: {json.dumps({'content': 'AI 服务未配置。请设置 DEEPSEEK_API_KEY 环境变量。'})}\n\n"
@@ -63,7 +65,7 @@ async def _stream_answer_interpretation(question: str, answer: str):
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "deepseek-chat",
+                    "model": settings.deepseek_model,
                     "messages": [
                         {"role": "system", "content": system},
                         {"role": "user", "content": user_prompt},
